@@ -505,6 +505,7 @@ CPA > 3× יעד
 | Background swap | ❌ | ✅ |
 | Text overlay אוטומטי | ❌ | ✅ |
 | שליפה מגלריה | ✅ בחירה חכמה לפי הקמפיין | |
+| **העלאת וידאו ידנית ע"י המשתמש** | ✅ MP4/MOV ≤ 4GB, aspect 1:1/4:5/9:16/16:9, משך 1-241s (פר [decisions-log §1.9](decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure)) | |
 | יצירת וידאו AI | ❌ | ✅ |
 | Voice-over AI | ❌ | ✅ |
 | Continuous creative generation | ✅ 3-5/week additions | ✅ 10+/week |
@@ -786,6 +787,9 @@ create table businesses (
   meta_ad_account_id text not null,       -- 'act_1390480923117690'
   meta_page_id text not null,
   meta_access_token_encrypted text not null,
+  meta_access_token_expires_at timestamptz, -- nullable; NULL for system_user_token mode
+  meta_auth_mode text not null default 'user_token'
+    check (meta_auth_mode in ('user_token','system_user_token')),
   gcp_project_id text not null default 'bemtech-478413',
   monthly_budget_ils numeric,
   daily_budget_ils numeric,
@@ -815,6 +819,12 @@ create table business_knowledge (
   questionnaire_answers jsonb,            -- {ideal_customer: "...", pain: "...", ...}
   brand_voice jsonb,                      -- {colors: [...], tone: "...", forbidden_words: [...]}
   competitors text[],                     -- URLs
+  -- tracking infrastructure (Day-Zero guardrail — CAMPAIGN_BUILDING §7)
+  tracking_verified boolean not null default false,
+  tracking_pixel_id text,
+  tracking_capi_configured boolean not null default false,
+  tracking_aem_priority_events jsonb,     -- ordered list of up to 8 AEM events
+  tracking_domain_verified text,          -- the verified domain string, when green
   -- meta
   last_refreshed_at timestamptz not null default now(),
   created_at timestamptz not null default now()
@@ -834,6 +844,7 @@ create table baselines (
   metric text not null,                   -- 'cpa' | 'ctr' | 'roas' | 'cpm' | ...
   value numeric not null,
   window_days int not null,               -- 7 | 14 | 30 (reactive 2026); 60/90 למעקב היסטורי בלבד
+  low_confidence boolean not null default false, -- true כש-window חסר היסטוריה (cold-start, EVALUATION §9 #1)
   computed_at timestamptz not null default now()
 );
 
@@ -862,11 +873,13 @@ create table approvals (
   urgency text check (urgency in ('low','medium','high','urgent')) default 'medium',
 
   status text not null default 'pending' check (status in (
-    'pending','approved','rejected','executed','failed','expired'
+    'pending','approved','rejected','executed','failed','expired','dry_run'
   )),
   approved_at timestamptz,
-  approved_by text,                       -- user email | 'auto' | 'terminal'
+  approved_by text,                       -- 'admin@aiweon.co.il' (web) | 'terminal' (CLI) | 'auto' (v2)
+  approved_by_override jsonb,             -- {rule, reason, overridden_by} on soft-guardrail override
   rejection_reason text,
+  guardrail_override_required boolean     -- generated from payload.guardrail_override_required
 
   executed_at timestamptz,
   execution_result jsonb,                 -- Meta API response or error
@@ -947,15 +960,19 @@ create table creative_gallery (
   meta_creative_id text,                  -- set after uploaded to Meta
   uploaded_to_meta_at timestamptz,
   performance_snapshot jsonb,             -- CTR/spend/conv at last check
+  service_tag text,                       -- which business service this asset promotes (nullable; §1.9)
+  deleted_at timestamptz,                 -- soft-delete for gallery UI; blocked while asset is live in Meta
   created_at timestamptz not null default now()
 );
 
 create index on creative_gallery (business_id, created_at desc);
+create index on creative_gallery (business_id, service_tag) where service_tag is not null;
+create index on creative_gallery (business_id, kind, deleted_at);
 ```
 
 ### 10.7 RLS Policies (Row-Level Security)
 
-גם ב-MVP single-tenant — להכין תשתית ל-v2 multi-tenant:
+גם ב-MVP single-tenant — RLS נשאר enabled כדי להכין תשתית ל-v2 multi-tenant (ר' [decisions-log §1.7](decisions-log.md#17-גישת-משתמשים-שניים--single-user-mvp--c-hook-לעתיד)):
 
 ```sql
 alter table businesses        enable row level security;
@@ -964,13 +981,63 @@ alter table baselines         enable row level security;
 alter table approvals         enable row level security;
 alter table agent_decisions   enable row level security;
 alter table creative_gallery  enable row level security;
+alter table heartbeats        enable row level security;
 
--- example policy (to be refined when multi-tenant):
-create policy "users see own businesses" on businesses
-  for select using (id in (select business_id from user_business_access where user_id = auth.uid()));
+-- MVP policies (per §1.7): operator is a single email in ENV.
+-- Backend uses service_role (bypasses RLS); frontend uses anon key + authenticated session
+-- filtered by an allow-list (ALLOWED_OPERATOR_EMAIL).
+create policy "authenticated operator reads all" on approvals
+  for select using (auth.jwt() ->> 'email' is not null);
+
+create policy "authenticated operator updates approvals" on approvals
+  for update using (auth.jwt() ->> 'email' is not null)
+  with check (status in ('approved','rejected'));
+
+-- Same pattern for agent_decisions, business_knowledge, heartbeats, baselines.
+-- NO user_business_access table in MVP — the allow-list is enforced in frontend middleware,
+-- not in the DB. A user_business_access table lands in v2 when a second business joins.
 ```
 
 ב-MVP הסוכן משתמש ב-`service_role` key שעוקף RLS — לא מפריע.
+
+### 10.8 `heartbeats` — Cron Liveness
+
+Observability אופרציונלי, נפרד מטבלת `agent_decisions` (שמתעדת **מה** הסוכן חשב/החליט). `heartbeats` מתעדת **האם ומתי** ה-runner רץ בפועל. ה-frontend מזהה "3 כשלונות רצופים" ומתריע (ר' frontend PRD §141-156).
+
+```sql
+create table heartbeats (
+  id uuid primary key default gen_random_uuid(),
+  business_id uuid references businesses(id) on delete cascade,
+  flow text not null,                     -- 'daily_observe_propose' | 'execute_approvals' | 'weekly_creative_firehose'
+  phase text not null check (phase in ('start','end','error')),
+  ran_at timestamptz not null default now(),
+  duration_ms int,                        -- populated on 'end' / 'error'
+  exit_code int,                          -- 0 on 'end', non-zero on 'error'
+  error_message text,
+  details jsonb,                          -- flow-specific payload (rows processed, proposals written, ...)
+  created_at timestamptz not null default now()
+);
+
+create index on heartbeats (business_id, flow, ran_at desc);
+```
+
+**פרוטוקול כתיבה:** כל runner (`runners/*.sh`) חייב לכתוב `phase='start'` בתחילה, ובסיום `phase='end'` (success) או `phase='error'` (trap על exit non-zero). בלי start/end match — ה-frontend מחשיב כ-"runner crashed mid-flow".
+
+**`expected_duration` — איפה הוא חי:** אין עמודה בטבלה. הערכים מוגדרים כ-constant ב-`campaigner/lib/flow_config.py` (`FLOW_EXPECTED_DURATION_MS`): `daily_observe_propose=300_000` (5min), `execute_approvals=60_000` (1min), `weekly_creative_firehose=480_000` (8min), `monthly-baseline-refresh=120_000` (2min). הערכים תואמים ל-§18.1. ה-frontend קורא אותם דרך `/api/flow-config` (מחזיר JSON מה-constant) — אין צורך בטבלה נפרדת. שינוי ערך = PR ל-flow_config.py.
+
+### 10.9 Schema Additions (migration 008)
+
+מוסיף שדות ש-backend/frontend PRDs מפנים אליהם אבל 001-007 לא כללו. ר' [`migrations/008_schema_additions.sql`](../../migrations/008_schema_additions.sql) לקוד המלא.
+
+| שדה | טבלה | מטרה | מקור |
+|---|---|---|---|
+| `meta_access_token_expires_at` | `businesses` | מעקב תוקף טוקן structured (מחליף parsing של טקסט חופשי ב-`agent_decisions.summary`) | frontend PRD "Token-expiry warning" + backend PRD `rotate-token` CLI |
+| `tracking_verified` + 4 שדות tracking_* | `business_knowledge` | Day-Zero pre-flight — guardrail `verify_tracking_infrastructure` קורא את `tracking_verified` | CAMPAIGN_BUILDING §7, backend PRD AC |
+| `low_confidence` | `baselines` | baselines שנבנו מ-<30 ימי היסטוריה (cold-start); agent מוסיף `requires_human_review=true` | backend PRD Phase 1 + EVALUATION §9 #1 |
+| `approved_by_override` | `approvals` | {rule, reason, overridden_by} כש-soft-guardrail הותעלם | backend PRD "Guardrails split: hard vs soft" |
+| `guardrail_override_required` (generated) | `approvals` | משקף `payload.guardrail_override_required`, לשאילתות + Realtime filters ללא חפירה ב-JSONB | backend PRD + frontend "Approve with override" |
+
+**פרוטוקול כתיבת `payload.guardrail_override_required`:** `propose_task.py` מקבל רשימת violations מ-`check_guardrails.py`. אם **כל** ה-violations הן soft (לא hard) — propose_task מכניס `guardrail_override_required=true` ב-payload ושמות ה-rules ב-`payload.violated_rules`, ו-rationale כולל את השורה "חורג מ-<rule> — ר' knowledge-doc". אם יש hard violation — propose_task לא כותב approval בכלל (silent drop). העמודה ה-generated אחראית ל-indexing.
 
 ---
 
@@ -1099,18 +1166,68 @@ Print a summary of executed/failed counts.
 ### 11.5 Flow 3: Onboarding — CLI ידני
 
 ```bash
-campaigner onboard \
-  --name "Aiweon" \
-  --meta-account "act_1390480923117690" \
-  --meta-page-id "123..." \
-  --questionnaire-file onboarding/aiweon.yaml
+campaigner onboard --config onboarding/aiweon.yaml
 ```
 
 סקריפט עצמאי (לא Claude) שמטפל ב:
 1. כתיבה ל-`businesses`
 2. questionnaire אינטראקטיבי (או טעינה מ-YAML)
 3. כתיבה ל-`business_knowledge`
-4. שליפת 30 ימי היסטוריה → חישוב baselines → כתיבה ל-`baselines`
+4. שליפת 30 ימי היסטוריה → חישוב baselines → כתיבה ל-`baselines` (window חסר → `low_confidence=true`)
+
+**מבנה `onboarding/<business>.yaml`:**
+
+```yaml
+# structured fields -> businesses + business_knowledge (§15.1)
+business:
+  name: "Aiweon"
+  timezone: "Asia/Jerusalem"
+  meta_ad_account_id: "act_1390480923117690"
+  meta_page_id: "123..."
+  meta_auth_mode: "user_token"            # or "system_user_token" after BV
+  monthly_budget_ils: 30000
+  daily_budget_ils: 1000
+  primary_kpi: "cpl"                       # cpa | cpl | roas | cpm | cpi
+
+knowledge:
+  vertical: "leads"                        # ecommerce | leads | awareness | app | other
+  website_url: "https://aiweon.co.il"
+  service_regions: ["ישראל"]
+  customer_age_min: 25
+  customer_age_max: 55
+  products:
+    - {name: "...", description: "...", price_range: "..."}
+  delivery_time_days: 7
+  strong_seasons: ["פסח","ראש השנה"]
+  weak_seasons: ["אוגוסט"]
+  competitors: ["https://competitor1.com"]
+
+# judgmental fields -> business_knowledge.questionnaire_answers (§15.2)
+# Optional at onboarding; Phase 4 dry-run fills these against real outputs.
+questionnaire:
+  ideal_customer: null                     # null = [TBD] — filled post-dry-run
+  main_pain: null
+  usp: null
+  what_worked_before: null
+  what_failed_before: null
+  brand_sensitivities: null
+
+brand_voice:                               # business_knowledge.brand_voice JSONB
+  tone: null                               # filled per decisions-log §1.5 (Hebrew copy style)
+  forbidden_words: []
+  colors: []
+
+# tracking infrastructure (Day-Zero guardrail — CAMPAIGN_BUILDING §7)
+# Must all be true/green before any new_campaign proposal is allowed.
+tracking:
+  verified: false                          # master flag; operator flips when all below are green
+  pixel_id: null
+  capi_configured: false
+  aem_priority_events: []                  # up to 8, in priority order
+  domain_verified: null                    # domain string when green
+```
+
+הסקריפט כותב null-values בשדות judgmental — הוא לא חוסם onboarding עליהם. רק `business.*` + `knowledge.vertical` + `knowledge.website_url` חובה. ה-agent מזהה null → escalation per EVALUATION §9 #2 עד שהם מלאים.
 
 ### 11.6 Tool Contract Pattern
 
@@ -1531,7 +1648,63 @@ CPA < יעד × 0.8 למשך 5-7 ימים יציב + hook rate > 35%
   └─ שום אחד מהנ"ל? → התראה "ייתכן תקלה טכנית — בדוק Pixel/Events"
 ```
 
-### 17.4 כרטיס משימה - דוגמה (`approvals` row + `agent_decisions` trail)
+### 17.5 תרחיש: הצעת `new_campaign` מודעת-תקציב (Gate 0 — budget precheck)
+
+**החלטה:** [decisions-log §1.9](decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure). **יישום מלא:** [decision-tree.md §T7](../../campaigner/prompts/decision-tree.md#t7--budget-aware-new_campaign-precheck).
+
+**תנאי כניסה:** הסוכן שוקל להציע `task_type='new_campaign'` (מסיבה כלשהי — שירות חדש, ביצועים רוויים, winner שצריך הרחבה).
+
+```
+לפני כל propose new_campaign:
+  headroom = monthly_budget_ils - (active daily_budget × 30 + spend_this_month)
+  min_campaign_monthly = (target_cpa × 50 / 7) × 30
+
+  ├─ headroom ≥ min_campaign_monthly?
+  │  └─ המשך ל-T8 (structure validator)
+  │
+  ├─ headroom < min_campaign_monthly + יש winner (CPA < target × 0.8, 5+ ימים)?
+  │  └─ propose scale_up על ה-winner (לא new_campaign)
+  │
+  └─ headroom < min_campaign_monthly + אין winner + יש שירות לא-מכוסה?
+     └─ propose alert עם המלצת הגדלת תקציב:
+        "לפתוח קמפיין ל-<service> בעלות יעד ₪X נדרשים ₪Y/חודש נוספים.
+         צפי: Z לידים נוספים לפי baseline של <reference>."
+```
+
+**כלי:** `python -m campaigner.tools.compute_budget_headroom --business-id $BUSINESS_ID` מחזיר את כל הערכים + החלטה.
+
+### 17.6 תרחיש: אימות מבנה portfolio (Gate 0 — multi-service structure validator)
+
+**החלטה:** [decisions-log §1.9](decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure). **יישום מלא:** [decision-tree.md §T8](../../campaigner/prompts/decision-tree.md#t8--multi-service-structure-validator).
+
+**תנאי כניסה:** §17.5 עבר; הסוכן מציע `new_campaign` לעסק עם ≥ 2 שירותים ב-`business_knowledge.services[]`.
+
+```
+קרא business_knowledge.persona_groups[] → G = number of groups
+קרא business_knowledge.services[].target_cpl → check uniformity (±30%)
+
+  ├─ G == 1 + uniform CPL?
+  │  └─ 1 campaign + 1 ad set, service_tag per creative
+  │
+  ├─ G == 1 + CPL variance > 30%?
+  │  └─ 1 campaign + up to min(N_services, 3) ad sets, CBO on
+  │
+  ├─ G ≥ 2 + monthly_budget ≥ G × min_campaign_monthly?
+  │  └─ G campaigns (but respect max_parallel_campaigns_per_business=2)
+  │
+  └─ G ≥ 2 + תקציב לא מספיק?
+     └─ force G=1 + requires_human_review=true + rationale מסביר מה חסר
+```
+
+**Hard caps (כלים ב-check_guardrails.py):**
+- `max_ad_sets_per_campaign = 3`
+- `max_parallel_campaigns_per_business = 2` (3rd ↔ `requires_human_review=true`)
+- `cbo_only_across_services = true` — ABO-per-service = rejection with rule `deprecated_abo_service_split`
+- `cannibalization_flag_on_broad_audience_overlap` — אם 2 קמפיינים פעילים על אותו gender/age/region, הרצת observe-propose הבאה פותחת alert
+
+**כלי:** `python -m campaigner.tools.choose_campaign_structure --business-id $BUSINESS_ID --target-service <name>` מחזיר את ההמלצה.
+
+### 17.7 כרטיס משימה - דוגמה (`approvals` row + `agent_decisions` trail)
 
 ```
 🔔 הצעה: קמפיין "מבצע אביב - Aiweon"
@@ -1572,6 +1745,8 @@ CPA < יעד × 0.8 למשך 5-7 ימים יציב + hook rate > 35%
 | `0 3 1 * *` | monthly-baseline-refresh | `python -m campaigner.scripts.refresh_baselines --business-id aiweon` | 1-2min |
 
 `runners/*.sh` קוראים ל-`claude -p "..."` עם משתני סביבה (ר' §11.8).
+
+**`monthly-baseline-refresh` — runtime:** אותו Docker image של שאר ה-flows, אבל **entrypoint שונה** (`python -m campaigner.scripts.refresh_baselines`, לא `bash runners/*.sh`). רץ כ-Cloud Run Job נפרד (`campaigner-baseline-refresh`) תחת אותו service account (`campaigner-runner@bemtech-478413.iam.gserviceaccount.com`) כדי לשתף את secret access patterns. **אין קריאה ל-Claude** ב-flow הזה — ה-script דטרמיניסטי (Meta Insights API → חישוב rolling averages → UPSERT ל-`baselines`). לכן `ANTHROPIC_API_KEY` לא נטען. שורת `heartbeats` נכתבת בתחילה/סוף כמו בכל flow.
 
 #### Weekly Creative Firehose — מה זה עושה
 
@@ -1699,13 +1874,28 @@ meta-ads-automation-ai-fork/
 │       ├── CAMPAIGNER_AGENT_SPEC.md    # האפיון הראשוני (reference)
 │       └── langgraph-v2-migration.md   # ← ייכתב ב-v2 (עדיין לא קיים)
 │
-├── migrations/                         # ← חדש: Supabase SQL migrations
+├── migrations/                         # ← חדש: Supabase SQL migrations (dual-write public+staging per 1.4)
 │   ├── 001_businesses.sql
 │   ├── 002_business_knowledge.sql
 │   ├── 003_baselines.sql
 │   ├── 004_approvals.sql
 │   ├── 005_agent_decisions.sql
-│   └── 006_creative_gallery.sql
+│   ├── 006_creative_gallery.sql
+│   └── 007_heartbeats.sql              # ← נוסף per backend PRD §141
+│
+├── scripts/                            # ← dev-ops scripts
+│   ├── bootstrap_local_db.sh           # docker up + migrations
+│   └── validate_local_env.py           # connectivity + schema + round-trip
+│
+├── web/                                # ← חדש: Next.js frontend (monorepo sibling per decision 1.6)
+│   ├── app/                            # Next.js app router (routes + layouts)
+│   ├── components/
+│   ├── lib/
+│   │   └── supabase.ts                 # Supabase client (anon key; RLS enforces access)
+│   ├── Dockerfile                      # builds `campaigner-web` image — separate from root backend Dockerfile
+│   ├── package.json
+│   ├── next.config.js
+│   └── README.md
 │
 ├── meta_ads_manager.py                 # ← קיים, נשאר
 ├── image_generator.py                  # ← קיים, נשאר
@@ -1715,10 +1905,11 @@ meta-ads-automation-ai-fork/
 ├── test_credentials.py                 # ← קיים, שימושי
 ├── diagnose_page_permissions.py        # ← קיים, שימושי
 │
-├── requirements.txt                    # ← מעודכן
+├── requirements.txt                    # ← מעודכן (psycopg[binary])
 ├── .env.example                        # ← מעודכן
 ├── CLAUDE.md                           # ← קיים
-├── Dockerfile                          # ← חדש (Claude CLI + Python + קוד)
+├── Dockerfile                          # ← backend container (Claude CLI + Python)
+├── docker-compose.yml                  # ← campaigner + postgres services (dev-local)
 └── README.md                           # ← קיים
 ```
 
@@ -1728,6 +1919,7 @@ meta-ads-automation-ai-fork/
 - **`campaigner/lib/*.py` = קוד משותף.** גם tools/ וגם cli/ מייבאים ממנו.
 - **הקוד הקיים (`automation_main.py` וכו')** משמש כ-reference ונעטף תוך `campaigner/lib/meta_client.py`.
 - **`CAMPAIGNER.md` הוא הקובץ המרכזי** שClaude קורא כדי לדעת מה לעשות — שם מתועד הפרוטוקול של §11.3-§11.4.
+- **`web/` הוא sibling ב-monorepo** (לא repo נפרד) — decision 1.6. שני Dockerfile-ים ב-repo: `Dockerfile` בשורש בונה את ה-backend, `web/Dockerfile` בונה את ה-`campaigner-web` image. GitHub Actions משתמש ב-path filters כדי לבנות רק את הצד שהשתנה.
 
 ---
 

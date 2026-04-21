@@ -84,7 +84,7 @@ cron (Cloud Scheduler)
 | `meta_ads_manager.py` | `MetaAdsManager` wrapping `facebook-business` SDK — will be wrapped by `campaigner/lib/meta_client.py` |
 | `image_generator.py` | `ImageGenerator` wrapping Vertex AI Imagen — will be wrapped by `campaigner/lib/creative.py` |
 | `automation_main.py`, `run_automation.py`, `create_*.py`, `example_real_estate.py` | Legacy one-off scripts — reference only |
-| `test_credentials.py`, `diagnose_page_permissions.py` | Still useful for setup validation |
+| `scripts/validate_credentials.py`, `diagnose_page_permissions.py` | Setup validation — Anthropic + GCP + Meta (see task 2.3 doc) |
 
 ## Tech Stack (MVP)
 
@@ -135,8 +135,8 @@ BUSINESS_ID=aiweon-uuid
 
 ```bash
 pip install -r requirements.txt
-python test_credentials.py          # Meta + GCP sanity check
-python diagnose_page_permissions.py # Meta Page permissions
+docker compose run --rm campaigner python scripts/validate_credentials.py  # Anthropic + GCP + Meta
+python diagnose_page_permissions.py                                        # Meta Page permissions
 ```
 
 ## Running
