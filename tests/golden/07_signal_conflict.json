@@ -1,0 +1,52 @@
+{
+  "id": "07_signal_conflict",
+  "title": "Signal conflict — hook 45% (Gate 1 winner) + CPA 2× target (Gate 2 loser)",
+  "source": "backend-prd §3.3 E1 #7; CAMPAIGN_EVALUATION §9 #3",
+  "tagged_gate": "human_review",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "campaign": {
+      "id": "120220000000000007",
+      "name": "Aiweon - Conversion Ads",
+      "status": "ACTIVE",
+      "days_active": 22,
+      "conversions_7d": 55,
+      "learning_status": "ACTIVE",
+      "daily_budget_ils": 450,
+      "daily_spend_ils": 448
+    },
+    "insights_7d": {
+      "impressions": 68000,
+      "clicks": 1900,
+      "ctr": 0.028,
+      "hook_rate": 0.45,
+      "thumb_stop_rate": 0.41,
+      "frequency": 1.9,
+      "spend_ils": 3136,
+      "conversions": 55,
+      "cpa_ils": 57
+    },
+    "baselines": [
+      {"scope": "campaign", "scope_id": "120220000000000007", "metric": "cpa", "value": 30, "window_days": 30},
+      {"scope": "campaign", "scope_id": "120220000000000007", "metric": "hook_rate", "value": 0.31, "window_days": 30}
+    ],
+    "targets": {
+      "cpa_ils": 28
+    }
+  },
+  "expected": {
+    "decision_class": "proposal",
+    "proposal": {
+      "task_type": "new_creative",
+      "target_kind": "campaign",
+      "target_id": "120220000000000007",
+      "urgency": "medium",
+      "payload_keys": ["hypothesis", "requires_human_review"],
+      "rationale_must_contain": ["hook", "CPA", "landing", "offer"],
+      "rationale_must_not_contain": ["clear winner", "definitive"],
+      "requires_human_review": true
+    },
+    "guardrail_violations": []
+  },
+  "notes": "Hook 45% is excellent (Gate 1 winner). CPA ₪57 is 2× target ₪28 (Gate 2 loser). Pattern per decision-tree §T1 'CTR high, no conversions' → landing page / offer problem, not creative problem. Agent should propose investigation path (new angle variations OR flag landing page issue) with requires_human_review=true so operator decides which hypothesis to test. Must NOT frame the campaign as a decisive winner or loser."
+}

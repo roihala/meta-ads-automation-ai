@@ -1,0 +1,57 @@
+{
+  "id": "10_cpl_spike",
+  "title": "CPL spike 2.5× baseline overnight — no obvious creative / audience cause",
+  "source": "backend-prd §3.3 E1 #10; CAMPAIGN_EVALUATION §9 #6; spec §17.3",
+  "tagged_gate": "human_review",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "campaign": {
+      "id": "120220000000000010",
+      "name": "Aiweon - Steady Leads",
+      "status": "ACTIVE",
+      "days_active": 60,
+      "conversions_7d": 42,
+      "learning_status": "ACTIVE",
+      "daily_budget_ils": 350,
+      "daily_spend_ils": 348
+    },
+    "insights_24h": {
+      "impressions": 11800,
+      "clicks": 98,
+      "ctr": 0.0083,
+      "hook_rate": 0.29,
+      "frequency": 1.9,
+      "spend_ils": 348,
+      "conversions": 3,
+      "cpl_ils": 116
+    },
+    "insights_prior_7d_avg": {
+      "ctr": 0.016,
+      "hook_rate": 0.33,
+      "cpl_ils": 46
+    },
+    "baselines": [
+      {"scope": "campaign", "scope_id": "120220000000000010", "metric": "cpl", "value": 46, "window_days": 30}
+    ],
+    "account_wide_context": {
+      "other_campaigns_similar_drop": false,
+      "calendar_anomaly": false,
+      "known_external_event": null
+    }
+  },
+  "expected": {
+    "decision_class": "proposal",
+    "proposal": {
+      "task_type": "pause_campaign",
+      "target_kind": "campaign",
+      "target_id": "120220000000000010",
+      "urgency": "high",
+      "payload_keys": ["reason", "pause_confirmation_required", "requires_human_review"],
+      "rationale_must_contain": ["CPL", "2.5", "Pixel", "ספייק"],
+      "rationale_must_not_contain": ["Frequency", "fatigue"],
+      "requires_human_review": true
+    },
+    "guardrail_violations": []
+  },
+  "notes": "CPL 116 / baseline 46 = 2.52× overnight. Not account-wide (T3 not triggered). No calendar / external event. Agent surfaces as pause_campaign WITH requires_human_review=true AND urgency=high — operator confirms before pause executes. Rationale must suggest technical causes (Pixel break, Events API drop) — not creative fatigue (Frequency 1.9 is fine)."
+}

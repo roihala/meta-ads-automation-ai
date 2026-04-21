@@ -1,0 +1,54 @@
+{
+  "id": "02_winner_scale_up",
+  "title": "Winner campaign post-learning — CPA ₪38 vs target ₪50, hook 42%, freq 1.6, stable 6 days",
+  "source": "backend-prd §3.3 E1 #2; CAMPAIGN_EVALUATION §7 scenario B; spec §17.2",
+  "tagged_gate": "gate_2_campaign",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "campaign": {
+      "id": "120220000000000002",
+      "name": "Aiweon - Lead Gen - Advisory",
+      "status": "ACTIVE",
+      "objective": "OUTCOME_LEADS",
+      "days_active": 21,
+      "conversions_7d": 84,
+      "learning_status": "ACTIVE",
+      "daily_budget_ils": 500,
+      "daily_spend_ils": 478
+    },
+    "insights_7d": {
+      "impressions": 84000,
+      "clicks": 1470,
+      "ctr": 0.0175,
+      "hook_rate": 0.42,
+      "frequency": 1.6,
+      "spend_ils": 3346,
+      "conversions": 88,
+      "cpa_ils": 38.02,
+      "cpm_ils": 39.8
+    },
+    "baselines": [
+      {"scope": "campaign", "scope_id": "120220000000000002", "metric": "cpa", "value": 52.4, "window_days": 30},
+      {"scope": "campaign", "scope_id": "120220000000000002", "metric": "hook_rate", "value": 0.31, "window_days": 30},
+      {"scope": "campaign", "scope_id": "120220000000000002", "metric": "frequency", "value": 1.8, "window_days": 7}
+    ],
+    "targets": {
+      "cpa_ils": 50
+    }
+  },
+  "expected": {
+    "decision_class": "proposal",
+    "proposal": {
+      "task_type": "scale_up",
+      "target_kind": "campaign",
+      "target_id": "120220000000000002",
+      "urgency": "medium",
+      "payload_keys": ["old_daily_budget_ils", "new_daily_budget_ils", "increase_pct"],
+      "rationale_must_contain": ["CPA", "baseline", "hook"],
+      "rationale_must_not_contain": ["frequency > 3", "duplicate"],
+      "requires_human_review": false
+    },
+    "guardrail_violations": []
+  },
+  "notes": "CPA 0.76× target + hook 0.42 > 0.35 + freq 1.6 < 2.0 → eligible for 30% bump per decision-tree §T2 (default 20%; 30% unlocked by hook>35% AND freq<2.0). Budget formula check: (50 × 50) / 7 = 357 — 500 is well above. guardrail budget_jump_max_30pct permits 30% (500 → 650) but not more. Test accepts either 20% or 30% — the rationale decides which."
+}

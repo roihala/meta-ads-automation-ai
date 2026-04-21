@@ -1,0 +1,56 @@
+{
+  "id": "01_gate1_kill_hook_low",
+  "title": "Creative fails Gate 1 — hook 18% + CTR 0.58% after 48h with 1,200 impressions",
+  "source": "backend-prd §3.3 E1 #1; CAMPAIGN_EVALUATION §7 scenario A; spec §17.0",
+  "tagged_gate": "gate_1_creative",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "campaign": {
+      "id": "120220000000000001",
+      "name": "Aiweon - Ecommerce Spring",
+      "status": "ACTIVE",
+      "objective": "OUTCOME_SALES",
+      "days_active": 14,
+      "conversions_7d": 72,
+      "learning_status": "ACTIVE"
+    },
+    "ad": {
+      "id": "120220000000000101",
+      "adset_id": "120220000000000051",
+      "creative_kind": "image",
+      "hours_live": 48
+    },
+    "insights_48h": {
+      "impressions": 1200,
+      "clicks": 7,
+      "ctr": 0.0058,
+      "hook_rate": 0.18,
+      "thumb_stop_rate": 0.16,
+      "spend_ils": 180,
+      "conversions": 0
+    },
+    "baselines": [
+      {"scope": "account", "metric": "hook_rate", "value": 0.33, "window_days": 30},
+      {"scope": "account", "metric": "ctr", "value": 0.019, "window_days": 30}
+    ]
+  },
+  "expected": {
+    "decision_class": "proposal",
+    "proposal": {
+      "task_type": "pause_adset",
+      "target_kind": "ad",
+      "target_id": "120220000000000101",
+      "urgency": "medium",
+      "payload_keys": ["ad_id", "reason"],
+      "rationale_must_contain": ["Gate 1", "hook", "25%"],
+      "rationale_must_not_contain": ["frequency", "fatigue", "freq"],
+      "requires_human_review": false
+    },
+    "followup_proposal": {
+      "task_type": "new_creative",
+      "rationale_must_contain": ["angle", "hook"]
+    },
+    "guardrail_violations": []
+  },
+  "notes": "Per decision-tree.md §T0: hook < 25% at 48h with ≥ 1,000 impressions AND ≥ 50 clicks triggers KILL. Here clicks=7 < 50 — on the margin, but hook 0.18 << 0.25 is definitive. The agent must NOT cite Frequency (guardrail no_frequency_only_kill fires on that rationale)."
+}

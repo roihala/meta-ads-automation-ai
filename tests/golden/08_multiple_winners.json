@@ -1,0 +1,67 @@
+{
+  "id": "08_multiple_winners",
+  "title": "Two winning creatives in same ad set — present 2-3 options to operator",
+  "source": "backend-prd §3.3 E1 #8; CAMPAIGN_EVALUATION §9 #4",
+  "tagged_gate": "gate_2_campaign",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "campaign": {
+      "id": "120220000000000008",
+      "name": "Aiweon - Multi-Creative Test",
+      "status": "ACTIVE",
+      "days_active": 18,
+      "conversions_7d": 93,
+      "learning_status": "ACTIVE",
+      "daily_budget_ils": 700,
+      "daily_spend_ils": 688
+    },
+    "adset": {
+      "id": "120220000000000058",
+      "creative_count": 8
+    },
+    "ads": [
+      {
+        "id": "120220000000000181",
+        "hook_rate": 0.44,
+        "ctr": 0.021,
+        "conversions_7d": 41,
+        "spend_7d_ils": 1820,
+        "cpa_ils": 44.4
+      },
+      {
+        "id": "120220000000000182",
+        "hook_rate": 0.39,
+        "ctr": 0.023,
+        "conversions_7d": 38,
+        "spend_7d_ils": 1750,
+        "cpa_ils": 46.1
+      },
+      {
+        "id": "120220000000000183",
+        "hook_rate": 0.18,
+        "ctr": 0.008,
+        "conversions_7d": 2,
+        "spend_7d_ils": 540,
+        "cpa_ils": 270
+      }
+    ],
+    "baselines": [
+      {"scope": "campaign", "scope_id": "120220000000000008", "metric": "cpa", "value": 55, "window_days": 30}
+    ]
+  },
+  "expected": {
+    "decision_class": "proposal",
+    "proposal": {
+      "task_type": "new_creative",
+      "target_kind": "campaign",
+      "target_id": "120220000000000008",
+      "urgency": "medium",
+      "payload_keys": ["options", "winning_ad_ids"],
+      "rationale_must_contain": ["iterate", "angle", "winners"],
+      "rationale_must_not_contain": ["single winner", "only one"],
+      "requires_human_review": false
+    },
+    "guardrail_violations": []
+  },
+  "notes": "Two ads (181, 182) both pass Gate 1 (hook > 0.35) and Gate 2 (CPA below baseline). Ad 183 is a Gate 1 fail — separate proposal may address it. Agent presents options in payload.options — e.g. 'iterate on angle A', 'iterate on angle B', 'iterate on both'. Deprecated rule §6.7: 'keep only top 3-5 creatives after 5-7 days' is FORBIDDEN — agent must NOT propose pausing 181 or 182."
+}

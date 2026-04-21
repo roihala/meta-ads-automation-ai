@@ -1,0 +1,30 @@
+{
+  "id": "12_budget_below_formula",
+  "title": "New campaign with daily budget ₪500 against target CPA ₪100 — fails (CPA × 50) / 7 formula",
+  "source": "backend-prd §3.3 E1 #12; CAMPAIGN_BUILDING §4; guardrails.md §18; spec §6.3",
+  "tagged_gate": "guardrail",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "business_tracking": {
+      "tracking_verified": true
+    },
+    "agent_draft_proposal": {
+      "task_type": "new_campaign",
+      "rationale": "לקוח ביקש קמפיין עם תקציב צנוע לבדיקת שוק",
+      "payload": {
+        "name": "Aiweon - Market Test",
+        "objective": "OUTCOME_LEADS",
+        "target_cpa_ils": 100,
+        "daily_budget_ils": 500
+      }
+    }
+  },
+  "expected": {
+    "decision_class": "rejection",
+    "proposal": null,
+    "guardrail_violations": ["enforce_budget_formula"],
+    "rejection_rationale_must_contain": ["Learning", "50", "714", "תקציב"],
+    "suggested_remediation_contains": ["עלה לתקציב", "715"]
+  },
+  "notes": "budget_daily_min_ils = (100 × 50) / 7 = 714.28. Proposed 500 < 714 → guardrail enforce_budget_formula fires. Rationale must show the calculation explicitly — opaque rejections teach nothing. Suggested remediation: raise budget to ₪715+ OR accept a higher target CPA (₪71 would make 500 acceptable: 71 × 50 / 7 = 507)."
+}

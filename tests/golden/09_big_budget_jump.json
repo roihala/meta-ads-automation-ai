@@ -1,0 +1,55 @@
+{
+  "id": "09_big_budget_jump",
+  "title": "Strong winner would warrant 45% scale_up — but budget_jump_max_30pct caps + human review",
+  "source": "backend-prd §3.3 E1 #9; CAMPAIGN_EVALUATION §9 #5; guardrails.md §4",
+  "tagged_gate": "human_review",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "campaign": {
+      "id": "120220000000000009",
+      "name": "Aiweon - Breakout Campaign",
+      "status": "ACTIVE",
+      "days_active": 28,
+      "conversions_7d": 140,
+      "learning_status": "ACTIVE",
+      "daily_budget_ils": 400,
+      "daily_spend_ils": 398
+    },
+    "insights_7d": {
+      "impressions": 95000,
+      "clicks": 2660,
+      "ctr": 0.028,
+      "hook_rate": 0.51,
+      "frequency": 1.4,
+      "spend_ils": 2785,
+      "conversions": 140,
+      "cpa_ils": 19.9
+    },
+    "baselines": [
+      {"scope": "campaign", "scope_id": "120220000000000009", "metric": "cpa", "value": 48, "window_days": 30}
+    ],
+    "targets": {
+      "cpa_ils": 45
+    },
+    "agent_initial_draft": {
+      "task_type": "scale_up",
+      "proposed_increase_pct": 45,
+      "proposed_new_daily_ils": 580
+    }
+  },
+  "expected": {
+    "decision_class": "proposal",
+    "proposal": {
+      "task_type": "scale_up",
+      "target_kind": "campaign",
+      "target_id": "120220000000000009",
+      "urgency": "medium",
+      "payload_keys": ["new_daily_budget_ils", "increase_pct", "requires_human_review"],
+      "rationale_must_contain": ["30%", "cap", "baseline"],
+      "rationale_must_not_contain": ["bypass", "override"],
+      "requires_human_review": true
+    },
+    "guardrail_violations": []
+  },
+  "notes": "CPA 0.44× target (massive winner). Mathematically would support 40-50% bump. But guardrail budget_jump_max_30pct caps at 30% (even with hook>35% + freq<2 unlocking the 30% tier). Agent proposes the capped 30% (400 → 520) with requires_human_review=true so operator can escalate if they accept the risk. Rationale must cite the cap explicitly — NOT attempt to bypass. Contrast with #05/06/07: here the signal IS confident (140 conversions). The human-review is for CAP handling, not signal doubt."
+}

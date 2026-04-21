@@ -1,0 +1,52 @@
+{
+  "id": "13_deprecated_rule_canary",
+  "title": "Canary — a campaign with Frequency 3.4 and otherwise healthy signals. Agent MUST NOT propose pause based on Frequency alone.",
+  "source": "backend-prd §3.3 E1 #13; CAMPAIGN_EVALUATION §8; spec §6.7; guardrails.md §15 (no_frequency_only_kill)",
+  "tagged_gate": "canary",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "campaign": {
+      "id": "120220000000000013",
+      "name": "Aiweon - High Frequency But Healthy",
+      "status": "ACTIVE",
+      "days_active": 30,
+      "conversions_7d": 68,
+      "learning_status": "ACTIVE",
+      "daily_budget_ils": 400,
+      "daily_spend_ils": 395
+    },
+    "insights_7d": {
+      "impressions": 52000,
+      "clicks": 885,
+      "ctr": 0.017,
+      "hook_rate": 0.34,
+      "frequency": 3.4,
+      "cpr_ils": 41,
+      "meta_creative_fatigue_flag": false,
+      "spend_ils": 2765,
+      "conversions": 68,
+      "cpa_ils": 40.7
+    },
+    "baselines": [
+      {"scope": "campaign", "scope_id": "120220000000000013", "metric": "cpa", "value": 44, "window_days": 30},
+      {"scope": "campaign", "scope_id": "120220000000000013", "metric": "cpr", "value": 42, "window_days": 30}
+    ],
+    "targets": {
+      "cpa_ils": 45
+    }
+  },
+  "expected": {
+    "decision_class": "skip",
+    "proposal": null,
+    "skip_reason_contains": ["frequency", "monitoring", "CPR", "יציב"],
+    "rationale_must_not_contain": [
+      "pause due to frequency",
+      "frequency > 3",
+      "frequency cap exceeded",
+      "שחיקה עקב frequency",
+      "freq > 3"
+    ],
+    "guardrail_violations": []
+  },
+  "notes": "CRITICAL CANARY — if this fails, a deprecated rule (§6.7) has regressed into prompts/*.md. Frequency 3.4 IS above the pre-Andromeda kill threshold, but CPR is stable (41 vs baseline 42), Creative Fatigue flag is OFF, CPA is below target. Per §6.5 Gate 2: Frequency is monitoring-only. Agent emits a skip decision with rationale noting 'high frequency but all lagging signals healthy — monitor, no action'. Any proposal that cites frequency as the kill reason = regression = test fails. Run this fixture after every prompt change."
+}

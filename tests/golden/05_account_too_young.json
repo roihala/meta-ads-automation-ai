@@ -1,0 +1,46 @@
+{
+  "id": "05_account_too_young",
+  "title": "Account 12 days old — baselines sparse, low confidence → human review required",
+  "source": "backend-prd §3.3 E1 #5; CAMPAIGN_EVALUATION §9 #1; spec §T6 Cold Start",
+  "tagged_gate": "human_review",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "account_age_days": 12,
+    "campaign": {
+      "id": "120220000000000005",
+      "name": "Aiweon - Launch Campaign",
+      "status": "ACTIVE",
+      "days_active": 10,
+      "conversions_7d": 11,
+      "learning_status": "LEARNING",
+      "daily_budget_ils": 300
+    },
+    "insights_7d": {
+      "impressions": 14000,
+      "clicks": 210,
+      "ctr": 0.015,
+      "hook_rate": 0.31,
+      "spend_ils": 1980,
+      "conversions": 11,
+      "cpa_ils": 180
+    },
+    "baselines": [
+      {"scope": "account", "metric": "cpa", "value": 175, "window_days": 7, "sample_size": 11}
+    ]
+  },
+  "expected": {
+    "decision_class": "proposal",
+    "proposal": {
+      "task_type": "scale_up",
+      "target_kind": "campaign",
+      "target_id": "120220000000000005",
+      "urgency": "low",
+      "payload_keys": ["new_daily_budget_ils", "requires_human_review"],
+      "rationale_must_contain": ["cold", "baseline", "12"],
+      "rationale_must_not_contain": ["confident", "proven"],
+      "requires_human_review": true
+    },
+    "guardrail_violations": []
+  },
+  "notes": "Account age < 30d triggers human_review mode. Baseline exists (single point from 11 conversions — extremely noisy). Agent may propose scale but must flag requires_human_review=true in payload so UI shows 'needs operator confirmation' banner. Avoids confident claims ('winner', 'proven') in rationale — the sample size doesn't support it."
+}

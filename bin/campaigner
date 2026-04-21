@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# `campaigner` — user-facing CLI wrapper.
+#
+# Routes every invocation through a campaigner container so env
+# (DATABASE_URL, BUSINESS_ID, ...) and Python imports behave identically to
+# how runners see them.
+#
+# Uses `docker compose exec` when the campaigner service is already running
+# (fast path, ~1s), falls back to `docker compose run --rm` otherwise
+# (reliable path, ~3s).
+#
+# Usage (from repo root):
+#   ./bin/campaigner list --pending
+#   ./bin/campaigner approve abc12345 --by "roi@aiweon.co.il"
+#   ./bin/campaigner reject abc12345 --reason "budget too aggressive for this week"
+#   ./bin/campaigner inspect <run_id | approval_id>
+#   ./bin/campaigner run daily
+#
+# To use as plain `campaigner`, symlink or alias:
+#   ln -s "$(pwd)/bin/campaigner" ~/.local/bin/campaigner
+#   alias campaigner="$(pwd)/bin/campaigner"
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+is_service_running() {
+  docker compose ps --services --filter "status=running" 2>/dev/null | grep -qx campaigner
+}
+
+if is_service_running; then
+  if [ -t 1 ]; then
+    exec docker compose exec campaigner python -m campaigner.cli "$@"
+  else
+    exec docker compose exec -T campaigner python -m campaigner.cli "$@"
+  fi
+else
+  exec docker compose run --rm campaigner python -m campaigner.cli "$@"
+fi

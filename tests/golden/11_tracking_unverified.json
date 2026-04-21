@@ -1,0 +1,32 @@
+{
+  "id": "11_tracking_unverified",
+  "title": "New campaign proposal — Pixel + Conversions API not verified → blocked by verify_tracking_infrastructure",
+  "source": "backend-prd §3.3 E1 #11; CAMPAIGN_BUILDING Day-Zero; guardrails.md §17",
+  "tagged_gate": "guardrail",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "business_tracking": {
+      "pixel_installed": true,
+      "pixel_events_last_7d": 0,
+      "capi_configured": false,
+      "tracking_verified": false
+    },
+    "agent_draft_proposal": {
+      "task_type": "new_campaign",
+      "rationale": "לקוח ביקש קמפיין לידים חדש למוצר X",
+      "payload": {
+        "name": "Aiweon - Product X Leads",
+        "objective": "OUTCOME_LEADS",
+        "daily_budget_ils": 400
+      }
+    }
+  },
+  "expected": {
+    "decision_class": "rejection",
+    "proposal": null,
+    "guardrail_violations": ["verify_tracking_infrastructure"],
+    "rejection_rationale_must_contain": ["Pixel", "אירועים", "verify"],
+    "suggested_remediation_contains": ["events", "CAPI"]
+  },
+  "notes": "tracking_verified=false AND pixel_events_last_7d=0 → guardrail verify_tracking_infrastructure fires. Rejection decision with guardrail_violations=['verify_tracking_infrastructure']. Rejection rationale explains: without verified tracking, Meta optimizer has no signal → campaign will burn budget without Learning exit. Suggests remediation (fix CAPI, confirm Pixel events flow) before re-proposing."
+}

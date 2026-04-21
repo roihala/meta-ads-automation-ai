@@ -1,0 +1,53 @@
+{
+  "id": "06_no_benchmark",
+  "title": "Vertical 'niche_hardware_b2b' — no primary benchmark available",
+  "source": "backend-prd §3.3 E1 #6; CAMPAIGN_EVALUATION §9 #2",
+  "tagged_gate": "human_review",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "business_knowledge": {
+      "vertical": "niche_hardware_b2b",
+      "primary_kpi": "cpl"
+    },
+    "campaign": {
+      "id": "120220000000000006",
+      "name": "Aiweon - B2B Hardware Leads",
+      "status": "ACTIVE",
+      "days_active": 45,
+      "conversions_7d": 58,
+      "learning_status": "ACTIVE",
+      "daily_budget_ils": 600,
+      "daily_spend_ils": 590
+    },
+    "insights_7d": {
+      "impressions": 48000,
+      "clicks": 590,
+      "ctr": 0.0123,
+      "hook_rate": 0.28,
+      "frequency": 2.1,
+      "spend_ils": 4130,
+      "conversions": 58,
+      "cpa_ils": 71.2
+    },
+    "baselines": [
+      {"scope": "campaign", "scope_id": "120220000000000006", "metric": "cpa", "value": 75, "window_days": 30}
+    ],
+    "benchmark_available": false,
+    "benchmark_note": "vertical 'niche_hardware_b2b' not in 2026 Triple Whale / Adamigo datasets"
+  },
+  "expected": {
+    "decision_class": "proposal",
+    "proposal": {
+      "task_type": "scale_up",
+      "target_kind": "campaign",
+      "target_id": "120220000000000006",
+      "urgency": "low",
+      "payload_keys": ["new_daily_budget_ils", "requires_human_review"],
+      "rationale_must_contain": ["baseline", "benchmark", "חסר"],
+      "rationale_must_not_contain": ["industry standard", "median"],
+      "requires_human_review": true
+    },
+    "guardrail_violations": []
+  },
+  "notes": "No global benchmark for this vertical. Agent leans on account baseline alone (§6.2). Must flag requires_human_review=true so operator validates the internal-only comparison. Rationale must NOT claim 'industry standard' / 'median' — those don't exist for this vertical."
+}

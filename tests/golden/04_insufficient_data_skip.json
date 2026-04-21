@@ -1,0 +1,39 @@
+{
+  "id": "04_insufficient_data_skip",
+  "title": "New creative at 24h with 320 impressions — below 1,000-impr / 50-click Gate 1 threshold",
+  "source": "backend-prd §3.3 E1 #4; CAMPAIGN_EVALUATION §7 scenario D; spec §6.4",
+  "tagged_gate": "data_sufficiency",
+  "input": {
+    "business_id": "9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3",
+    "campaign": {
+      "id": "120220000000000004",
+      "name": "Aiweon - Awareness Push",
+      "status": "ACTIVE",
+      "days_active": 5,
+      "learning_status": "LEARNING"
+    },
+    "ad": {
+      "id": "120220000000000104",
+      "hours_live": 24,
+      "creative_kind": "video"
+    },
+    "insights_48h": {
+      "impressions": 320,
+      "clicks": 9,
+      "ctr": 0.028,
+      "hook_rate": 0.22,
+      "spend_ils": 48
+    },
+    "baselines": [
+      {"scope": "account", "metric": "hook_rate", "value": 0.33, "window_days": 30}
+    ]
+  },
+  "expected": {
+    "decision_class": "skip",
+    "proposal": null,
+    "skip_reason_contains": ["volume", "1,000", "impressions"],
+    "rationale_must_not_contain": ["kill", "pause", "scale"],
+    "guardrail_violations": []
+  },
+  "notes": "320 impressions << 1,000 threshold → skip. Agent might be tempted to kill because hook 0.22 < 0.25, but data sufficiency gate fails first (§6.4). This is the most common failure mode for over-eager optimizers — skip discipline is load-bearing."
+}
