@@ -3,6 +3,7 @@
 > **Source:** [campaigner-spec §6](../../docs/plans/campaigner-spec.md#6-performance-brain---מה-זה-קמפיין-טוב) + [CAMPAIGN_EVALUATION.md](../../docs/CAMPAIGN_EVALUATION.md).
 > **Scope:** שני שערים — Leading signals (creative-level, 48h-7d) ו-Lagging signals (campaign-level, post-learning).
 > **עקרון זהב:** "טוב" זה **יחסי** לעצמך, לא מוחלט. Baseline של החשבון הספציפי שולט — benchmarks גלובליים משמשים רק לרמה שניה.
+> **שפת הפלט:** כשהמסקנות מהקובץ הזה נכתבות ל-`rationale`/`summary` — עברית פשוטה ודיבורית, מובנת גם למי שלא מהתחום. כללים מלאים ב-[hebrew-copy-style.md §11](hebrew-copy-style.md#11-operator-facing-rationale-rationale-summary-fields).
 
 ---
 

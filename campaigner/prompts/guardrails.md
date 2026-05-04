@@ -3,6 +3,7 @@
 > **Source:** [campaigner-spec §14](../../docs/plans/campaigner-spec.md#14-guardrails).
 > **עיקרון:** הכלל הכי קריטי במערכת — הסוכן לא שובר אף guardrail, גם אם "חושב" שכדאי.
 > **מימוש עתידי:** `campaigner/tools/check_guardrails.py` (⏳ pending 4.x). עד אז, הסוכן קורא את הקובץ הזה לפני כל proposal ומוודא ידנית.
+> **שפת הפלט (rejections + rationale):** עברית פשוטה ודיבורית, מובנת גם למי שלא מהתחום. ראשי תיבות באנגלית רק בפסקה שניה ועם הסבר בסוגריים בפעם הראשונה. ראה [hebrew-copy-style.md §11](hebrew-copy-style.md#11-operator-facing-rationale-rationale-summary-fields).
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **Audience:** Claude (the agent), loaded into context on every invocation.
 > **Scope:** §§1-9 govern **customer-facing ad copy** (headlines, hooks, CTAs). §11 governs **operator-facing rationale** (the "למה?" in the approvals UI). Both apply on every run.
-> **Status:** **v0.1 — 2026-04-20.** `[TBD]` markers show where Roi must fill in Aiweon-specific content before Phase 2. §11 is fully specified regardless of voice `[TBD]`s.
+> **Status:** **v0.2 — 2026-05-04.** `[TBD]` markers show where Roi must fill in Aiweon-specific content before Phase 2. §11 is fully specified regardless of voice `[TBD]`s. v0.2 hardened §11's plain-Hebrew rule: assume the reader is not a marketing/ads professional, every TL;DR must be speakable aloud.
 > **Target lock date:** 2026-05-10 (per [decisions-log §1.5](../../docs/plans/decisions-log.md#15-hebrew-copy-style--authorship)).
 > **Owner:** Roi (admin@aiweon.co.il). Update triggers listed in §10.
 
@@ -260,11 +260,13 @@ When a variant fails any check, regenerate rather than relaxing the rule.
 
 ### Why this matters
 
-The operator is not always a Meta Ads expert. When they open an approval card, the first line must let them decide to approve / reject / investigate **without needing a glossary**. Acronyms buried in paragraph 2 are fine; acronyms in paragraph 1 are not — they force the operator to translate before they can think.
+**Assume the reader is not a marketing or ads professional.** The operator (Roi today, an Aiweon teammate or client tomorrow) may have zero exposure to Meta jargon. The first paragraph of every rationale must be readable *and speakable aloud* by such a reader — they decide approve / reject / investigate from paragraph 1 alone, without consulting a glossary or asking what an acronym means. If you would not say it to a friend over coffee, do not write it in paragraph 1.
+
+Acronyms buried in paragraph 2 (with first-use glosses) are fine; acronyms in paragraph 1 are not — they force the operator to translate before they can think.
 
 ### Hard rules for every `rationale` field
 
-1. **Open with a TL;DR.** One sentence, ≤ 20 words, plain Hebrew. No English acronyms (CPM, CTR, ROAS, CPA, CPR), no internal Meta state names (LEARNING_LIMITED, ACTIVE), no metric names that need translation (hook rate, frequency, benchmark). The TL;DR answers three questions in one breath: *מה הבעיה? למה זה קורה? מה מוצע?* Blank line after the TL;DR.
+1. **Open with a TL;DR.** One sentence, ≤ 20 words, plain Hebrew that someone outside the field can read aloud and immediately understand. No English acronyms (CPM, CTR, ROAS, CPA, CPR), no internal Meta state names (LEARNING_LIMITED, ACTIVE), no metric names that need translation (hook rate, frequency, benchmark). Substitute the everyday-Hebrew equivalent: "Meta לא מצליחה למצוא לקוחות בעלות הגיונית", "הקמפיין עוד לא הספיק ללמוד מי הקהל הנכון", "רוב התקציב לא נוצל". The TL;DR answers three questions in one breath: *מה הבעיה? למה זה קורה? מה מוצע?* Blank line after the TL;DR.
 
 2. **Then the analysis.** Detailed reasoning with numbers and evidence. Here acronyms are allowed **on first use** with a short Hebrew gloss in parentheses:
 

@@ -2,6 +2,7 @@
 
 > **Source:** [campaigner-spec §17](../../docs/plans/campaigner-spec.md#17-עץ-החלטות-לדיאגנוזה).
 > **Prereqs:** [performance-brain.md](performance-brain.md) §§3-5 (data sufficiency + two gates). אל תפעיל את העצים בלעדיהם.
+> **Output language:** כל `rationale` ו-`summary` שיוצא מהעץ הזה — עברית פשוטה, רהוטה ודיבורית, שמובנת גם למי שלא בתחום השיווק. ראה [hebrew-copy-style.md §11](hebrew-copy-style.md#11-operator-facing-rationale-rationale-summary-fields). פסקה ראשונה — בלי ראשי תיבות באנגלית.
 
 ---
 
