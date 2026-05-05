@@ -5,6 +5,7 @@ Same pattern as `meta_client.MetaClient`: wraps the legacy class, returns
 JSON-safe dicts, and centralizes config loading. Copy generation (LLM) lives
 elsewhere — this module is image-only.
 """
+
 from __future__ import annotations
 
 import sys
@@ -18,7 +19,6 @@ if str(_REPO_ROOT) not in sys.path:
 from image_generator import ImageGenerator  # noqa: E402
 
 from .config import Config  # noqa: E402
-
 
 ModelTier = Literal["fast", "standard", "ultra"]
 AspectRatio = Literal["1:1", "3:4", "4:3", "9:16", "16:9"]

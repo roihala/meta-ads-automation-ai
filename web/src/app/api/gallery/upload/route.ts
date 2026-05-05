@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuth } from "@/lib/auth";
 import { getDataClient } from "@/lib/db";
-import { uploadAssetStream, deleteAsset, UploadTooLargeError } from "@/lib/storage";
+import {
+  uploadAssetStream,
+  deleteAsset,
+  UploadTooLargeError,
+} from "@/lib/storage";
+import { ensureWebCompatVideo } from "@/lib/transcode";
 import type { CreativeAssetKind } from "@/lib/db/types";
 
 export const runtime = "nodejs";
@@ -18,13 +23,15 @@ const VIDEO_DURATION_MAX = 241;
 
 export async function POST(req: NextRequest) {
   const session = await getAuth().getSession();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const db = getDataClient();
   const business = process.env.BUSINESS_ID
     ? await db.getBusinessById(process.env.BUSINESS_ID)
     : await db.getFirstBusiness();
-  if (!business) return NextResponse.json({ error: "business_not_found" }, { status: 404 });
+  if (!business)
+    return NextResponse.json({ error: "business_not_found" }, { status: 404 });
 
   const url = new URL(req.url);
   const q = url.searchParams;
@@ -49,7 +56,11 @@ export async function POST(req: NextRequest) {
   if (kind === "image") {
     if (!ALLOWED_IMAGE_MIME.has(mimeType)) {
       return NextResponse.json(
-        { error: "unsupported_mime", got: mimeType, allowed: Array.from(ALLOWED_IMAGE_MIME) },
+        {
+          error: "unsupported_mime",
+          got: mimeType,
+          allowed: Array.from(ALLOWED_IMAGE_MIME),
+        },
         { status: 415 },
       );
     }
@@ -62,7 +73,11 @@ export async function POST(req: NextRequest) {
   } else {
     if (!ALLOWED_VIDEO_MIME.has(mimeType)) {
       return NextResponse.json(
-        { error: "unsupported_mime", got: mimeType, allowed: Array.from(ALLOWED_VIDEO_MIME) },
+        {
+          error: "unsupported_mime",
+          got: mimeType,
+          allowed: Array.from(ALLOWED_VIDEO_MIME),
+        },
         { status: 415 },
       );
     }
@@ -79,9 +94,15 @@ export async function POST(req: NextRequest) {
       );
     }
     if (durationSeconds == null || !Number.isFinite(durationSeconds)) {
-      return NextResponse.json({ error: "duration_seconds_required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "duration_seconds_required" },
+        { status: 400 },
+      );
     }
-    if (durationSeconds < VIDEO_DURATION_MIN || durationSeconds > VIDEO_DURATION_MAX) {
+    if (
+      durationSeconds < VIDEO_DURATION_MIN ||
+      durationSeconds > VIDEO_DURATION_MAX
+    ) {
       return NextResponse.json(
         {
           error: "invalid_duration",
@@ -101,10 +122,17 @@ export async function POST(req: NextRequest) {
   const sizeLimit = kind === "image" ? MAX_IMAGE_BYTES : MAX_VIDEO_BYTES;
 
   let public_url: string;
+  let storageKey: string;
   let actualSize: number;
   try {
-    const result = await uploadAssetStream(business.id, filename, req.body, sizeLimit);
+    const result = await uploadAssetStream(
+      business.id,
+      filename,
+      req.body,
+      sizeLimit,
+    );
     public_url = result.public_url;
+    storageKey = result.path;
     actualSize = result.size_bytes;
   } catch (e) {
     if (e instanceof UploadTooLargeError) {
@@ -122,6 +150,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "empty_body" }, { status: 400 });
   }
 
+  // Resolve final storage params. For videos, run a probe + (maybe) transcode
+  // to H.264/MP4 so Chrome on Windows can play it and Meta will accept it.
+  let finalMime = mimeType;
+  let finalSize = actualSize;
+  let finalDuration = durationSeconds;
+  let finalDimensions = dimensions;
+  if (kind === "video") {
+    try {
+      const ensured = await ensureWebCompatVideo(storageKey);
+      public_url = ensured.publicUrl;
+      finalSize = ensured.sizeBytes;
+      finalMime = ensured.mimeType;
+      if (ensured.durationSeconds != null)
+        finalDuration = ensured.durationSeconds;
+      if (ensured.dimensions) finalDimensions = ensured.dimensions;
+    } catch (err) {
+      console.warn("ensureWebCompatVideo failed; storing original as-is", err);
+    }
+  }
+
   let row;
   try {
     row = await db.createGalleryAsset({
@@ -129,14 +177,14 @@ export async function POST(req: NextRequest) {
       kind,
       storage_url: public_url,
       aspect_ratio: aspectRatio,
-      dimensions,
+      dimensions: finalDimensions,
       generated_by: "manual_upload",
       marketing_angle: marketingAngle,
       service_tag: serviceTag,
-      mime_type: mimeType,
-      size_bytes: actualSize,
+      mime_type: finalMime,
+      size_bytes: finalSize,
       original_filename: filename,
-      duration_seconds: kind === "video" ? durationSeconds : null,
+      duration_seconds: kind === "video" ? finalDuration : null,
     });
   } catch (e) {
     await deleteAsset(public_url).catch(() => {});

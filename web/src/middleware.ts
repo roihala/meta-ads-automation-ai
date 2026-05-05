@@ -9,7 +9,12 @@ import { NextResponse, type NextRequest } from "next/server";
 const DEV_COOKIE_NAME = "campaigner_dev_session";
 const SUPABASE_COOKIE_PREFIX = "sb-";
 
-const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/logout", "/api/health"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/api/auth/login",
+  "/api/auth/logout",
+  "/api/health",
+];
 
 function hasSession(req: NextRequest): boolean {
   const mode = process.env.WEB_AUTH_MODE ?? "dev-cookie";
@@ -23,7 +28,9 @@ function hasSession(req: NextRequest): boolean {
 }
 
 function isPublic(pathname: string): boolean {
-  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  return PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
 }
 
 export function middleware(req: NextRequest) {
@@ -37,5 +44,7 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)).*)",
+  ],
 };

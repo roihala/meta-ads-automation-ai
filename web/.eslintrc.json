@@ -1,4 +1,9 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
-  "ignorePatterns": [".next", "node_modules", "playwright-report", "test-results"]
+  "ignorePatterns": [
+    ".next",
+    "node_modules",
+    "playwright-report",
+    "test-results"
+  ]
 }

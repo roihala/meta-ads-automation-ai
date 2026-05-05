@@ -32,7 +32,11 @@ export function ThemeToggle({ className }: { className?: string }) {
           )}
         >
           {mounted ? (
-            showSun ? <Sun size={16} /> : <Moon size={16} />
+            showSun ? (
+              <Sun size={16} />
+            ) : (
+              <Moon size={16} />
+            )
           ) : (
             <Moon size={16} />
           )}
@@ -40,8 +44,20 @@ export function ThemeToggle({ className }: { className?: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[10rem]">
         <DropdownMenuLabel>מצב תצוגה</DropdownMenuLabel>
-        <ThemeItem icon={<Sun size={15} />} label="בהיר" value="light" active={active} onSelect={setTheme} />
-        <ThemeItem icon={<Moon size={15} />} label="כהה" value="dark" active={active} onSelect={setTheme} />
+        <ThemeItem
+          icon={<Sun size={15} />}
+          label="בהיר"
+          value="light"
+          active={active}
+          onSelect={setTheme}
+        />
+        <ThemeItem
+          icon={<Moon size={15} />}
+          label="כהה"
+          value="dark"
+          active={active}
+          onSelect={setTheme}
+        />
         <ThemeItem
           icon={<Monitor size={15} />}
           label="לפי המערכת"

@@ -34,11 +34,12 @@ Pace semantics (§17.7):
 
 Exit codes per contract §11.6 (0 / 1 / 2).
 """
+
 from __future__ import annotations
 
 import argparse
 import calendar
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 from campaigner.lib.config import Config, ConfigError
 from campaigner.lib.db import fetch_one
@@ -50,7 +51,6 @@ from campaigner.tools._contract import (
     emit_validation_error,
     with_db_retry,
 )
-
 
 OVERRUN_THRESHOLD = 1.10
 UNDERRUN_THRESHOLD = 0.70
@@ -98,7 +98,7 @@ def main() -> None:
             emit_validation_error(f"--as-of must be YYYY-MM-DD (got {args.as_of!r})")
             return
     else:
-        today = datetime.now(timezone.utc).date()
+        today = datetime.now(UTC).date()
 
     days_in_month = calendar.monthrange(today.year, today.month)[1]
     days_elapsed = today.day

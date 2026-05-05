@@ -22,7 +22,12 @@ export async function UserMenu() {
         {session.email}
       </span>
       <form action={signOutAction}>
-        <Button type="submit" variant="ghost" size="sm" className="h-9 px-2.5 text-xs">
+        <Button
+          type="submit"
+          variant="ghost"
+          size="sm"
+          className="h-9 px-2.5 text-xs"
+        >
           התנתק
         </Button>
       </form>

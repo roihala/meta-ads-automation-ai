@@ -24,10 +24,12 @@ State fields the checks consume (all optional):
   meta_creative_fatigue_flag : bool
   tracking_verified : bool
 """
+
 from __future__ import annotations
 
 import argparse
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from campaigner.lib.config import Config, ConfigError
 from campaigner.lib.db import fetch_one
@@ -38,7 +40,6 @@ from campaigner.tools._contract import (
     parse_json_arg,
     with_db_retry,
 )
-
 
 # ----------------------------------------------------------------- results
 
@@ -68,10 +69,17 @@ def _no_delete_campaigns(prop: dict, state: dict, ctx: dict) -> dict:
 def _max_tasks_per_day(prop: dict, state: dict, ctx: dict) -> dict:
     cap = ctx.get("daily_task_cap")
     if cap is None:
-        return _skip("max_tasks_per_day", "daily_task_cap not provided in context — checked by caller")
+        return _skip(
+            "max_tasks_per_day", "daily_task_cap not provided in context — checked by caller"
+        )
     count = ctx.get("pending_today_count", 0)
     if count >= cap:
-        return _fail("max_tasks_per_day", f"daily proposal cap {cap} reached (count={count})", cap=cap, count=count)
+        return _fail(
+            "max_tasks_per_day",
+            f"daily proposal cap {cap} reached (count={count})",
+            cap=cap,
+            count=count,
+        )
     return _pass("max_tasks_per_day", cap=cap, count=count)
 
 
@@ -82,7 +90,10 @@ def _no_learning_phase_touch(prop: dict, state: dict, ctx: dict) -> dict:
     # Exception: scale_up to minimum budget is allowed.
     if prop.get("task_type") == "scale_up":
         return _pass("no_learning_phase_touch", note="scale_up exception — allowed in LEARNING")
-    return _fail("no_learning_phase_touch", f"campaign in LEARNING — task_type={prop.get('task_type')} forbidden")
+    return _fail(
+        "no_learning_phase_touch",
+        f"campaign in LEARNING — task_type={prop.get('task_type')} forbidden",
+    )
 
 
 def _budget_jump_max_30pct(prop: dict, state: dict, ctx: dict) -> dict:
@@ -92,7 +103,9 @@ def _budget_jump_max_30pct(prop: dict, state: dict, ctx: dict) -> dict:
     old = pay.get("old_daily_budget_cents") or pay.get("old_daily_budget_ils")
     new = pay.get("new_daily_budget_cents") or pay.get("new_daily_budget_ils")
     if old is None or new is None or old == 0:
-        return _skip("budget_jump_max_30pct", "old/new daily budget not in payload — cannot compute delta")
+        return _skip(
+            "budget_jump_max_30pct", "old/new daily budget not in payload — cannot compute delta"
+        )
     delta_pct = abs(new - old) / old
     if delta_pct <= 0.20:
         return _pass("budget_jump_max_30pct", delta_pct=round(delta_pct * 100, 2))
@@ -100,13 +113,21 @@ def _budget_jump_max_30pct(prop: dict, state: dict, ctx: dict) -> dict:
         hook = state.get("hook_rate", 0) or 0
         freq = state.get("frequency", 99) or 99
         if hook > 0.35 and freq < 2.0 and state.get("learning_status") == "ACTIVE":
-            return _pass("budget_jump_max_30pct", delta_pct=round(delta_pct * 100, 2),
-                         note="20-30% tier unlocked by hook>35% + freq<2.0")
-        return _fail("budget_jump_max_30pct",
-                     f"delta {round(delta_pct * 100, 1)}% requires hook>35% + freq<2.0 + ACTIVE",
-                     delta_pct=round(delta_pct * 100, 2))
-    return _fail("budget_jump_max_30pct", f"delta {round(delta_pct * 100, 1)}% > 30% cap",
-                 delta_pct=round(delta_pct * 100, 2))
+            return _pass(
+                "budget_jump_max_30pct",
+                delta_pct=round(delta_pct * 100, 2),
+                note="20-30% tier unlocked by hook>35% + freq<2.0",
+            )
+        return _fail(
+            "budget_jump_max_30pct",
+            f"delta {round(delta_pct * 100, 1)}% requires hook>35% + freq<2.0 + ACTIVE",
+            delta_pct=round(delta_pct * 100, 2),
+        )
+    return _fail(
+        "budget_jump_max_30pct",
+        f"delta {round(delta_pct * 100, 1)}% > 30% cap",
+        delta_pct=round(delta_pct * 100, 2),
+    )
 
 
 def _no_audience_change_on_active(prop: dict, state: dict, ctx: dict) -> dict:
@@ -116,8 +137,10 @@ def _no_audience_change_on_active(prop: dict, state: dict, ctx: dict) -> dict:
         cpa = state.get("cpa_ils")
         target = state.get("target_cpa_ils")
         if cpa is not None and target is not None and cpa <= target:
-            return _fail("no_audience_change_on_active",
-                         "campaign is ACTIVE and meeting target — don't disturb a working audience")
+            return _fail(
+                "no_audience_change_on_active",
+                "campaign is ACTIVE and meeting target — don't disturb a working audience",
+            )
     return _pass("no_audience_change_on_active")
 
 
@@ -126,8 +149,10 @@ def _no_horizontal_scaling_by_duplication(prop: dict, state: dict, ctx: dict) ->
         return _pass("no_horizontal_scaling_by_duplication")
     pay = prop.get("payload") or {}
     if pay.get("duplicate_of_campaign_id") or pay.get("is_duplicate"):
-        return _fail("no_horizontal_scaling_by_duplication",
-                     "duplicating an existing campaign resets Learning — use scale_up on the original")
+        return _fail(
+            "no_horizontal_scaling_by_duplication",
+            "duplicating an existing campaign resets Learning — use scale_up on the original",
+        )
     return _pass("no_horizontal_scaling_by_duplication")
 
 
@@ -143,8 +168,10 @@ def _no_pause_on_recent_conversion_24h(prop: dict, state: dict, ctx: dict) -> di
     if hrs is None:
         return _skip("no_pause_on_recent_conversion_24h", "last_conversion_hours_ago not in state")
     if hrs < 24:
-        return _fail("no_pause_on_recent_conversion_24h",
-                     f"last conversion was {hrs}h ago — campaign still producing results")
+        return _fail(
+            "no_pause_on_recent_conversion_24h",
+            f"last conversion was {hrs}h ago — campaign still producing results",
+        )
     return _pass("no_pause_on_recent_conversion_24h")
 
 
@@ -164,8 +191,10 @@ def _prefer_add_creative_over_pause(prop: dict, state: dict, ctx: dict) -> dict:
     if prop.get("task_type") not in ("pause_campaign", "pause_adset"):
         return _pass("prefer_add_creative_over_pause")
     if state.get("meta_creative_fatigue_flag"):
-        return _fail("prefer_add_creative_over_pause",
-                     "Creative Fatigue flag is on — propose new_creative × 3-5 instead of pause")
+        return _fail(
+            "prefer_add_creative_over_pause",
+            "Creative Fatigue flag is on — propose new_creative × 3-5 instead of pause",
+        )
     return _pass("prefer_add_creative_over_pause")
 
 
@@ -176,8 +205,10 @@ def _no_frequency_only_kill(prop: dict, state: dict, ctx: dict) -> dict:
     mentions_freq = "frequency" in rationale or "freq" in rationale
     mentions_other = any(kw in rationale for kw in ("cpr", "cpa", "fatigue", "hook rate", "ctr"))
     if mentions_freq and not mentions_other:
-        return _fail("no_frequency_only_kill",
-                     "rationale cites Frequency without a confirming signal (CPR / CPA / Fatigue / hook / CTR)")
+        return _fail(
+            "no_frequency_only_kill",
+            "rationale cites Frequency without a confirming signal (CPR / CPA / Fatigue / hook / CTR)",
+        )
     return _pass("no_frequency_only_kill")
 
 
@@ -186,8 +217,10 @@ def _verify_tracking_infrastructure(prop: dict, state: dict, ctx: dict) -> dict:
         return _pass("verify_tracking_infrastructure")
     verified = state.get("tracking_verified")
     if verified is False:
-        return _fail("verify_tracking_infrastructure",
-                     "Pixel + CAPI not verified; new_campaign without tracking burns budget")
+        return _fail(
+            "verify_tracking_infrastructure",
+            "Pixel + CAPI not verified; new_campaign without tracking burns budget",
+        )
     if verified is None:
         return _skip("verify_tracking_infrastructure", "tracking_verified not in state")
     return _pass("verify_tracking_infrastructure")
@@ -203,10 +236,12 @@ def _enforce_budget_formula(prop: dict, state: dict, ctx: dict) -> dict:
         return _skip("enforce_budget_formula", "daily_budget or target_cpa missing")
     required = (target_cpa * 50) / 7
     if daily < required:
-        return _fail("enforce_budget_formula",
-                     f"daily ₪{daily} < required ₪{round(required, 2)} = (CPA {target_cpa} × 50) / 7 — "
-                     f"campaign cannot accumulate 50 conversions in 7 days",
-                     required_daily_ils=round(required, 2))
+        return _fail(
+            "enforce_budget_formula",
+            f"daily ₪{daily} < required ₪{round(required, 2)} = (CPA {target_cpa} × 50) / 7 — "
+            f"campaign cannot accumulate 50 conversions in 7 days",
+            required_daily_ils=round(required, 2),
+        )
     return _pass("enforce_budget_formula", required_daily_ils=round(required, 2))
 
 
@@ -218,8 +253,10 @@ def _explicit_approval_over_threshold_ils(prop: dict, state: dict, ctx: dict) ->
     new = pay.get("new_daily_budget_ils") or 0
     delta = abs(new - old)
     if delta >= 500 and prop.get("urgency") not in ("high", "urgent"):
-        return _fail("explicit_approval_over_threshold_ils",
-                     f"spend delta ₪{delta}/day ≥ ₪500 requires urgency >= 'high'")
+        return _fail(
+            "explicit_approval_over_threshold_ils",
+            f"spend delta ₪{delta}/day ≥ ₪500 requires urgency >= 'high'",
+        )
     return _pass("explicit_approval_over_threshold_ils")
 
 
@@ -284,8 +321,14 @@ def _fetch_context(business_id: str) -> dict:
 def main() -> None:
     p = argparse.ArgumentParser(description="Check a proposal against §14 guardrails.")
     p.add_argument("--business-id", required=True)
-    p.add_argument("--proposal", required=True, help="JSON object (same shape as propose_task --payload + metadata)")
-    p.add_argument("--state", default=None, help="JSON object of live state (learning_status, hook_rate, ...)")
+    p.add_argument(
+        "--proposal",
+        required=True,
+        help="JSON object (same shape as propose_task --payload + metadata)",
+    )
+    p.add_argument(
+        "--state", default=None, help="JSON object of live state (learning_status, hook_rate, ...)"
+    )
     args = p.parse_args()
 
     proposal = parse_json_arg(args.proposal, "proposal")
@@ -313,15 +356,17 @@ def main() -> None:
     violations = [r for r in results if not r.get("passed")]
     passed = len(violations) == 0
 
-    emit_success({
-        "business_id": args.business_id,
-        "proposal_task_type": proposal.get("task_type"),
-        "passed": passed,
-        "violations": violations,
-        "checks": results,
-        "judgment_only_rules": JUDGMENT_ONLY_RULES,
-        "context": ctx,
-    })
+    emit_success(
+        {
+            "business_id": args.business_id,
+            "proposal_task_type": proposal.get("task_type"),
+            "passed": passed,
+            "violations": violations,
+            "checks": results,
+            "judgment_only_rules": JUDGMENT_ONLY_RULES,
+            "context": ctx,
+        }
+    )
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ this first to get a fresh picture of account/campaign/adset/ad performance.
 
 Exit codes per contract §11.6 (0 / 1 / 2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,7 +18,6 @@ from campaigner.tools._contract import (
     emit_success,
     emit_validation_error,
 )
-
 
 VALID_LEVELS = ("account", "campaign", "adset", "ad")
 

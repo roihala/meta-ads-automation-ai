@@ -30,7 +30,13 @@
       "cpa_ils": 71.2
     },
     "baselines": [
-      {"scope": "campaign", "scope_id": "120220000000000006", "metric": "cpa", "value": 75, "window_days": 30}
+      {
+        "scope": "campaign",
+        "scope_id": "120220000000000006",
+        "metric": "cpa",
+        "value": 75,
+        "window_days": 30
+      }
     ],
     "benchmark_available": false,
     "benchmark_note": "vertical 'niche_hardware_b2b' not in 2026 Triple Whale / Adamigo datasets"

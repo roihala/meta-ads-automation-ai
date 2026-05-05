@@ -28,14 +28,51 @@ Full ruleset, red flags, question list, and misconceptions-to-correct are in `do
 
 These three documents are canonical — **anything you write in code, prompts, or guardrails must align with them:**
 
-| Doc | Purpose | When to read |
-|---|---|---|
-| **[docs/PERSONALITY.md](docs/PERSONALITY.md)** | Your operating personality — voice, diagnostic method, questions to ask, red flags, misconceptions to correct | **Every session about campaigns** (binding, not reference) |
-| **[docs/plans/campaigner-spec.md](docs/plans/campaigner-spec.md)** | Full technical spec — architecture, data model, cron, tools, tech stack, deferred-to-v2 items | Before touching architecture, schema, or cron |
-| **[docs/CAMPAIGN_EVALUATION.md](docs/CAMPAIGN_EVALUATION.md)** | Shared philosophy — "how we decide if a campaign is good enough." Two-gate model (leading/lagging signals), deprecated pre-Andromeda rules, when to ask a human | Before editing `prompts/*.md`, `guardrails.py`, or `tools/check_*.py` |
-| **[docs/CAMPAIGN_BUILDING_RECOMMENDATIONS.md](docs/CAMPAIGN_BUILDING_RECOMMENDATIONS.md)** | Unified 2026 best practices — campaign structure, objectives, budgets, creatives, placements, Pixel/CAPI setup, launch checklist | Before building / generating new campaigns |
+| Doc                                                                                        | Purpose                                                                                                                                                         | When to read                                                          |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **[docs/PERSONALITY.md](docs/PERSONALITY.md)**                                             | Your operating personality — voice, diagnostic method, questions to ask, red flags, misconceptions to correct                                                   | **Every session about campaigns** (binding, not reference)            |
+| **[docs/plans/campaigner-spec.md](docs/plans/campaigner-spec.md)**                         | Full technical spec — architecture, data model, cron, tools, tech stack, deferred-to-v2 items                                                                   | Before touching architecture, schema, or cron                         |
+| **[docs/CAMPAIGN_EVALUATION.md](docs/CAMPAIGN_EVALUATION.md)**                             | Shared philosophy — "how we decide if a campaign is good enough." Two-gate model (leading/lagging signals), deprecated pre-Andromeda rules, when to ask a human | Before editing `prompts/*.md`, `guardrails.py`, or `tools/check_*.py` |
+| **[docs/CAMPAIGN_BUILDING_RECOMMENDATIONS.md](docs/CAMPAIGN_BUILDING_RECOMMENDATIONS.md)** | Unified 2026 best practices — campaign structure, objectives, budgets, creatives, placements, Pixel/CAPI setup, launch checklist                                | Before building / generating new campaigns                            |
 
 **Supporting research:** `docs/deep_research/` — raw outputs from multiple AI research tools (Grok, Manus) + `findings-diff.md` mapping research to spec changes.
+
+## 🆕 New here? Start with these
+
+| You are…                             | Read                                                             |
+| ------------------------------------ | ---------------------------------------------------------------- |
+| **A new contributor / employee**     | [`docs/ONBOARDING.md`](docs/ONBOARDING.md) — Day 1 walkthrough   |
+| **Looking for the architecture map** | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — living overview |
+| **About to open a PR**               | [`CONTRIBUTING.md`](CONTRIBUTING.md)                             |
+| **An AI agent** (Cursor/Codex/Aider) | [`AGENTS.md`](AGENTS.md) → this file                             |
+
+## 🗺️ Per-folder navigation (CLAUDE.md in every working directory)
+
+When Claude's cwd matches a folder below, that folder's `CLAUDE.md` loads **in addition to** this one. Use it to find the right contract / convention without re-deriving from code.
+
+| Folder                                                | What you'll find there                                                          |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [`campaigner/`](campaigner/CLAUDE.md)                 | Headless invocation pattern, Hebrew rules, where to look for truth              |
+| [`campaigner/tools/`](campaigner/tools/CLAUDE.md)     | CLI-tool catalog, I/O contract, how to add a tool                               |
+| [`campaigner/lib/`](campaigner/lib/CLAUDE.md)         | Module map, dependency-direction rule, single-SDK ownership                     |
+| [`campaigner/prompts/`](campaigner/prompts/CLAUDE.md) | Knowledge file index, load order, Hebrew vs English audience split              |
+| [`campaigner/cli/`](campaigner/cli/CLAUDE.md)         | Operator-CLI subcommand surface, idempotency rule                               |
+| [`runners/`](runners/CLAUDE.md)                       | Cron-entrypoint contract, heartbeat trap pattern, exit codes                    |
+| [`scripts/`](scripts/CLAUDE.md)                       | Operational scripts catalog (migrate, seed, validate, deploy)                   |
+| [`migrations/`](migrations/README.md)                 | Schema layout, migration runner, Supabase port plan                             |
+| [`tests/`](tests/CLAUDE.md)                           | Two test layers (golden, contract), how to run, what's intentionally not tested |
+| [`tests/golden/`](tests/golden/README.md)             | Golden-scenario format and adding cases                                         |
+| [`dockerfiles/`](dockerfiles/CLAUDE.md)               | Three images, when to rebuild which, build-context rule                         |
+| [`kubefiles/`](kubefiles/CLAUDE.md)                   | Cluster of record, manifest catalog, deploy via Makefile                        |
+| [`web/`](web/CLAUDE.md)                               | Next.js conventions, dual-mode adapters, Hebrew RTL, run + test                 |
+| [`web/src/app/`](web/src/app/CLAUDE.md)               | App Router route map, auth-gate via middleware                                  |
+| [`web/src/components/`](web/src/components/CLAUDE.md) | Primitives vs feature components, RTL conventions                               |
+| [`web/src/lib/`](web/src/lib/CLAUDE.md)               | Dual-mode DB/auth adapters, Zod schemas, single-SDK ownership                   |
+| [`webhook/`](webhook/CLAUDE.md)                       | Lead Ads → Trello receiver, narrow scope (not the agent)                        |
+
+The same docs are also accessible through standard `README.md` files where one already exists ([`web/`](web/README.md), [`migrations/`](migrations/README.md), [`tests/golden/`](tests/golden/README.md)) — those are operator-facing setup guides; the per-folder `CLAUDE.md` files are the agent-facing companions.
+
+When you onboard a new contributor or agent: point them at this navigation map. Each folder is a self-contained unit of context.
 
 ## What This Project Does (MVP)
 
@@ -49,10 +86,10 @@ All decisions are logged to Supabase `agent_decisions` — replaces LangSmith/La
 
 ## Ad Accounts
 
-| Account | ID | Purpose |
-|---|---|---|
-| Bemtech (professional) | `act_1390480923117690` | Production — real client campaigns |
-| Ro'ee Halamish (personal) | `act_202495959` | Testing and development |
+| Account                   | ID                     | Purpose                            |
+| ------------------------- | ---------------------- | ---------------------------------- |
+| Bemtech (professional)    | `act_1390480923117690` | Production — real client campaigns |
+| Ro'ee Halamish (personal) | `act_202495959`        | Testing and development            |
 
 ## Architecture (MVP — Claude Code Native)
 
@@ -67,24 +104,38 @@ cron (Cloud Scheduler)
 
 ### Key directories (planned — see spec §19)
 
-| Path | Purpose |
-|---|---|
-| `campaigner/CAMPAIGNER.md` | Agent protocol Claude loads at every invocation |
-| `campaigner/prompts/` | Knowledge files Claude reads (performance-brain, decision-tree, guardrails) |
-| `campaigner/tools/` | Python CLI tools Claude calls via Bash (fetch_insights, propose_task, log_decision, etc.) |
-| `campaigner/cli/` | User-facing CLI (`campaigner approve <id>`, `list`, `inspect`, `run`) |
-| `campaigner/lib/` | Shared library (supabase_client, meta_client, baselines) |
-| `runners/` | Bash entrypoints for cron (`daily_observe_propose.sh`, `execute_approvals.sh`, `weekly_creative_firehose.sh`) |
-| `migrations/` | Supabase SQL migrations |
+| Path                       | Purpose                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `campaigner/CAMPAIGNER.md` | Agent protocol Claude loads at every invocation                                                               |
+| `campaigner/prompts/`      | Knowledge files Claude reads (performance-brain, decision-tree, guardrails)                                   |
+| `campaigner/tools/`        | Python CLI tools Claude calls via Bash (fetch_insights, propose_task, log_decision, etc.)                     |
+| `campaigner/cli/`          | User-facing CLI (`campaigner approve <id>`, `list`, `inspect`, `run`)                                         |
+| `campaigner/lib/`          | Shared library (supabase_client, meta_client, baselines)                                                      |
+| `runners/`                 | Bash entrypoints for cron (`daily_observe_propose.sh`, `execute_approvals.sh`, `weekly_creative_firehose.sh`) |
+| `migrations/`              | Supabase SQL migrations                                                                                       |
 
-### Existing legacy files (kept as reference, wrapped by `campaigner/lib/`)
+### Existing legacy files
 
-| File | Role |
-|---|---|
-| `meta_ads_manager.py` | `MetaAdsManager` wrapping `facebook-business` SDK — will be wrapped by `campaigner/lib/meta_client.py` |
-| `image_generator.py` | `ImageGenerator` wrapping Vertex AI Imagen — will be wrapped by `campaigner/lib/creative.py` |
-| `automation_main.py`, `run_automation.py`, `create_*.py`, `example_real_estate.py` | Legacy one-off scripts — reference only |
-| `scripts/validate_credentials.py`, `diagnose_page_permissions.py` | Setup validation — Anthropic + GCP + Meta (see task 2.3 doc) |
+**Still in active use (imported by `campaigner/lib/`)** — kept at the repo root:
+
+| File                  | Role                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| `meta_ads_manager.py` | `MetaAdsManager` wrapping `facebook-business` SDK — wrapped by `campaigner/lib/meta_client.py` |
+| `image_generator.py`  | `ImageGenerator` wrapping Vertex AI Imagen — wrapped by `campaigner/lib/creative.py`           |
+
+**Archived** (reference only, not imported by current code) — see [`legacy/README.md`](legacy/README.md):
+
+| Path                                                                                                           | Role                                                            |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `legacy/scripts/automation_main.py`, `run_automation.py`, `create_*.py`, `example_real_estate.py`, `test_*.py` | One-off scripts from the upstream Brazilian real-estate version |
+| `legacy/video_analysis*.txt`                                                                                   | Early Vertex video-analysis experiment output                   |
+
+**Setup / validation scripts** — under [`scripts/`](scripts/):
+
+| File                                   | Role                                                            |
+| -------------------------------------- | --------------------------------------------------------------- |
+| `scripts/validate_credentials.py`      | Anthropic + GCP + Meta credential validation (see task 2.3 doc) |
+| `scripts/diagnose_page_permissions.py` | Meta Page permissions diagnostic                                |
 
 ## Tech Stack (MVP)
 
@@ -135,17 +186,17 @@ BUSINESS_ID=aiweon-uuid
 
 ```bash
 pip install -r requirements.txt
-docker compose run --rm campaigner python scripts/validate_credentials.py  # Anthropic + GCP + Meta
-python diagnose_page_permissions.py                                        # Meta Page permissions
+docker compose run --rm campaigner python scripts/validate_credentials.py        # Anthropic + GCP + Meta
+docker compose run --rm campaigner python scripts/diagnose_page_permissions.py   # Meta Page permissions
 ```
 
 ## Running
 
-### Legacy (direct scripts — still work)
+### Legacy (archived under `legacy/scripts/` — still work, reference only)
 
 ```bash
-python run_automation.py          # Create 2 Aiweon ads (PAUSED)
-python create_simple_ad.py        # Single ad, minimal setup
+docker compose run --rm campaigner python legacy/scripts/run_automation.py     # Create 2 Aiweon ads (PAUSED)
+docker compose run --rm campaigner python legacy/scripts/create_simple_ad.py   # Single ad, minimal setup
 ```
 
 ### MVP flows (when `campaigner/` is built)
@@ -165,11 +216,11 @@ campaigner inspect <run-id>
 
 ## Imagen Model Tiers
 
-| Tier | Model | Cost/Image | RPM |
-|---|---|---|---|
-| `fast` (default) | `imagen-3.0-fast-generate-001` | $0.02 | 200 |
-| `standard` | `imagen-3.0-generate-002` | $0.04 | 20 |
-| `ultra` | `imagen-4.0-ultra-generate-001` | $0.06 | — |
+| Tier             | Model                           | Cost/Image | RPM |
+| ---------------- | ------------------------------- | ---------- | --- |
+| `fast` (default) | `imagen-3.0-fast-generate-001`  | $0.02      | 200 |
+| `standard`       | `imagen-3.0-generate-002`       | $0.04      | 20  |
+| `ultra`          | `imagen-4.0-ultra-generate-001` | $0.06      | —   |
 
 Change tier: `ImageGenerator(model_tier="standard")`
 

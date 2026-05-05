@@ -4,7 +4,13 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { Approval, Urgency } from "@/lib/db/types";
 import {
@@ -21,7 +27,11 @@ import {
 
 type AgeBucket = "all" | "h4" | "h24" | "d7";
 
-const AGE_BUCKETS: Array<{ id: AgeBucket; label: string; maxMs: number | null }> = [
+const AGE_BUCKETS: Array<{
+  id: AgeBucket;
+  label: string;
+  maxMs: number | null;
+}> = [
   { id: "all", label: "הכל", maxMs: null },
   { id: "h4", label: "< 4ש׳", maxMs: 4 * 3600_000 },
   { id: "h24", label: "< 24ש׳", maxMs: 24 * 3600_000 },
@@ -46,7 +56,9 @@ export function ApprovalsFilteredList({
 }) {
   const [search, setSearch] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
-  const [selectedUrgencies, setSelectedUrgencies] = useState<Set<Urgency>>(new Set());
+  const [selectedUrgencies, setSelectedUrgencies] = useState<Set<Urgency>>(
+    new Set(),
+  );
   const [age, setAge] = useState<AgeBucket>("all");
   const [onlyHumanReview, setOnlyHumanReview] = useState(false);
   const [campaignFilter, setCampaignFilter] = useState<string | null>(
@@ -55,7 +67,8 @@ export function ApprovalsFilteredList({
 
   const availableTaskTypes = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const a of approvals) counts.set(a.task_type, (counts.get(a.task_type) ?? 0) + 1);
+    for (const a of approvals)
+      counts.set(a.task_type, (counts.get(a.task_type) ?? 0) + 1);
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [approvals]);
 
@@ -65,30 +78,37 @@ export function ApprovalsFilteredList({
     const now = Date.now();
     return approvals.filter((a) => {
       if (campaignFilter) {
-        if (a.target_kind !== "campaign" || a.target_id !== campaignFilter) return false;
+        if (a.target_kind !== "campaign" || a.target_id !== campaignFilter)
+          return false;
       }
-      if (selectedTypes.size > 0 && !selectedTypes.has(a.task_type)) return false;
-      if (selectedUrgencies.size > 0 && !selectedUrgencies.has(a.urgency)) return false;
+      if (selectedTypes.size > 0 && !selectedTypes.has(a.task_type))
+        return false;
+      if (selectedUrgencies.size > 0 && !selectedUrgencies.has(a.urgency))
+        return false;
       if (ageCutoff !== null) {
         const ageMs = now - new Date(a.created_at).getTime();
         if (ageMs > ageCutoff) return false;
       }
       if (onlyHumanReview && !requiresHumanReview(a)) return false;
       if (q) {
-        const label = (TASK_TYPE_LABEL_HE[a.task_type] ?? a.task_type).toLowerCase();
-        const haystack = [
-          a.task_type,
-          label,
-          a.target_id ?? "",
-          a.rationale,
-        ]
+        const label = (
+          TASK_TYPE_LABEL_HE[a.task_type] ?? a.task_type
+        ).toLowerCase();
+        const haystack = [a.task_type, label, a.target_id ?? "", a.rationale]
           .join(" ")
           .toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
     });
-  }, [approvals, search, selectedTypes, selectedUrgencies, age, onlyHumanReview]);
+  }, [
+    approvals,
+    search,
+    selectedTypes,
+    selectedUrgencies,
+    age,
+    onlyHumanReview,
+  ]);
 
   const activeFilterCount =
     (search ? 1 : 0) +
@@ -117,7 +137,11 @@ export function ApprovalsFilteredList({
               {campaignFilter}
             </span>
           </span>
-          <Button variant="ghost" size="sm" onClick={() => setCampaignFilter(null)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCampaignFilter(null)}
+          >
             הצג הכל
           </Button>
         </div>
@@ -142,7 +166,9 @@ export function ApprovalsFilteredList({
                     type="button"
                     onClick={() => setSelectedUrgencies((s) => toggle(s, u))}
                     className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                      active ? URGENCY_STYLES[u] : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      active
+                        ? URGENCY_STYLES[u]
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
                     }`}
                   >
                     {URGENCY_LABEL_HE[u]}
@@ -227,7 +253,9 @@ export function ApprovalsFilteredList({
         <Card>
           <CardHeader>
             <CardTitle>אין התאמות</CardTitle>
-            <CardDescription>אף הצעה לא תואמת את הפילטרים הנוכחיים.</CardDescription>
+            <CardDescription>
+              אף הצעה לא תואמת את הפילטרים הנוכחיים.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button variant="outline" onClick={clearAll}>
@@ -240,9 +268,14 @@ export function ApprovalsFilteredList({
           {filtered.map((a) => {
             const hrReason = requiresHumanReview(a);
             const impact = formatExpectedImpact(a.expected_impact);
-            const targetLabel = a.target_kind ? TARGET_KIND_LABEL_HE[a.target_kind] : "";
+            const targetLabel = a.target_kind
+              ? TARGET_KIND_LABEL_HE[a.target_kind]
+              : "";
             return (
-              <Card key={a.id} className={hrReason ? "border-amber-500 border-2" : ""}>
+              <Card
+                key={a.id}
+                className={hrReason ? "border-amber-500 border-2" : ""}
+              >
                 <CardHeader>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex flex-col gap-2">
@@ -252,7 +285,9 @@ export function ApprovalsFilteredList({
                         >
                           {URGENCY_LABEL_HE[a.urgency]}
                         </span>
-                        <span className="font-semibold">{taskTypeLabel(a.task_type)}</span>
+                        <span className="font-semibold">
+                          {taskTypeLabel(a.task_type)}
+                        </span>
                         {targetLabel && a.target_id ? (
                           <span className="text-sm text-muted-foreground">
                             {targetLabel}:{" "}
@@ -268,14 +303,18 @@ export function ApprovalsFilteredList({
                         </Badge>
                       ) : null}
                     </div>
-                    <span className="text-xs text-muted-foreground">{relativeHe(a.created_at)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {relativeHe(a.created_at)}
+                    </span>
                   </div>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">
                   <p className="text-sm">{truncate(a.rationale)}</p>
                   {impact ? (
                     <div className="rounded-md bg-muted px-3 py-2 text-sm">
-                      <span className="text-muted-foreground">השפעה צפויה: </span>
+                      <span className="text-muted-foreground">
+                        השפעה צפויה:{" "}
+                      </span>
                       <span className="font-semibold">{impact}</span>
                     </div>
                   ) : null}

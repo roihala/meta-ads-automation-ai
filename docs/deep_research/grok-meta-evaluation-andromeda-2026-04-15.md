@@ -87,6 +87,7 @@ Evaluate creatives via **aggregate campaign performance + breakdowns** (hook rat
 **2025 Triple Whale ecommerce medians** (updated Apr 2026, ~35k brands): CTR 2.19%, CPA $38.19, ROAS 1.86, CPM $14.19, CVR 1.6%.
 
 **Adamigo 2026 by objective** (cross-industry):
+
 - Sales: CTR 1.38%, CPM $20–30, CPA ~$30, ROAS ~2.79
 - Leads: CTR 2.59%, CPL ~$27.66
 - Traffic: CTR 1.71%, CPC $0.70
@@ -143,15 +144,19 @@ Agent will need human override or ongoing A/B testing here.
 ## 5. Source List
 
 ### Meta Official
+
 - Engineering at Meta: "Meta Andromeda" (Dec 2, 2024) — https://engineering.fb.com/2024/12/02/...
 - Meta Business Help Center: Learning Phase (current 2026) — https://www.facebook.com/business/help/112167992830700
 
 ### Practitioners
+
 - Jon Loomer Digital: "19 Rules…" (Jan 2, 2026), Creative Fatigue (Sep 15, 2025), Andromeda Creative Diversification (Oct 20, 2025) — jonloomer.com posts.
 
 ### Data Tools
+
 - Triple Whale: Facebook Ads Benchmarks (Apr 7, 2026 update) — triplewhale.com/blog
 - Adamigo: Meta Ads Benchmarks 2026 (Jan 29, 2026) — adamigo.ai/blog
 
 ### Other
+
 - WordStream (Sep 8, 2025 benchmarks); practitioner guides (Motion, AdManage.ai, GrowthMarketer 2025–2026). No pre-2024 data used without explicit 2025–2026 confirmation.

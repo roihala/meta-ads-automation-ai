@@ -31,11 +31,11 @@
 
 Default quota on `imagen-3.0-fast-generate-001` is **200 requests per minute** per project. MVP demand is far below that:
 
-| Workload | Frequency | Rate |
-|---|---|---|
-| Weekly creative firehose (1 business × 3-5 creatives) | 1× / week | 0.00005 RPM |
-| Phase 1 manual testing | ~20-50 generations / week | 0.005 RPM peak |
-| **Total Phase 1** | — | **< 0.01 RPM** — **20,000× under quota** |
+| Workload                                              | Frequency                 | Rate                                     |
+| ----------------------------------------------------- | ------------------------- | ---------------------------------------- |
+| Weekly creative firehose (1 business × 3-5 creatives) | 1× / week                 | 0.00005 RPM                              |
+| Phase 1 manual testing                                | ~20-50 generations / week | 0.005 RPM peak                           |
+| **Total Phase 1**                                     | —                         | **< 0.01 RPM** — **20,000× under quota** |
 
 **Conclusion: no quota increase needed for MVP.** Revisit when adding multiple businesses (v2) or switching default tier to `standard` (20 RPM quota — still plenty for single business but tighter).
 
@@ -102,10 +102,10 @@ Deferred to other tasks:
 
 ## 4. Files touched in this task
 
-| File | Change |
-|---|---|
-| [.env.example](../../.env.example) | Rewritten — added `ANTHROPIC_API_KEY`, `BUSINESS_ID`, Mongo/Redis vars, commentary about `.env` vs Secret Manager. Removed legacy Trello block. |
-| [scripts/validate_credentials.py](../../scripts/validate_credentials.py) | **New.** Replaces legacy `test_credentials.py`. Covers Anthropic + GCP + Meta with pass/fail exit status. |
-| `test_credentials.py` (root) | **Deleted.** Legacy fork artifact; superseded. |
-| [CLAUDE.md](../../CLAUDE.md) | Setup section updated to point at the new validation script. |
-| [docs/plans/conversation-map.md](conversation-map.md) | 2.3 status updated. |
+| File                                                                     | Change                                                                                                                                          |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| [.env.example](../../.env.example)                                       | Rewritten — added `ANTHROPIC_API_KEY`, `BUSINESS_ID`, Mongo/Redis vars, commentary about `.env` vs Secret Manager. Removed legacy Trello block. |
+| [scripts/validate_credentials.py](../../scripts/validate_credentials.py) | **New.** Replaces legacy `test_credentials.py`. Covers Anthropic + GCP + Meta with pass/fail exit status.                                       |
+| `test_credentials.py` (root)                                             | **Deleted.** Legacy fork artifact; superseded.                                                                                                  |
+| [CLAUDE.md](../../CLAUDE.md)                                             | Setup section updated to point at the new validation script.                                                                                    |
+| [docs/plans/conversation-map.md](conversation-map.md)                    | 2.3 status updated.                                                                                                                             |

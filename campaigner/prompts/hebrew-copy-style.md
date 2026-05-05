@@ -23,12 +23,15 @@ When generating Hebrew ad copy, read this file top to bottom before writing anyt
 - **Primary language:** Hebrew (MVP scope). English/Arabic deferred.
 
 ### What Aiweon sells
+
 `[TBD — Roi to fill in: one-paragraph description of the core offer. Are these managed-service engagements? Self-serve software subscriptions? Hybrid? What's the primary SKU/tier structure?]`
 
 ### Who we sell to
+
 `[TBD — Roi to fill in: primary customer profile. Are these SMB owners hiring an agency? Marketing managers at mid-market brands? Individual content creators? Freelance marketers buying SaaS? Mix? Which is the priority for this campaign series?]`
 
 ### What problem we solve (for the customer)
+
 `[TBD — Roi to fill in: the pain point Aiweon addresses, in 1-2 sentences, in the customer's own language. Not "we offer AI-powered marketing automation." Rather: "marketing costs Xk/month with unclear ROI" or similar.]`
 
 ---
@@ -36,7 +39,9 @@ When generating Hebrew ad copy, read this file top to bottom before writing anyt
 ## 2. Voice dimensions
 
 ### Formality
+
 `[TBD — Roi to pick ONE and delete the others]`
+
 - Option A: "אתה/את" singular, warm, like a knowledgeable friend.
 - Option B: "אתם" plural, professional, like addressing a business team.
 - Option C: Neutral infinitives — "לקבל", "להשאיר" — impersonal.
@@ -44,27 +49,35 @@ When generating Hebrew ad copy, read this file top to bottom before writing anyt
 **Default if uncommitted:** B (אתם plural) — Aiweon sells to businesses and teams, and "אתם" sidesteps gender-inflection problems.
 
 ### Energy level
+
 `[TBD — pick ONE]`
+
 - Calm / advisory / "מומחה שמסביר"
 - Energetic / motivating / "בואו נתחיל"
 - Factual / direct / numbers-forward
 
 ### Humor
+
 `[TBD — pick ONE]`
+
 - Dry wit, occasional wink
 - Straight-faced, no humor
 - Light self-deprecation ("גם אנחנו נפלנו לזה")
 
 ### Technical register
+
 `[TBD — pick ONE]`
+
 - Plain Hebrew — avoid marketing jargon. ROAS, CPA, CPM → explain in words.
 - Mixed — use jargon where customers expect it (if they're marketers themselves).
 - Heavy — assume audience knows ML/ad terminology.
 
 ### We sound like
+
 `[TBD — Roi to fill in with 2-3 reference brands/creators whose voice we'd like to echo.]`
 
 ### We do NOT sound like
+
 `[TBD — Roi to fill in: "the stereotypical Israeli hype-y Facebook ad" is a given; list 1-2 specific anti-examples.]`
 
 ---
@@ -83,10 +96,13 @@ When generating Hebrew ad copy, read this file top to bottom before writing anyt
 - ALL CAPS English words mid-Hebrew sentence ("CTR", "ROI" OK; "LAST CHANCE" — no)
 
 ### Aiweon-specific forbidden terms
+
 `[TBD — words/phrases the brand has explicitly committed to avoiding. Common category: any term a competitor over-uses that we want to distance from.]`
 
 ### Preferred vocabulary for our category
+
 `[TBD — Roi to add: when talking about AI/marketing/content, which Hebrew words does Aiweon prefer? Examples:]`
+
 - "אוטומציה" vs. "AI" vs. "בינה מלאכותית" — pick a default
 - "לקוחות" vs. "עסקים" vs. "מותגים" — pick default
 - "שיווק דיגיטלי" vs. "פרסום ברשת" vs. "פרסום ממומן" — pick default
@@ -108,6 +124,7 @@ When generating Hebrew ad copy, read this file top to bottom before writing anyt
 
 **Leads:**
 `[TBD — Roi to rank 2-3 preferred options]`
+
 - "להשאיר פרטים"
 - "לקבוע שיחה"
 - "לקבל הצעת מחיר"
@@ -116,16 +133,19 @@ When generating Hebrew ad copy, read this file top to bottom before writing anyt
 
 **Sales (when applicable):**
 `[TBD]`
+
 - "להירשם"
 - "להתחיל ניסיון חינם"
 - "לראות מחיר"
 
 **Traffic / Awareness:**
 `[TBD]`
+
 - "לקרוא עוד"
 - "להכיר"
 
 ### Meta ad-format CTA buttons
+
 The ad platform itself offers CTA buttons (Get Quote, Sign Up, Learn More, etc.). Match the Hebrew CTA **in the primary text** to what the button says — if button is "Sign Up", text should end with "להירשם" and not "לקבל הצעה" (this creates a confusing friction for users).
 
 ---
@@ -133,18 +153,22 @@ The ad platform itself offers CTA buttons (Get Quote, Sign Up, Learn More, etc.)
 ## 5. Headlines
 
 ### Hard constraints
+
 - **Length:** 5-7 Hebrew words. One line of 40 chars max at standard Hebrew feed rendering.
 - **Benefit-driven:** Focus on customer outcome, not Aiweon's feature.
 - **No punctuation clutter:** Max one punctuation mark (`.`, `?`, or nothing). No exclamation in headlines.
 
 ### Structural patterns we prefer
+
 `[TBD — Roi fills in 2-3 patterns that match Aiweon's voice. Examples to pick from:]`
+
 - "[Outcome] ב-[timeframe]" — "מהלך שיווקי מוצלח תוך שבועיים"
 - "ככה [audience] [achieves outcome]" — "ככה סוכנויות קטנות מכפילות תקציב"
 - Question headline — "למה המתחרים שלך רואים תוצאות ואתה לא?"
 - Declarative — "השיווק שלך לא חייב לעלות ככה."
 
 ### Anti-patterns (reject)
+
 - "גלה את [thing]" — imperative-adventure register; worn out
 - "[Number] סיבות למה..." — listicle tease; works on blogs, not ads
 - Starting with brand name — "Aiweon היא..."
@@ -154,9 +178,11 @@ The ad platform itself offers CTA buttons (Get Quote, Sign Up, Learn More, etc.)
 ## 6. Primary text
 
 ### Opening hook (first 1-3 lines before "...ראה עוד")
+
 Hebrew feed renders ~80-120 characters before the "see more" break. The hook must land there.
 
 **Rules:**
+
 - First sentence ≤12 words.
 - Lead with the **customer's reality or question**, not our product.
 - No generic openers: avoid "האם אתה..." (too template).
@@ -164,11 +190,13 @@ Hebrew feed renders ~80-120 characters before the "see more" break. The hook mus
 `[TBD — Roi: add 2-3 proven hooks if any exist from past campaigns (on old accounts), or describe the "feel" of a strong hook for Aiweon.]`
 
 ### Body
+
 - **Length:** 40-80 words total is the sweet spot for Meta placements in Hebrew. Longer works only if the opening earns it.
 - **Structure:** Hook → one specific claim → soft proof or specificity → CTA.
 - **One idea per ad.** If there are three angles, that's three ads, not one.
 
 ### Proof points we can use
+
 `[TBD — Roi to add: numbers, named clients, case study snippets, press mentions that can be referenced in ads. Example shape: "עזרנו ל-X מותגים להגדיל Y ב-Z%."]`
 
 ---
@@ -176,18 +204,22 @@ Hebrew feed renders ~80-120 characters before the "see more" break. The hook mus
 ## 7. Cultural + regulatory context
 
 ### Hebrew-specific
+
 - Right-to-left; emoji and English words break flow — use sparingly.
 - Biblical/literary references can land well but risk sounding preachy; default to modern Hebrew.
 - Military/security metaphors are **always off** in 2026 IL context.
 
 ### Calendar sensitivity
+
 - **Shabbat:** No scheduled launches Friday afternoon → Saturday night. The Meta cron respects this via business timezone; copy should also avoid "השבוע" framing that becomes weird over Shabbat.
 - **Holidays (חגים):** Pass, Rosh Hashana, Succot, Hanukkah, Purim, Shavuot — impose their own pause windows. When a campaign spans a holiday, the copy should acknowledge it only if the offer is holiday-tied; otherwise stay neutral.
 - **Tisha B'Av / fast days:** No promotional energy on these dates.
 - **Memorial Day / Independence Day / Yom Kippur:** Full blackout for promotional content.
 
 ### Audience segments (IL-specific)
+
 `[TBD — Roi: which of these do Aiweon's campaigns target, if any specifically?]`
+
 - חילוני / secular
 - דתי לאומי
 - חרדי (requires very different register + channel choice)
@@ -195,6 +227,7 @@ Hebrew feed renders ~80-120 characters before the "see more" break. The hook mus
 - Russian-speaking Israelis
 
 ### Current-event sensitivity (2026)
+
 - Wartime context: avoid flippant tone, avoid urgency copy that sounds like news ("אל תפספסו!"), avoid military vocabulary even as metaphor.
 - Political neutrality: no sides, no slogans, no flags as visuals unless Independence Day.
 
@@ -203,10 +236,12 @@ Hebrew feed renders ~80-120 characters before the "see more" break. The hook mus
 ## 8. Worked examples
 
 ### ✅ Good — hypothetical TOFU lead-gen ad for Aiweon
+
 `[TBD — Roi should replace this with a real Aiweon-flavored example after v1 review. Below is a placeholder Claude may use for structural reference only.]`
 
 **Headline:** תקציב שיווק שעובד, בלי לנחש
 **Primary text:**
+
 > רוב העסקים הקטנים מוציאים 30% מהתקציב השיווקי על קמפיינים שאף אחד לא עוקב אחריהם.
 >
 > אצלנו, כל שקל עובד עם נתונים — לא עם תחושות.
@@ -214,6 +249,7 @@ Hebrew feed renders ~80-120 characters before the "see more" break. The hook mus
 > להשאיר פרטים ונחזור אליכם עם הצעה מותאמת.
 
 **Why this works (for Claude to learn from):**
+
 - Hook in line 1 names a specific pain (30% figure anchors attention).
 - Line 2 is the differentiator in one breath — not listing 5 features.
 - CTA matches the "לקבוע שיחה / הצעה" Leads objective.
@@ -223,11 +259,13 @@ Hebrew feed renders ~80-120 characters before the "see more" break. The hook mus
 
 **Headline:** מהפכה בעולם השיווק!!! הזדמנות של פעם בחיים
 **Primary text:**
+
 > לחץ כאן עכשיו כדי לקבל גישה בלעדית למערכת המהפכנית שלנו!!
 >
 > אל תפספסו — רק היום מחיר מיוחד.
 
 **Why it's bad:**
+
 - Three forbidden phrases: מהפכה, הזדמנות של פעם בחיים, לחץ כאן.
 - Exclamation stacking (`!!!`, `!!`).
 - "רק היום" without actual same-day offer.
@@ -260,32 +298,32 @@ When a variant fails any check, regenerate rather than relaxing the rule.
 
 ### Why this matters
 
-**Assume the reader is not a marketing or ads professional.** The operator (Roi today, an Aiweon teammate or client tomorrow) may have zero exposure to Meta jargon. The first paragraph of every rationale must be readable *and speakable aloud* by such a reader — they decide approve / reject / investigate from paragraph 1 alone, without consulting a glossary or asking what an acronym means. If you would not say it to a friend over coffee, do not write it in paragraph 1.
+**Assume the reader is not a marketing or ads professional.** The operator (Roi today, an Aiweon teammate or client tomorrow) may have zero exposure to Meta jargon. The first paragraph of every rationale must be readable _and speakable aloud_ by such a reader — they decide approve / reject / investigate from paragraph 1 alone, without consulting a glossary or asking what an acronym means. If you would not say it to a friend over coffee, do not write it in paragraph 1.
 
 Acronyms buried in paragraph 2 (with first-use glosses) are fine; acronyms in paragraph 1 are not — they force the operator to translate before they can think.
 
 ### Hard rules for every `rationale` field
 
-1. **Open with a TL;DR.** One sentence, ≤ 20 words, plain Hebrew that someone outside the field can read aloud and immediately understand. No English acronyms (CPM, CTR, ROAS, CPA, CPR), no internal Meta state names (LEARNING_LIMITED, ACTIVE), no metric names that need translation (hook rate, frequency, benchmark). Substitute the everyday-Hebrew equivalent: "Meta לא מצליחה למצוא לקוחות בעלות הגיונית", "הקמפיין עוד לא הספיק ללמוד מי הקהל הנכון", "רוב התקציב לא נוצל". The TL;DR answers three questions in one breath: *מה הבעיה? למה זה קורה? מה מוצע?* Blank line after the TL;DR.
+1. **Open with a TL;DR.** One sentence, ≤ 20 words, plain Hebrew that someone outside the field can read aloud and immediately understand. No English acronyms (CPM, CTR, ROAS, CPA, CPR), no internal Meta state names (LEARNING*LIMITED, ACTIVE), no metric names that need translation (hook rate, frequency, benchmark). Substitute the everyday-Hebrew equivalent: "Meta לא מצליחה למצוא לקוחות בעלות הגיונית", "הקמפיין עוד לא הספיק ללמוד מי הקהל הנכון", "רוב התקציב לא נוצל". The TL;DR answers three questions in one breath: *מה הבעיה? למה זה קורה? מה מוצע?\_ Blank line after the TL;DR.
 
 2. **Then the analysis.** Detailed reasoning with numbers and evidence. Here acronyms are allowed **on first use** with a short Hebrew gloss in parentheses:
 
-   | Acronym | First-use gloss |
-   |---|---|
-   | `CPM` | CPM (עלות לאלף חשיפות) |
-   | `CTR` | CTR (אחוז הקלקות) |
-   | `CPA` | CPA (עלות להמרה) |
-   | `CPR` | CPR (עלות לתוצאה) |
-   | `ROAS` | ROAS (החזר על הוצאת פרסום) |
-   | `Andromeda` | Andromeda (מנוע ה-ML של Meta מ-דצמבר 2024) |
-   | `LEARNING` / `LEARNING_LIMITED` | תקוע בלמידה (Meta state: `LEARNING_LIMITED`) |
-   | `Advantage+ Audience` | Advantage+ Audience (הרחבת קהל אוטומטית של Meta) |
+   | Acronym                         | First-use gloss                                  |
+   | ------------------------------- | ------------------------------------------------ |
+   | `CPM`                           | CPM (עלות לאלף חשיפות)                           |
+   | `CTR`                           | CTR (אחוז הקלקות)                                |
+   | `CPA`                           | CPA (עלות להמרה)                                 |
+   | `CPR`                           | CPR (עלות לתוצאה)                                |
+   | `ROAS`                          | ROAS (החזר על הוצאת פרסום)                       |
+   | `Andromeda`                     | Andromeda (מנוע ה-ML של Meta מ-דצמבר 2024)       |
+   | `LEARNING` / `LEARNING_LIMITED` | תקוע בלמידה (Meta state: `LEARNING_LIMITED`)     |
+   | `Advantage+ Audience`           | Advantage+ Audience (הרחבת קהל אוטומטית של Meta) |
 
    After first use in the same rationale, the acronym alone is fine.
 
 3. **No hype or sales voice.** This is diagnostic prose for an operator, not ad copy. The §3 forbidden list (`מהפכה`, `בלעדי`, `!!!`, `חינם!!`) is doubly out of place here. Write like a junior analyst briefing a senior one — factual, specific, short.
 
-4. **Link action to diagnosis, not symptom.** Weak: *"מוצע להרחיב קהל כי ה-CPM גבוה."* The CPM being high is a *symptom*. Strong: *"הקהל צר מדי כך ש-Meta לא מצליחה למצוא המרות; הרחבה תאפשר ללמידה להתקדם."* The diagnosis explains what the action fixes and why.
+4. **Link action to diagnosis, not symptom.** Weak: _"מוצע להרחיב קהל כי ה-CPM גבוה."_ The CPM being high is a _symptom_. Strong: _"הקהל צר מדי כך ש-Meta לא מצליחה למצוא המרות; הרחבה תאפשר ללמידה להתקדם."_ The diagnosis explains what the action fixes and why.
 
 5. **Numbers earn their place.** Every number in the rationale either anchors the decision (`CPM 128 לעומת 8.38 — פי 15`) or is irrelevant and should be cut. Don't pad with metrics that didn't drive the proposal.
 
@@ -315,7 +353,8 @@ Problem: an operator without ads background can't tell what this says until sent
 > הנתונים: CPM (עלות לאלף חשיפות) 128 USD לעומת ממוצע ישראלי 8.38 USD. הקמפיין פעיל 20 יום, 5 לידים, תקוע בלמידה (Meta state: `LEARNING_LIMITED`) — Meta לא מקבלת מספיק המרות לאופטימיזציה. CTR (אחוז הקלקות) 2.36% מראה שהקריאייטיב עצמו עובד; הבעיה בהיקף הקהל. המעבר ל-Broad Targeting עם Advantage+ Audience (הרחבת קהל אוטומטית של Meta) מרחיב את מאגר הקהל פי כמה.
 
 Why this works:
-- Paragraph 1 answers *מה / למה / מה מוצע* without a single acronym — the operator can approve or reject here.
+
+- Paragraph 1 answers _מה / למה / מה מוצע_ without a single acronym — the operator can approve or reject here.
 - Paragraph 2 has the numbers an expert can validate, with acronyms glossed on first use.
 - Action is linked to diagnosis (הקהל צר → הרחבה), not to symptom (CPM גבוה → הרחבה).
 
@@ -330,11 +369,13 @@ Never. This is the operator's daily interface — consistency beats cleverness. 
 **Owner:** Roi (admin@aiweon.co.il).
 
 **Iteration triggers:**
+
 - Phase 2 first creative batch shows systematic issues (e.g., Claude keeps producing a pattern Roi flags as off).
 - A creative variant underperforms 2 consecutive weeks and voice contribution is suspected.
 - Aiweon team requests a voice shift (new positioning, new audience segment).
 
 **Edit discipline:**
+
 - Small lexicon adds (1-2 words) → Roi edits directly, no approval loop.
 - Structural rewrites (§2 dimensions, §5-6 rules) → open a new session, diff the change in `docs/plans/decisions-log.md` as an amendment to §1.5.
 

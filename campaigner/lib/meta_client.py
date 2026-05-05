@@ -12,6 +12,7 @@ The legacy manager stays as-is — this is the stable API surface the rest of
 the codebase should import. Do not reach through to `._manager` from tools;
 if something is missing, add a method here.
 """
+
 from __future__ import annotations
 
 import sys
@@ -30,7 +31,6 @@ from meta_ads_manager import MetaAdsManager  # noqa: E402
 
 from .config import Config  # noqa: E402
 
-
 ObjectType = Literal["campaign", "adset", "ad"]
 StatusValue = Literal["ACTIVE", "PAUSED", "ARCHIVED", "DELETED"]
 InsightLevel = Literal["account", "campaign", "adset", "ad"]
@@ -42,14 +42,26 @@ _OBJECT_CLASS: dict[str, type] = {
 }
 
 _DEFAULT_INSIGHT_FIELDS = [
-    "campaign_id", "campaign_name",
-    "adset_id", "adset_name",
-    "ad_id", "ad_name",
-    "impressions", "reach", "frequency",
-    "spend", "clicks", "ctr", "cpm", "cpc",
-    "actions", "action_values",
-    "video_play_actions", "video_thruplay_watched_actions",
-    "date_start", "date_stop",
+    "campaign_id",
+    "campaign_name",
+    "adset_id",
+    "adset_name",
+    "ad_id",
+    "ad_name",
+    "impressions",
+    "reach",
+    "frequency",
+    "spend",
+    "clicks",
+    "ctr",
+    "cpm",
+    "cpc",
+    "actions",
+    "action_values",
+    "video_play_actions",
+    "video_thruplay_watched_actions",
+    "date_start",
+    "date_stop",
 ]
 
 

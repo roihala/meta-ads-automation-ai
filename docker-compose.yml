@@ -29,7 +29,8 @@ services:
     healthcheck:
       # mongosh JS bundle takes 3–5s to boot; 5s timeout was too tight and
       # marked the container unhealthy even though mongo itself was fine.
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      test:
+        ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 30s
       timeout: 20s
       retries: 5
@@ -102,8 +103,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # apk add docker-cli on boot so the runner-trigger API can shell out.
-    command: sh -c "apk add --no-cache docker-cli >/dev/null 2>&1 && corepack enable && corepack prepare pnpm@9.12.0 --activate && pnpm install && pnpm dev"
+    # apk add docker-cli (for runner-trigger API) and ffmpeg (for the upload
+    # transcoding pipeline — see web/src/lib/transcode.ts) on boot.
+    command: sh -c "apk add --no-cache docker-cli ffmpeg >/dev/null 2>&1 && corepack enable && corepack prepare pnpm@9.12.0 --activate && pnpm install && pnpm dev"
     profiles: ["web"]
 
 volumes:

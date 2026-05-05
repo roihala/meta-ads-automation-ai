@@ -1,13 +1,21 @@
 import { redirect } from "next/navigation";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Shell, PageHeader } from "@/components/shell";
 import { getAuth } from "@/lib/auth";
 import { getDataClient } from "@/lib/db";
 import {
   listAdsWithCreativeAndCampaign,
+  listAdInsights,
+  listVideoSources,
   listPagePosts,
   getInstagramAccountIdForPage,
   listInstagramMedia,
+  type AdInsightsRow,
   type MetaAdWithCreative,
   type FacebookPagePost,
   type InstagramMedia,
@@ -53,11 +61,34 @@ export default async function GalleryPage() {
   const assets = await db.listGalleryAssets(business.id);
 
   let creativeUsage: CreativeUsage = {};
+  let adInsights: Record<string, AdInsightsRow> = {};
+  let videoSources: Record<string, string> = {};
   let metaError: string | null = null;
   if (business.meta_ad_account_id) {
     try {
-      const ads = await listAdsWithCreativeAndCampaign(business.meta_ad_account_id);
+      // Run ads + insights queries in parallel — both depend only on the ad
+      // account id and there's no point in serializing them.
+      const [ads, insights] = await Promise.all([
+        listAdsWithCreativeAndCampaign(business.meta_ad_account_id),
+        listAdInsights(business.meta_ad_account_id),
+      ]);
       creativeUsage = buildCreativeUsage(ads);
+      adInsights = insights;
+
+      // Resolve video sources for every unique video_id in live ads — lets
+      // us embed an actual <video> player in the live tiles instead of just
+      // a thumbnail. Skipped silently if the page id is missing; falls back
+      // to thumbnails per-video on any failure.
+      const uniqueVideoIds = new Set<string>();
+      for (const ad of ads) {
+        if (ad.creative_video_id) uniqueVideoIds.add(ad.creative_video_id);
+      }
+      if (uniqueVideoIds.size > 0 && business.meta_page_id) {
+        videoSources = await listVideoSources(
+          Array.from(uniqueVideoIds),
+          business.meta_page_id,
+        );
+      }
     } catch (e) {
       metaError = e instanceof Error ? e.message : "meta_lookup_failed";
     }
@@ -78,9 +109,11 @@ export default async function GalleryPage() {
     }
 
     try {
-      const igUserId = await getInstagramAccountIdForPage(business.meta_page_id);
+      const igUserId = await getInstagramAccountIdForPage(
+        business.meta_page_id,
+      );
       if (igUserId) {
-        igPosts = await listInstagramMedia(igUserId);
+        igPosts = await listInstagramMedia(igUserId, 50, business.meta_page_id);
       } else {
         igError = "no_instagram_business_account_linked_to_page";
       }
@@ -99,6 +132,8 @@ export default async function GalleryPage() {
       <GalleryClient
         assets={assets}
         creativeUsage={creativeUsage}
+        adInsights={adInsights}
+        videoSources={videoSources}
         metaError={metaError}
         fbPosts={fbPosts}
         fbError={fbError}

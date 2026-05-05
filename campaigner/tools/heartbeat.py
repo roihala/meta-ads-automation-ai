@@ -20,6 +20,7 @@ Example:
         --exit-code 0 \\
         --details '{"proposals_written":3,"rejections":1}'
 """
+
 from __future__ import annotations
 
 import argparse
@@ -34,7 +35,6 @@ from campaigner.tools._contract import (
     parse_json_arg,
     with_db_retry,
 )
-
 
 VALID_PHASES = ("start", "end", "error")
 
@@ -56,7 +56,7 @@ def main() -> None:
         args.exit_code = 1
 
     details = parse_json_arg(args.details, "details")
-    if details is not None and not isinstance(details, (dict, list)):
+    if details is not None and not isinstance(details, dict | list):
         emit_validation_error("--details must be a JSON object or array")
 
     try:
@@ -75,8 +75,12 @@ def main() -> None:
                 RETURNING id, ran_at
                 """,
                 (
-                    args.business_id, args.flow, args.phase,
-                    args.duration_ms, args.exit_code, args.error_message,
+                    args.business_id,
+                    args.flow,
+                    args.phase,
+                    args.duration_ms,
+                    args.exit_code,
+                    args.error_message,
                     json.dumps(details) if details is not None else None,
                 ),
             )
@@ -88,12 +92,14 @@ def main() -> None:
         emit_runtime_error(f"heartbeats insert failed: {e}", exc=e)
         return
 
-    emit_success({
-        "id": str(row["id"]),
-        "flow": args.flow,
-        "phase": args.phase,
-        "ran_at": row["ran_at"].isoformat(),
-    })
+    emit_success(
+        {
+            "id": str(row["id"]),
+            "flow": args.flow,
+            "phase": args.phase,
+            "ran_at": row["ran_at"].isoformat(),
+        }
+    )
 
 
 if __name__ == "__main__":

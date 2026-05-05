@@ -10,13 +10,26 @@ import {
   HistoryIcon,
   KnowledgeIcon,
 } from "@/components/brand/icons";
-import { Menu, Settings as SettingsIcon, Images as ImagesIcon } from "lucide-react";
+import {
+  Menu,
+  Settings as SettingsIcon,
+  Images as ImagesIcon,
+} from "lucide-react";
 import { AiweonLogo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-type IconCmp = (props: { size?: number | string; className?: string }) => ReactNode;
+type IconCmp = (props: {
+  size?: number | string;
+  className?: string;
+}) => ReactNode;
 
 type NavLink = {
   href: string;
@@ -47,7 +60,10 @@ export function Nav({ active, right }: { active?: string; right?: ReactNode }) {
         </Link>
 
         {/* Desktop nav (lg+): all links inline */}
-        <nav className="hidden flex-1 items-center gap-1 lg:flex" aria-label="ניווט ראשי">
+        <nav
+          className="hidden flex-1 items-center gap-1 lg:flex"
+          aria-label="ניווט ראשי"
+        >
           {LINKS.map((link) => (
             <NavPill key={link.href} link={link} active={active} />
           ))}
@@ -58,7 +74,9 @@ export function Nav({ active, right }: { active?: string; right?: ReactNode }) {
 
         <div className="flex shrink-0 items-center gap-1.5">
           <ThemeToggle />
-          {right ? <div className="flex items-center gap-2">{right}</div> : null}
+          {right ? (
+            <div className="flex items-center gap-2">{right}</div>
+          ) : null}
           {/* Hamburger appears below lg */}
           <MobileNav active={active} />
         </div>
@@ -76,7 +94,9 @@ function NavPill({ link, active }: { link: NavLink; active?: string }) {
       aria-current={isActive ? "page" : undefined}
       className={cn(
         "nav-link-underline inline-flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-[13.5px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-        isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+        isActive
+          ? "text-foreground"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
       <Icon
@@ -110,7 +130,10 @@ function MobileNav({ active }: { active?: string }) {
             <AiweonLogo size={24} />
           </SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-1 flex-col gap-1 p-3 overflow-y-auto" aria-label="ניווט ראשי">
+        <nav
+          className="flex flex-1 flex-col gap-1 p-3 overflow-y-auto"
+          aria-label="ניווט ראשי"
+        >
           {LINKS.map(({ href, label, Icon }) => {
             const isActive = active === href;
             return (
@@ -128,7 +151,11 @@ function MobileNav({ active }: { active?: string }) {
               >
                 <Icon
                   size={18}
-                  className={isActive ? "text-brand-500 dark:text-brand-400" : "opacity-80"}
+                  className={
+                    isActive
+                      ? "text-brand-500 dark:text-brand-400"
+                      : "opacity-80"
+                  }
                 />
                 <span>{label}</span>
                 {isActive ? (

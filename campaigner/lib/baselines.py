@@ -9,13 +9,14 @@ observe-propose flow reason about drift over time.
 This module exposes primitives. The full observe→compute→persist pipeline
 lives in `campaigner/tools/load_baselines.py` (task 4.3).
 """
+
 from __future__ import annotations
 
+from collections.abc import Sequence
 from statistics import mean
-from typing import Literal, Sequence
+from typing import Literal
 
 from .db import get_connection
-
 
 Scope = Literal["account", "campaign", "adset"]
 

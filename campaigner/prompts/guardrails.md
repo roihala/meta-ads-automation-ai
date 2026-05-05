@@ -42,10 +42,10 @@ python -m campaigner.tools.log_decision \
 **כלל:** תקרת הצעות יומית לפי תקציב העסק:
 
 | `businesses.daily_budget_ils` | מקסימום proposals/יום |
-|---|---|
-| < 50 | 2 |
-| 50 – 500 | 5 |
-| > 500 | 10 |
+| ----------------------------- | --------------------- |
+| < 50                          | 2                     |
+| 50 – 500                      | 5                     |
+| > 500                         | 10                    |
 
 **למה:** אפליקציה של החלטות הוא מאמץ קוגניטיבי. הצפת המשתמש במשימות → decision fatigue → אישורים אוטומטיים בלי חשיבה.
 
@@ -66,6 +66,7 @@ python -m campaigner.tools.log_decision \
 ## 4. `budget_jump_max_30pct`
 
 **כלל:** שינוי תקציב יומי חד פעמי ≤ 20% (default). עד 30% מותר **רק** אם:
+
 - `hook_rate > 35%`
 - `frequency < 2.0`
 - `status=ACTIVE` (יצא מ-Learning)
@@ -142,7 +143,7 @@ python -m campaigner.tools.log_decision \
 
 **למה:** Meta מוריד איכות תצוגה אוטומטית, פוגע ב-hook rate.
 
-**מימוש:** בעת יצירת תמונה דרך `ImageGenerator`, הדגל `aspect_ratio` + dimensions מחזיר 1080x*. ולידציה על התוצר לפני upload.
+**מימוש:** בעת יצירת תמונה דרך `ImageGenerator`, הדגל `aspect_ratio` + dimensions מחזיר 1080x\*. ולידציה על התוצר לפני upload.
 
 ---
 
@@ -213,6 +214,7 @@ python -m campaigner.tools.log_decision \
 ## 19. חוקים דחויים ל-v2
 
 לא מיושמים ב-MVP — אזכור למיקום ארכיטקטוני:
+
 - `remarketing_min_budget_ils` — רימרקטינג ≥ ₪50/יום גם בעונה חלשה
 - `external_source_allowlist` — רק אתרים אמינים (רק לכלים שיצרכו web research)
 - `no_competitor_hallucinations` — דורש מקור לכל טענה על מתחרים

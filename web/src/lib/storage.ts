@@ -23,9 +23,9 @@ import path from "node:path";
 const UPLOAD_ROOT = process.env.UPLOAD_ROOT || "/app/uploads";
 
 export interface UploadResult {
-  path: string;        // disk path, relative to UPLOAD_ROOT
-  public_url: string;  // URL the browser fetches
-  size_bytes: number;  // bytes actually written
+  path: string; // disk path, relative to UPLOAD_ROOT
+  public_url: string; // URL the browser fetches
+  size_bytes: number; // bytes actually written
 }
 
 export class UploadTooLargeError extends Error {
@@ -38,7 +38,7 @@ function safeFilename(name: string): string {
   return name.replace(/[^\w.\-]+/g, "_").slice(0, 120);
 }
 
-function keyToDiskPath(key: string): string {
+export function keyToDiskPath(key: string): string {
   const normalized = path.posix.normalize(key);
   if (normalized.startsWith("..") || path.isAbsolute(normalized)) {
     throw new Error("invalid_storage_key");
@@ -82,7 +82,9 @@ export async function uploadAssetStream(
 
   const sink = createWriteStream(disk);
   try {
-    const counted = body.pipeThrough(counter) as unknown as NodeWebReadableStream<Uint8Array>;
+    const counted = body.pipeThrough(
+      counter,
+    ) as unknown as NodeWebReadableStream<Uint8Array>;
     await pipeline(Readable.fromWeb(counted), sink);
   } catch (err) {
     try {
@@ -94,12 +96,18 @@ export async function uploadAssetStream(
     throw err;
   }
 
-  return { path: key, public_url: `/api/gallery/file/${key}`, size_bytes: written };
+  return {
+    path: key,
+    public_url: `/api/gallery/file/${key}`,
+    size_bytes: written,
+  };
 }
 
 export async function deleteAsset(storageUrl: string): Promise<void> {
   const prefix = "/api/gallery/file/";
-  const key = storageUrl.startsWith(prefix) ? storageUrl.slice(prefix.length) : storageUrl;
+  const key = storageUrl.startsWith(prefix)
+    ? storageUrl.slice(prefix.length)
+    : storageUrl;
   const disk = keyToDiskPath(key);
   try {
     await unlink(disk);
@@ -108,7 +116,9 @@ export async function deleteAsset(storageUrl: string): Promise<void> {
   }
 }
 
-export async function readAsset(key: string): Promise<{ body: Buffer; size: number } | null> {
+export async function readAsset(
+  key: string,
+): Promise<{ body: Buffer; size: number } | null> {
   const disk = keyToDiskPath(key);
   try {
     const st = await stat(disk);

@@ -16,6 +16,7 @@ This is a pure function over the given metrics — no DB, no Meta calls. Determi
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -26,7 +27,6 @@ from campaigner.tools._contract import (
     parse_json_arg,
 )
 
-
 GATES = ("gate_1_creative", "gate_2_campaign", "emergency")
 
 
@@ -35,9 +35,19 @@ def _check_gate_1(m: dict) -> list[dict]:
     clicks = int(m.get("clicks", 0))
     hours_live = float(m.get("hours_live", 0))
     return [
-        {"name": "impressions_min_1000", "passed": impressions >= 1000, "value": impressions, "threshold": 1000},
+        {
+            "name": "impressions_min_1000",
+            "passed": impressions >= 1000,
+            "value": impressions,
+            "threshold": 1000,
+        },
         {"name": "clicks_min_50", "passed": clicks >= 50, "value": clicks, "threshold": 50},
-        {"name": "hours_live_min_48", "passed": hours_live >= 48, "value": hours_live, "threshold": 48},
+        {
+            "name": "hours_live_min_48",
+            "passed": hours_live >= 48,
+            "value": hours_live,
+            "threshold": 48,
+        },
     ]
 
 
@@ -46,9 +56,25 @@ def _check_gate_2(m: dict) -> list[dict]:
     days_since_change = float(m.get("days_since_material_change", 0))
     days_stable = int(m.get("days_cpa_stable", 0))
     return [
-        {"name": "conversions_7d_min_50", "passed": conversions_7d >= 50, "value": conversions_7d, "threshold": 50},
-        {"name": "days_since_change_min_2", "passed": days_since_change >= 2, "value": days_since_change, "threshold": 2},
-        {"name": "days_cpa_stable_min_5", "passed": days_stable >= 5, "value": days_stable, "threshold": 5, "severity": "warning"},
+        {
+            "name": "conversions_7d_min_50",
+            "passed": conversions_7d >= 50,
+            "value": conversions_7d,
+            "threshold": 50,
+        },
+        {
+            "name": "days_since_change_min_2",
+            "passed": days_since_change >= 2,
+            "value": days_since_change,
+            "threshold": 2,
+        },
+        {
+            "name": "days_cpa_stable_min_5",
+            "passed": days_stable >= 5,
+            "value": days_stable,
+            "threshold": 5,
+            "severity": "warning",
+        },
     ]
 
 
@@ -63,13 +89,26 @@ def _check_emergency(m: dict) -> list[dict]:
     burnout = daily_budget > 0 and daily_spend >= daily_budget and days_zero_conversions >= 3
 
     return [
-        {"name": "cpa_3x_target", "triggered": cpa_3x, "current_cpa": current_cpa, "target_cpa": target_cpa},
-        {"name": "burnout_3d_zero_conversions", "triggered": burnout, "daily_spend": daily_spend, "daily_budget": daily_budget, "days_zero": days_zero_conversions},
+        {
+            "name": "cpa_3x_target",
+            "triggered": cpa_3x,
+            "current_cpa": current_cpa,
+            "target_cpa": target_cpa,
+        },
+        {
+            "name": "burnout_3d_zero_conversions",
+            "triggered": burnout,
+            "daily_spend": daily_spend,
+            "daily_budget": daily_budget,
+            "days_zero": days_zero_conversions,
+        },
     ]
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Check whether a metrics snapshot passes the §6.4 data-sufficiency gates.")
+    p = argparse.ArgumentParser(
+        description="Check whether a metrics snapshot passes the §6.4 data-sufficiency gates."
+    )
     p.add_argument("--gate", required=True, choices=GATES)
     p.add_argument("--metrics", required=True, help="JSON object of metric values")
     args = p.parse_args()
@@ -82,32 +121,42 @@ def main() -> None:
     if args.gate == "gate_1_creative":
         checks = _check_gate_1(m)
         required_passed = all(c["passed"] for c in checks if c.get("severity") != "warning")
-        emit_success({
-            "gate": args.gate,
-            "sufficient": required_passed,
-            "checks": checks,
-            "action": "proceed_with_gate_1_evaluation" if required_passed else "skip_insufficient_data",
-        })
+        emit_success(
+            {
+                "gate": args.gate,
+                "sufficient": required_passed,
+                "checks": checks,
+                "action": "proceed_with_gate_1_evaluation"
+                if required_passed
+                else "skip_insufficient_data",
+            }
+        )
 
     elif args.gate == "gate_2_campaign":
         checks = _check_gate_2(m)
         required_passed = all(c["passed"] for c in checks if c.get("severity") != "warning")
-        emit_success({
-            "gate": args.gate,
-            "sufficient": required_passed,
-            "checks": checks,
-            "action": "proceed_with_gate_2_evaluation" if required_passed else "skip_insufficient_data",
-        })
+        emit_success(
+            {
+                "gate": args.gate,
+                "sufficient": required_passed,
+                "checks": checks,
+                "action": "proceed_with_gate_2_evaluation"
+                if required_passed
+                else "skip_insufficient_data",
+            }
+        )
 
     else:  # emergency
         checks = _check_emergency(m)
         any_triggered = any(c["triggered"] for c in checks)
-        emit_success({
-            "gate": args.gate,
-            "triggered": any_triggered,
-            "checks": checks,
-            "action": "emergency_proposal_urgent" if any_triggered else "no_emergency",
-        })
+        emit_success(
+            {
+                "gate": args.gate,
+                "triggered": any_triggered,
+                "checks": checks,
+                "action": "emergency_proposal_urgent" if any_triggered else "no_emergency",
+            }
+        )
 
 
 if __name__ == "__main__":

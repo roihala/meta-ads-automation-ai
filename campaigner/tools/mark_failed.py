@@ -6,6 +6,7 @@ fails on a re-evaluated proposal.
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -74,12 +75,14 @@ def main() -> None:
         )
         return
 
-    emit_success({
-        "approval_id": str(row["id"]),
-        "status": row["status"],
-        "executed_at": row["executed_at"].isoformat(),
-        "error": args.error.strip(),
-    })
+    emit_success(
+        {
+            "approval_id": str(row["id"]),
+            "status": row["status"],
+            "executed_at": row["executed_at"].isoformat(),
+            "error": args.error.strip(),
+        }
+    )
 
 
 if __name__ == "__main__":

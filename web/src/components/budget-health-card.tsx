@@ -1,5 +1,11 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { relativeHe } from "@/lib/approvals-fmt";
 import type { AgentDecision, Business } from "@/lib/db/types";
 
@@ -23,7 +29,12 @@ interface PaceOutputs {
   days_in_month?: number;
   days_left?: number;
   seasonal_multiplier?: number;
-  active_windows?: Array<{ name?: string; multiplier?: number; start?: string; end?: string }>;
+  active_windows?: Array<{
+    name?: string;
+    multiplier?: number;
+    start?: string;
+    end?: string;
+  }>;
 }
 
 function statusTone(status: PaceStatus | undefined): {
@@ -104,7 +115,9 @@ export function BudgetHealthCard({
           <CardTitle>💰 תקציב בריא?</CardTitle>
           <CardDescription className={tone.headline}>
             {tone.label}
-            {outputs.pace !== undefined && outputs.pace !== null ? ` · ${pacePct} מהצפוי` : ""}
+            {outputs.pace !== undefined && outputs.pace !== null
+              ? ` · ${pacePct} מהצפוי`
+              : ""}
           </CardDescription>
         </div>
         <span className="text-[11px] text-muted-foreground">
@@ -126,13 +139,17 @@ export function BudgetHealthCard({
             label="תחזית סוף חודש"
             value={formatIls(outputs.projected_monthly_spend)}
             hint={
-              outputs.effective_monthly_budget && outputs.projected_monthly_spend !== undefined
-                ? outputs.projected_monthly_spend > outputs.effective_monthly_budget
+              outputs.effective_monthly_budget &&
+              outputs.projected_monthly_spend !== undefined
+                ? outputs.projected_monthly_spend >
+                  outputs.effective_monthly_budget
                   ? `₪${Math.round(
-                      outputs.projected_monthly_spend - outputs.effective_monthly_budget,
+                      outputs.projected_monthly_spend -
+                        outputs.effective_monthly_budget,
                     ).toLocaleString("he-IL")} מעל הצפוי`
                   : `₪${Math.round(
-                      outputs.effective_monthly_budget - outputs.projected_monthly_spend,
+                      outputs.effective_monthly_budget -
+                        outputs.projected_monthly_spend,
                     ).toLocaleString("he-IL")} headroom`
                 : undefined
             }
@@ -140,11 +157,16 @@ export function BudgetHealthCard({
           <Metric
             label="יום בחודש"
             value={
-              outputs.days_elapsed !== undefined && outputs.days_in_month !== undefined
+              outputs.days_elapsed !== undefined &&
+              outputs.days_in_month !== undefined
                 ? `${outputs.days_elapsed} / ${outputs.days_in_month}`
                 : "—"
             }
-            hint={outputs.days_left !== undefined ? `${outputs.days_left} ימים נותרו` : undefined}
+            hint={
+              outputs.days_left !== undefined
+                ? `${outputs.days_left} ימים נותרו`
+                : undefined
+            }
           />
           <Metric
             label="מכפיל עונתי"
@@ -153,7 +175,11 @@ export function BudgetHealthCard({
                 ? `×${Number(outputs.seasonal_multiplier).toFixed(2)}`
                 : "×1.00"
             }
-            hint={windows.length > 0 ? `${windows.length} חלונות פעילים` : "אין חלון פעיל"}
+            hint={
+              windows.length > 0
+                ? `${windows.length} חלונות פעילים`
+                : "אין חלון פעיל"
+            }
           />
         </div>
 
@@ -161,9 +187,15 @@ export function BudgetHealthCard({
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="text-muted-foreground">חלונות פעילים:</span>
             {windows.map((w, i) => (
-              <Badge key={`${w.name}-${i}`} variant="outline" className="font-normal">
+              <Badge
+                key={`${w.name}-${i}`}
+                variant="outline"
+                className="font-normal"
+              >
                 {w.name ?? "חלון"}
-                {typeof w.multiplier === "number" ? ` ×${w.multiplier.toFixed(2)}` : null}
+                {typeof w.multiplier === "number"
+                  ? ` ×${w.multiplier.toFixed(2)}`
+                  : null}
               </Badge>
             ))}
           </div>
@@ -171,12 +203,14 @@ export function BudgetHealthCard({
 
         {status === "overrun" ? (
           <p className="text-xs text-destructive">
-            הסוכן פתח הצעות pause/scale_down או alert לחריגה בסבב האחרון — בדוק את ה-queue של האישורים.
+            הסוכן פתח הצעות pause/scale_down או alert לחריגה בסבב האחרון — בדוק
+            את ה-queue של האישורים.
           </p>
         ) : null}
         {status === "underrun" ? (
           <p className="text-xs text-muted-foreground">
-            תת-ניצול עקבי עם winner → ייתכן שהסוכן יציע הגדלה (§T10). אם לא — כנראה שאין winner לעת עתה.
+            תת-ניצול עקבי עם winner → ייתכן שהסוכן יציע הגדלה (§T10). אם לא —
+            כנראה שאין winner לעת עתה.
           </p>
         ) : null}
       </CardContent>
@@ -184,12 +218,26 @@ export function BudgetHealthCard({
   );
 }
 
-function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function Metric({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+}) {
   return (
     <div className="rounded-md border border-border/60 bg-background/40 p-3">
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-1 font-tabular text-lg font-semibold tabular-nums">{value}</div>
-      {hint ? <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div> : null}
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-1 font-tabular text-lg font-semibold tabular-nums">
+        {value}
+      </div>
+      {hint ? (
+        <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>
+      ) : null}
     </div>
   );
 }

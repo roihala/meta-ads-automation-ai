@@ -7,6 +7,7 @@ proposals don't duplicate angles. Reads `creative_gallery` rows with
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,9 +23,13 @@ from campaigner.tools._contract import (
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="List active (uploaded-to-Meta) creatives from creative_gallery.")
+    p = argparse.ArgumentParser(
+        description="List active (uploaded-to-Meta) creatives from creative_gallery."
+    )
     p.add_argument("--business-id", required=True)
-    p.add_argument("--since-days", type=int, default=30, help="only creatives uploaded within N days")
+    p.add_argument(
+        "--since-days", type=int, default=30, help="only creatives uploaded within N days"
+    )
     p.add_argument("--limit", type=int, default=100)
     args = p.parse_args()
 
@@ -38,8 +43,9 @@ def main() -> None:
         return
 
     try:
-        rows = with_db_retry(lambda: fetch_all(
-            """
+        rows = with_db_retry(
+            lambda: fetch_all(
+                """
             SELECT id, kind, aspect_ratio, dimensions,
                    headline, primary_text, cta,
                    marketing_angle, placement,
@@ -53,8 +59,9 @@ def main() -> None:
             ORDER BY uploaded_to_meta_at DESC
             LIMIT %s
             """,
-            (args.business_id, args.since_days, args.limit),
-        ))
+                (args.business_id, args.since_days, args.limit),
+            )
+        )
     except Exception as e:
         emit_runtime_error(f"creative_gallery fetch failed: {e}", exc=e)
         return
@@ -65,12 +72,14 @@ def main() -> None:
         key = r.get("marketing_angle") or "unspecified"
         angles[key] = angles.get(key, 0) + 1
 
-    emit_success({
-        "business_id": args.business_id,
-        "count": len(rows),
-        "angle_distribution": angles,
-        "creatives": rows,
-    })
+    emit_success(
+        {
+            "business_id": args.business_id,
+            "count": len(rows),
+            "angle_distribution": angles,
+            "creatives": rows,
+        }
+    )
 
 
 if __name__ == "__main__":

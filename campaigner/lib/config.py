@@ -5,6 +5,7 @@ Single source of truth for every env var. Tools, cli, and lib modules must
 call `Config.load()` rather than reading `os.environ` directly — keeps env
 surface discoverable and validated in one place.
 """
+
 from __future__ import annotations
 
 import os
@@ -15,9 +16,16 @@ class ConfigError(RuntimeError):
     pass
 
 
-_PLACEHOLDERS = {"", "your-app-id", "your-app-secret", "your-access-token",
-                 "your-account-id", "your-page-id", "aiweon-uuid",
-                 "sk-ant-your-dev-key"}
+_PLACEHOLDERS = {
+    "",
+    "your-app-id",
+    "your-app-secret",
+    "your-access-token",
+    "your-account-id",
+    "your-page-id",
+    "aiweon-uuid",
+    "sk-ant-your-dev-key",
+}
 
 
 def _env(key: str) -> str | None:
@@ -55,10 +63,11 @@ class Config:
     supabase_service_role_key: str | None
 
     @classmethod
-    def load(cls) -> "Config":
+    def load(cls) -> Config:
         """Load config from os.environ. Optionally loads .env if python-dotenv is available."""
         try:
             from dotenv import load_dotenv
+
             load_dotenv(override=False)
         except ImportError:
             pass
@@ -88,15 +97,19 @@ class Config:
         missing = [k.upper() for k in keys if getattr(self, k) in (None, "")]
         if missing:
             raise ConfigError(
-                "Missing required env vars (or they hold placeholder values): "
-                + ", ".join(missing)
+                "Missing required env vars (or they hold placeholder values): " + ", ".join(missing)
             )
 
     # Convenience bundles — each client module calls the one it needs.
 
     def require_meta(self) -> None:
-        self.require("meta_app_id", "meta_app_secret", "meta_access_token",
-                     "meta_ad_account_id", "meta_page_id")
+        self.require(
+            "meta_app_id",
+            "meta_app_secret",
+            "meta_access_token",
+            "meta_ad_account_id",
+            "meta_page_id",
+        )
 
     def require_db(self) -> None:
         self.require("database_url")

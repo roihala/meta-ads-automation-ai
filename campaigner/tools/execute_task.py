@@ -24,6 +24,7 @@ prior result and exits 0 without calling Meta again.
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -39,7 +40,6 @@ from campaigner.tools._contract import (
     emit_validation_error,
     with_db_retry,
 )
-
 
 UNSUPPORTED_MVP = {"new_creative", "expand_audience"}
 
@@ -92,7 +92,9 @@ def _dispatch(client: MetaClient, approval: dict) -> dict:
         # to have MetaClient accept a currency. For MVP Aiweon is Hebrew-only ILS.
         usd_equivalent = float(new_ils) / float(client._m().usdils_rate)
         kind = "adset" if target_kind == "adset" else "campaign"
-        return client.update_budget(object_type=kind, object_id=target_id, daily_budget_usd=usd_equivalent)
+        return client.update_budget(
+            object_type=kind, object_id=target_id, daily_budget_usd=usd_equivalent
+        )
 
     if task == "pause_campaign":
         return client.update_status("campaign", target_id, "PAUSED")
@@ -106,8 +108,12 @@ def _dispatch(client: MetaClient, approval: dict) -> dict:
     if task == "new_campaign":
         creative_kind = payload.get("creative_kind", "image")
         if creative_kind == "video":
-            return client.create_complete_video_ad(**{k: v for k, v in payload.items() if k != "creative_kind"})
-        return client.create_complete_image_ad(**{k: v for k, v in payload.items() if k != "creative_kind"})
+            return client.create_complete_video_ad(
+                **{k: v for k, v in payload.items() if k != "creative_kind"}
+            )
+        return client.create_complete_image_ad(
+            **{k: v for k, v in payload.items() if k != "creative_kind"}
+        )
 
     raise ValueError(f"unknown task_type: {task}")
 
@@ -115,8 +121,11 @@ def _dispatch(client: MetaClient, approval: dict) -> dict:
 def main() -> None:
     p = argparse.ArgumentParser(description="Execute an approved task against Meta.")
     p.add_argument("--approval-id", required=True)
-    p.add_argument("--dry-run", action="store_true",
-                   help="skip the Meta call; log what would happen. Does NOT update approval status.")
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="skip the Meta call; log what would happen. Does NOT update approval status.",
+    )
     args = p.parse_args()
 
     try:
@@ -138,12 +147,14 @@ def main() -> None:
 
     # Idempotency: already-executed rows return the stored result without calling Meta.
     if approval["status"] == "executed":
-        emit_success({
-            "approval_id": str(approval["id"]),
-            "status": "executed",
-            "meta_result": approval.get("execution_result"),
-            "already_executed": True,
-        })
+        emit_success(
+            {
+                "approval_id": str(approval["id"]),
+                "status": "executed",
+                "meta_result": approval.get("execution_result"),
+                "already_executed": True,
+            }
+        )
         return
 
     if approval["status"] != "approved":
@@ -153,15 +164,17 @@ def main() -> None:
         return
 
     if args.dry_run:
-        emit_success({
-            "approval_id": str(approval["id"]),
-            "dry_run": True,
-            "task_type": approval["task_type"],
-            "target_kind": approval["target_kind"],
-            "target_id": approval["target_id"],
-            "payload": approval["payload"],
-            "would_call": "MetaClient dispatch (skipped in dry-run)",
-        })
+        emit_success(
+            {
+                "approval_id": str(approval["id"]),
+                "dry_run": True,
+                "task_type": approval["task_type"],
+                "target_kind": approval["target_kind"],
+                "target_id": approval["target_id"],
+                "payload": approval["payload"],
+                "would_call": "MetaClient dispatch (skipped in dry-run)",
+            }
+        )
         return
 
     # Requires Meta creds from this point forward.
@@ -187,18 +200,19 @@ def main() -> None:
         # Meta call SUCCEEDED but DB update failed — this is the nasty failure mode.
         # Emit runtime error so runner logs and mark_failed records the discrepancy.
         emit_runtime_error(
-            f"meta call succeeded but approval update failed: {e}. "
-            f"meta_result={meta_result}",
+            f"meta call succeeded but approval update failed: {e}. " f"meta_result={meta_result}",
             exc=e,
         )
         return
 
-    emit_success({
-        "approval_id": str(row["id"]),
-        "status": row["status"],
-        "executed_at": row["executed_at"].isoformat(),
-        "meta_result": meta_result,
-    })
+    emit_success(
+        {
+            "approval_id": str(row["id"]),
+            "status": row["status"],
+            "executed_at": row["executed_at"].isoformat(),
+            "meta_result": meta_result,
+        }
+    )
 
 
 if __name__ == "__main__":

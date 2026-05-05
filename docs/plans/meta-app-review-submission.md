@@ -3,6 +3,7 @@
 > **Status:** Text-ready as of 2026-04-19 (Phase A + B of task 2.2 complete). Submission itself blocked on Phase 1 tooling — video demo requires working CLI.
 > **Decision references:** [decisions-log.md §1.3](decisions-log.md#13-meta-app-review--bundle-vs-serial) (bundle strategy) + Phase A decisions 2026-04-19 recorded in §2 and §7 of this doc.
 > **Supporting documents:**
+>
 > - [`meta-app-review-privacy-policy.md`](meta-app-review-privacy-policy.md) — source text for `aiweon.co.il/privacy` (English, required by Meta)
 > - [`meta-app-review-privacy-policy-he.md`](meta-app-review-privacy-policy-he.md) — source text for `aiweon.co.il/privacy-he` (Hebrew, for Israeli users)
 > - [`meta-app-review-data-deletion.md`](meta-app-review-data-deletion.md) — source text for `aiweon.co.il/data-deletion` (English)
@@ -23,20 +24,20 @@ Excluded from this submission: `whatsapp_business_management` (deferred to v2 pe
 
 ## 2. App-level metadata
 
-| Field | Value | Source / status |
-|---|---|---|
-| App name (Meta Developer Portal) | `Campaigner by Aiweon` — **new app**, not a rename of the inherited one | Decided 2026-04-19 Phase A |
-| Existing Meta App ID (legacy, unused) | `3175000345993024` (inherited from Brazilian fork) | Not used in submission. No rename — reviewers would see fork history. |
-| New Meta App ID | `[TBD — assigned when Roi creates the new app in developers.facebook.com]` | Blocks final submission. Update `.env META_APP_ID` + Secret Manager once assigned. |
-| Display name in review | `Campaigner by Aiweon` | — |
-| Category | Business | — |
-| Platform | Web (backend service — no consumer-facing mobile/web client in MVP) | — |
-| Business use | Internal tooling — managing Aiweon's own Meta ad accounts. Not offered to third parties in MVP. | — |
-| Privacy Policy URL | `https://aiweon.co.il/privacy` | Text drafted in [`meta-app-review-privacy-policy.md`](meta-app-review-privacy-policy.md). Roi publishes. |
-| Terms of Service URL | — (skipped; optional for internal apps) | Decided 2026-04-19 Phase A |
-| Data Deletion URL or Instructions | `https://aiweon.co.il/data-deletion` | Text drafted in [`meta-app-review-data-deletion.md`](meta-app-review-data-deletion.md). Roi publishes. |
-| App Icon | Aiweon logo, 1024×1024 PNG | Decided 2026-04-19 Phase A; Roi supplies file. |
-| Primary contact | admin@aiweon.co.il | — |
+| Field                                 | Value                                                                                           | Source / status                                                                                          |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| App name (Meta Developer Portal)      | `Campaigner by Aiweon` — **new app**, not a rename of the inherited one                         | Decided 2026-04-19 Phase A                                                                               |
+| Existing Meta App ID (legacy, unused) | `3175000345993024` (inherited from Brazilian fork)                                              | Not used in submission. No rename — reviewers would see fork history.                                    |
+| New Meta App ID                       | `[TBD — assigned when Roi creates the new app in developers.facebook.com]`                      | Blocks final submission. Update `.env META_APP_ID` + Secret Manager once assigned.                       |
+| Display name in review                | `Campaigner by Aiweon`                                                                          | —                                                                                                        |
+| Category                              | Business                                                                                        | —                                                                                                        |
+| Platform                              | Web (backend service — no consumer-facing mobile/web client in MVP)                             | —                                                                                                        |
+| Business use                          | Internal tooling — managing Aiweon's own Meta ad accounts. Not offered to third parties in MVP. | —                                                                                                        |
+| Privacy Policy URL                    | `https://aiweon.co.il/privacy`                                                                  | Text drafted in [`meta-app-review-privacy-policy.md`](meta-app-review-privacy-policy.md). Roi publishes. |
+| Terms of Service URL                  | — (skipped; optional for internal apps)                                                         | Decided 2026-04-19 Phase A                                                                               |
+| Data Deletion URL or Instructions     | `https://aiweon.co.il/data-deletion`                                                            | Text drafted in [`meta-app-review-data-deletion.md`](meta-app-review-data-deletion.md). Roi publishes.   |
+| App Icon                              | Aiweon logo, 1024×1024 PNG                                                                      | Decided 2026-04-19 Phase A; Roi supplies file.                                                           |
+| Primary contact                       | admin@aiweon.co.il                                                                              | —                                                                                                        |
 
 **Note on "internal app" framing:** Meta's App Review process is primarily designed for apps that serve third-party users. Campaigner in MVP serves only Aiweon itself (one business, one ad account). The submission narrative should be explicit about this: **"The app is used internally by Aiweon (an advertising agency in Israel) to manage its own first-party ad campaigns on Facebook and Instagram. There are no external end users in the MVP scope."** This framing is accepted by reviewers as long as it is consistent.
 
@@ -146,16 +147,16 @@ Each permission below follows Meta's expected structure: **(a) purpose**, **(b) 
 
 **Important.** Campaigner's MVP has no web UI. The video shows (a) CLI output, (b) Supabase approvals table, (c) Meta Ads Manager as visual confirmation. The narrator should verbally state what permission is being exercised in each scene (Meta reviewers appreciate explicit permission callouts).
 
-| Time | Scene | Permissions exercised | Narration (English) |
-|---|---|---|---|
-| 0:00 – 0:15 | Title card — "Campaigner by Aiweon — Internal Meta Ads Automation Agent". | — | "Campaigner is an internal tool Aiweon uses to manage its own Facebook and Instagram ad campaigns. Every agent decision is reviewed and approved by a human operator before execution." |
-| 0:15 – 0:30 | Operator runs `campaigner fetch` in terminal. CLI outputs a table of campaign metrics. | `ads_read` | "The daily cron uses ads_read to fetch the last 24 hours of performance data — impressions, clicks, cost-per-result." |
-| 0:30 – 0:50 | Switch to Supabase web UI showing the `approvals` table with a new row: "Pause ad 123 — CPR 2.3× baseline." | — | "The agent proposes to pause an underperforming ad and writes the proposal to an approvals queue. Nothing executes yet." |
-| 0:50 – 1:10 | Operator runs `campaigner approve <id>`. CLI confirms "Executed: ad 123 paused." Switch to Meta Ads Manager in a browser — ad 123 shows status Paused. | `ads_management` | "The operator approves. The tool uses ads_management to call the Marketing API and pause the ad. The change appears in Meta Ads Manager." |
-| 1:10 – 1:40 | CLI runs `campaigner heartbeat`. Output shows resolved Business Manager context: owning Business ID, connected ad account, list of Pages. | `business_management`, `pages_show_list` | "On every cron tick, Campaigner uses business_management and pages_show_list to verify the ad account and connected Pages match the configured Business. This is a safety guardrail — the tool will refuse to operate on assets outside this Business." |
-| 1:40 – 2:10 | Weekly firehose run. CLI outputs a fatigue report: "Ad 456 — engagement trending down over 7 days, cost-per-result trending up. Flagged for replacement." Show the underlying engagement query. | `pages_read_engagement` | "The weekly creative-fatigue check uses pages_read_engagement to read engagement trends on the Page posts backing each ad. This complements Meta's own Andromeda signals." |
-| 2:10 – 2:40 | Before publishing a new creative, CLI shows: "Instagram account @aiweon verified, Advantage+ Placements enabled: Facebook Feed, Instagram Feed, Stories, Reels." Show in Ads Manager that the ad preview displays on both FB and IG placements. | `instagram_basic` | "Before any ad is created, Campaigner uses instagram_basic to verify the Instagram account is linked. This ensures Advantage+ Placements covers both platforms as Meta recommends." |
-| 2:40 – 3:00 | Final shot: `agent_decisions` table in Supabase showing an immutable log of every observation, proposal, approval, and execution from the demo. | — | "Every decision is logged for audit. This is how Aiweon's operator stays in control of the automated tooling. End of demo." |
+| Time        | Scene                                                                                                                                                                                                                                           | Permissions exercised                    | Narration (English)                                                                                                                                                                                                                                     |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0:00 – 0:15 | Title card — "Campaigner by Aiweon — Internal Meta Ads Automation Agent".                                                                                                                                                                       | —                                        | "Campaigner is an internal tool Aiweon uses to manage its own Facebook and Instagram ad campaigns. Every agent decision is reviewed and approved by a human operator before execution."                                                                 |
+| 0:15 – 0:30 | Operator runs `campaigner fetch` in terminal. CLI outputs a table of campaign metrics.                                                                                                                                                          | `ads_read`                               | "The daily cron uses ads_read to fetch the last 24 hours of performance data — impressions, clicks, cost-per-result."                                                                                                                                   |
+| 0:30 – 0:50 | Switch to Supabase web UI showing the `approvals` table with a new row: "Pause ad 123 — CPR 2.3× baseline."                                                                                                                                     | —                                        | "The agent proposes to pause an underperforming ad and writes the proposal to an approvals queue. Nothing executes yet."                                                                                                                                |
+| 0:50 – 1:10 | Operator runs `campaigner approve <id>`. CLI confirms "Executed: ad 123 paused." Switch to Meta Ads Manager in a browser — ad 123 shows status Paused.                                                                                          | `ads_management`                         | "The operator approves. The tool uses ads_management to call the Marketing API and pause the ad. The change appears in Meta Ads Manager."                                                                                                               |
+| 1:10 – 1:40 | CLI runs `campaigner heartbeat`. Output shows resolved Business Manager context: owning Business ID, connected ad account, list of Pages.                                                                                                       | `business_management`, `pages_show_list` | "On every cron tick, Campaigner uses business_management and pages_show_list to verify the ad account and connected Pages match the configured Business. This is a safety guardrail — the tool will refuse to operate on assets outside this Business." |
+| 1:40 – 2:10 | Weekly firehose run. CLI outputs a fatigue report: "Ad 456 — engagement trending down over 7 days, cost-per-result trending up. Flagged for replacement." Show the underlying engagement query.                                                 | `pages_read_engagement`                  | "The weekly creative-fatigue check uses pages_read_engagement to read engagement trends on the Page posts backing each ad. This complements Meta's own Andromeda signals."                                                                              |
+| 2:10 – 2:40 | Before publishing a new creative, CLI shows: "Instagram account @aiweon verified, Advantage+ Placements enabled: Facebook Feed, Instagram Feed, Stories, Reels." Show in Ads Manager that the ad preview displays on both FB and IG placements. | `instagram_basic`                        | "Before any ad is created, Campaigner uses instagram_basic to verify the Instagram account is linked. This ensures Advantage+ Placements covers both platforms as Meta recommends."                                                                     |
+| 2:40 – 3:00 | Final shot: `agent_decisions` table in Supabase showing an immutable log of every observation, proposal, approval, and execution from the demo.                                                                                                 | —                                        | "Every decision is logged for audit. This is how Aiweon's operator stays in control of the automated tooling. End of demo."                                                                                                                             |
 
 **Recording checklist.**
 
@@ -182,6 +183,7 @@ Meta will ask for one or more of these during review. Prepare all four in advanc
 ## 7. Submission checklist (Task 2.2)
 
 **Text decisions (closed 2026-04-19 Phase A — ✅):**
+
 - [x] App name: `Campaigner by Aiweon` (new app, not rename)
 - [x] Privacy Policy approach: published at `https://aiweon.co.il/privacy`, text in [`meta-app-review-privacy-policy.md`](meta-app-review-privacy-policy.md)
 - [x] Data Deletion approach: mailto + documented at `https://aiweon.co.il/data-deletion`, text in [`meta-app-review-data-deletion.md`](meta-app-review-data-deletion.md)
@@ -189,6 +191,7 @@ Meta will ask for one or more of these during review. Prepare all four in advanc
 - [x] App Icon: Aiweon logo 1024×1024 PNG (Roi supplies file)
 
 **Roi-owned actions (still pending):**
+
 - [ ] Create new Meta app `Campaigner by Aiweon` in [developers.facebook.com](https://developers.facebook.com). Record new `META_APP_ID` — update `.env` + Secret Manager.
 - [ ] Publish Privacy Policy (English) at `https://aiweon.co.il/privacy` + Hebrew at `/privacy-he`.
 - [ ] Publish Data Deletion (English) at `https://aiweon.co.il/data-deletion` + Hebrew at `/data-deletion-he`.
@@ -196,6 +199,7 @@ Meta will ask for one or more of these during review. Prepare all four in advanc
 - [ ] Dev access token issued for `act_202495959` (Roi Halamish personal) for Phase 1 tool development and video recording.
 
 **Blocked by Phase 1 (cannot proceed until backend tooling exists):**
+
 - [ ] Record the video demo per §5 script. Requires working `campaigner fetch`, `campaigner approve`, `campaigner heartbeat` CLIs.
 - [ ] Switch Meta app to **Live Mode**.
 - [ ] In Meta Developer Portal → App Review → Permissions and Features: request Advanced Access on all six permissions.
@@ -210,13 +214,13 @@ Meta will ask for one or more of these during review. Prepare all four in advanc
 
 ## 8. Known risks in the submission
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| Reviewer asks for a test flow they can execute themselves | High | Provide a test user account attached to Aiweon Business Manager + documented CLI commands the reviewer can run. Pre-populate the ad account with dummy data. |
-| "Internal app" framing rejected (reviewer treats Campaigner as a third-party platform) | Medium | Respond with explicit statement that Aiweon is sole operator in MVP. Provide Aiweon's business registration (ח.פ) as evidence. |
-| One permission rejected (typically `pages_read_engagement` — commonly challenged) | Medium | Be ready to strengthen §4.5's fatigue-detection justification. Have 1-2 example queries + expected outputs ready to attach. |
-| Video does not show a complete end-to-end flow for all 6 permissions | Low (if §5 script is followed) | Rehearse the video run once before recording. |
-| Business Verification in progress but not complete when App Review submitted | Low | App Review and BV are independent tracks at Meta. Submission can proceed. Only System User Token requires BV (v2). |
+| Risk                                                                                   | Likelihood                     | Mitigation                                                                                                                                                   |
+| -------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Reviewer asks for a test flow they can execute themselves                              | High                           | Provide a test user account attached to Aiweon Business Manager + documented CLI commands the reviewer can run. Pre-populate the ad account with dummy data. |
+| "Internal app" framing rejected (reviewer treats Campaigner as a third-party platform) | Medium                         | Respond with explicit statement that Aiweon is sole operator in MVP. Provide Aiweon's business registration (ח.פ) as evidence.                               |
+| One permission rejected (typically `pages_read_engagement` — commonly challenged)      | Medium                         | Be ready to strengthen §4.5's fatigue-detection justification. Have 1-2 example queries + expected outputs ready to attach.                                  |
+| Video does not show a complete end-to-end flow for all 6 permissions                   | Low (if §5 script is followed) | Rehearse the video run once before recording.                                                                                                                |
+| Business Verification in progress but not complete when App Review submitted           | Low                            | App Review and BV are independent tracks at Meta. Submission can proceed. Only System User Token requires BV (v2).                                           |
 
 ---
 

@@ -14,7 +14,12 @@ describe("humanExecutionRows", () => {
       daily_budget_agorot: 3600,
     });
     const keys = rows.map((r) => r.key);
-    expect(keys).toEqual(["id", "type", "daily_budget_usd", "daily_budget_agorot"]);
+    expect(keys).toEqual([
+      "id",
+      "type",
+      "daily_budget_usd",
+      "daily_budget_agorot",
+    ]);
     const idRow = rows.find((r) => r.key === "id");
     expect(idRow?.isId).toBe(true);
     expect(idRow?.value).toBe("123456");

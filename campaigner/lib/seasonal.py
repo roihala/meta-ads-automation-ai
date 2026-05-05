@@ -11,6 +11,7 @@ Empty hints → 1.0. Overlap → product (see entry §1.10 "מה נשאר פתו
 Future v2: same shape, confidence='learned' rows get priority weighting. For
 now every window is user_stated and contributes equally.
 """
+
 from __future__ import annotations
 
 from datetime import date
@@ -59,7 +60,7 @@ def multiplier_for_date(seasonal_hints: dict | None, on: date) -> float:
     total = 1.0
     for w in active_windows(seasonal_hints, on):
         m = w.get("multiplier")
-        if isinstance(m, (int, float)) and m > 0:
+        if isinstance(m, int | float) and m > 0:
             total *= float(m)
     return total
 

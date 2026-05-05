@@ -8,11 +8,12 @@ human (or auto-approval rule) flips `status='approved'`.
 
 Exit codes per contract §11.6 (0 / 1 / 2).
 """
+
 from __future__ import annotations
 
 import argparse
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from campaigner.lib.config import Config, ConfigError
 from campaigner.lib.db import get_connection
@@ -23,7 +24,6 @@ from campaigner.tools._contract import (
     parse_json_arg,
     with_db_retry,
 )
-
 
 # Per spec §10.4 comment on `task_type`:
 VALID_TASK_TYPES = (
@@ -47,7 +47,9 @@ def main() -> None:
         description="Propose an action for human approval (insert into approvals).",
     )
     p.add_argument("--business-id", required=True)
-    p.add_argument("--run-id", required=True, help="created_by_run_id — links proposal to its invoke")
+    p.add_argument(
+        "--run-id", required=True, help="created_by_run_id — links proposal to its invoke"
+    )
     p.add_argument("--task-type", required=True, choices=VALID_TASK_TYPES)
     p.add_argument(
         "--payload",
@@ -57,8 +59,12 @@ def main() -> None:
     p.add_argument("--rationale", required=True, help="Why this is being proposed")
 
     p.add_argument("--target-kind", choices=VALID_TARGET_KINDS, default=None)
-    p.add_argument("--target-id", default=None, help="Meta object id (required when target-kind is set)")
-    p.add_argument("--expected-impact", default=None, help="JSON dict, e.g. {'expected_cpa_change_pct':-12}")
+    p.add_argument(
+        "--target-id", default=None, help="Meta object id (required when target-kind is set)"
+    )
+    p.add_argument(
+        "--expected-impact", default=None, help="JSON dict, e.g. {'expected_cpa_change_pct':-12}"
+    )
     p.add_argument("--urgency", choices=VALID_URGENCIES, default="medium")
     p.add_argument(
         "--expires-in-hours",
@@ -73,17 +79,19 @@ def main() -> None:
     if args.target_kind is not None and not args.target_id:
         emit_validation_error("--target-id is required when --target-kind is given")
     if args.expires_in_hours <= 0 or args.expires_in_hours > 24 * 30:
-        emit_validation_error(f"--expires-in-hours must be in (0, 720] (got {args.expires_in_hours})")
+        emit_validation_error(
+            f"--expires-in-hours must be in (0, 720] (got {args.expires_in_hours})"
+        )
 
     payload = parse_json_arg(args.payload, "payload")
-    if not isinstance(payload, (dict, list)):
+    if not isinstance(payload, dict | list):
         emit_validation_error("--payload must be a JSON object or array")
 
     expected_impact = parse_json_arg(args.expected_impact, "expected-impact")
-    if expected_impact is not None and not isinstance(expected_impact, (dict, list)):
+    if expected_impact is not None and not isinstance(expected_impact, dict | list):
         emit_validation_error("--expected-impact must be a JSON object or array")
 
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=args.expires_in_hours)
+    expires_at = datetime.now(UTC) + timedelta(hours=args.expires_in_hours)
 
     try:
         Config.load().require_db()
@@ -110,11 +118,16 @@ def main() -> None:
                 RETURNING id, status, created_at, expires_at
                 """,
                 (
-                    args.business_id, args.run_id, args.task_type,
-                    args.target_kind, args.target_id,
-                    json.dumps(payload), args.rationale,
+                    args.business_id,
+                    args.run_id,
+                    args.task_type,
+                    args.target_kind,
+                    args.target_id,
+                    json.dumps(payload),
+                    args.rationale,
                     json.dumps(expected_impact) if expected_impact is not None else None,
-                    args.urgency, expires_at,
+                    args.urgency,
+                    expires_at,
                 ),
             )
             return cur.fetchone()

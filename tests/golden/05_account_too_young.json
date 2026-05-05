@@ -25,7 +25,13 @@
       "cpa_ils": 180
     },
     "baselines": [
-      {"scope": "account", "metric": "cpa", "value": 175, "window_days": 7, "sample_size": 11}
+      {
+        "scope": "account",
+        "metric": "cpa",
+        "value": 175,
+        "window_days": 7,
+        "sample_size": 11
+      }
     ]
   },
   "expected": {

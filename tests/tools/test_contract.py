@@ -11,39 +11,52 @@ Business semantics (does the row actually land in the right table with the
 right values) is covered separately in `test_log_decision.py` and
 `test_propose_task.py`. These tests only care about the CLI contract.
 """
+
 from __future__ import annotations
 
 import json
 
 import pytest
 
-
 # ---------- fixtures ----------
+
 
 @pytest.fixture
 def base_log_args(business_id, run_id):
     return [
-        "--business-id", business_id,
-        "--run-id", run_id,
-        "--graph-name", "observe_propose",
-        "--node-name", "observe",
-        "--decision-type", "observation",
-        "--summary", "contract test",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--graph-name",
+        "observe_propose",
+        "--node-name",
+        "observe",
+        "--decision-type",
+        "observation",
+        "--summary",
+        "contract test",
     ]
 
 
 @pytest.fixture
 def base_propose_args(business_id, run_id):
     return [
-        "--business-id", business_id,
-        "--run-id", run_id,
-        "--task-type", "budget_change",
-        "--payload", '{"new_daily_budget_cents":6500}',
-        "--rationale", "contract test",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--task-type",
+        "budget_change",
+        "--payload",
+        '{"new_daily_budget_cents":6500}',
+        "--rationale",
+        "contract test",
     ]
 
 
 # ---------- exit 0: valid args ----------
+
 
 def test_load_baselines_valid_args_exits_0(invoke_tool, business_id):
     r = invoke_tool("load_baselines", "--business-id", business_id)
@@ -82,7 +95,10 @@ def test_propose_task_valid_args_exits_0(invoke_tool, cleanup_run, business_id, 
 
 # ---------- exit 2: missing required arg ----------
 
-@pytest.mark.parametrize("tool", ["fetch_insights", "load_baselines", "log_decision", "propose_task"])
+
+@pytest.mark.parametrize(
+    "tool", ["fetch_insights", "load_baselines", "log_decision", "propose_task"]
+)
 def test_missing_business_id_exits_2(invoke_tool, tool):
     r = invoke_tool(tool)  # no args at all
     assert r.returncode == 2, f"tool={tool} stdout={r.stdout} stderr={r.stderr}"
@@ -92,11 +108,16 @@ def test_missing_business_id_exits_2(invoke_tool, tool):
 def test_log_decision_missing_decision_type_exits_2(invoke_tool, business_id, run_id):
     r = invoke_tool(
         "log_decision",
-        "--business-id", business_id,
-        "--run-id", run_id,
-        "--graph-name", "observe_propose",
-        "--node-name", "observe",
-        "--summary", "x",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--graph-name",
+        "observe_propose",
+        "--node-name",
+        "observe",
+        "--summary",
+        "x",
         # --decision-type omitted
     )
     assert r.returncode == 2
@@ -105,16 +126,21 @@ def test_log_decision_missing_decision_type_exits_2(invoke_tool, business_id, ru
 def test_propose_task_missing_payload_exits_2(invoke_tool, business_id, run_id):
     r = invoke_tool(
         "propose_task",
-        "--business-id", business_id,
-        "--run-id", run_id,
-        "--task-type", "budget_change",
-        "--rationale", "x",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--task-type",
+        "budget_change",
+        "--rationale",
+        "x",
         # --payload omitted
     )
     assert r.returncode == 2
 
 
 # ---------- exit 2: invalid enum ----------
+
 
 def test_fetch_insights_invalid_level_exits_2(invoke_tool, business_id):
     r = invoke_tool("fetch_insights", "--business-id", business_id, "--level", "bogus")
@@ -124,12 +150,18 @@ def test_fetch_insights_invalid_level_exits_2(invoke_tool, business_id):
 def test_log_decision_invalid_decision_type_exits_2(invoke_tool, business_id, run_id):
     r = invoke_tool(
         "log_decision",
-        "--business-id", business_id,
-        "--run-id", run_id,
-        "--graph-name", "observe_propose",
-        "--node-name", "observe",
-        "--decision-type", "bogus",
-        "--summary", "x",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--graph-name",
+        "observe_propose",
+        "--node-name",
+        "observe",
+        "--decision-type",
+        "bogus",
+        "--summary",
+        "x",
     )
     assert r.returncode == 2
 
@@ -137,22 +169,31 @@ def test_log_decision_invalid_decision_type_exits_2(invoke_tool, business_id, ru
 def test_propose_task_invalid_task_type_exits_2(invoke_tool, business_id, run_id):
     r = invoke_tool(
         "propose_task",
-        "--business-id", business_id,
-        "--run-id", run_id,
-        "--task-type", "bogus",
-        "--payload", "{}",
-        "--rationale", "x",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--task-type",
+        "bogus",
+        "--payload",
+        "{}",
+        "--rationale",
+        "x",
     )
     assert r.returncode == 2
 
 
 # ---------- exit 2: malformed JSON in JSON args ----------
 
-def test_log_decision_malformed_inputs_json_exits_2(invoke_tool, business_id, run_id, base_log_args):
+
+def test_log_decision_malformed_inputs_json_exits_2(
+    invoke_tool, business_id, run_id, base_log_args
+):
     r = invoke_tool(
         "log_decision",
         *base_log_args,
-        "--inputs", "{not json",
+        "--inputs",
+        "{not json",
     )
     assert r.returncode == 2
     assert "validation_error" in r.stdout or "VALIDATION" in r.stderr
@@ -161,16 +202,22 @@ def test_log_decision_malformed_inputs_json_exits_2(invoke_tool, business_id, ru
 def test_propose_task_malformed_payload_exits_2(invoke_tool, business_id, run_id):
     r = invoke_tool(
         "propose_task",
-        "--business-id", business_id,
-        "--run-id", run_id,
-        "--task-type", "budget_change",
-        "--payload", "{not json",
-        "--rationale", "x",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--task-type",
+        "budget_change",
+        "--payload",
+        "{not json",
+        "--rationale",
+        "x",
     )
     assert r.returncode == 2
 
 
 # ---------- exit 2: semantic validation (confidence out of range) ----------
+
 
 def test_log_decision_confidence_out_of_range_exits_2(invoke_tool, base_log_args):
     r = invoke_tool("log_decision", *base_log_args, "--confidence", "1.5")
@@ -180,12 +227,18 @@ def test_log_decision_confidence_out_of_range_exits_2(invoke_tool, base_log_args
 def test_propose_task_target_kind_without_target_id_exits_2(invoke_tool, business_id, run_id):
     r = invoke_tool(
         "propose_task",
-        "--business-id", business_id,
-        "--run-id", run_id,
-        "--task-type", "budget_change",
-        "--payload", "{}",
-        "--rationale", "x",
-        "--target-kind", "campaign",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--task-type",
+        "budget_change",
+        "--payload",
+        "{}",
+        "--rationale",
+        "x",
+        "--target-kind",
+        "campaign",
         # --target-id omitted
     )
     assert r.returncode == 2

@@ -14,6 +14,7 @@ Filters out soft-deleted rows (`deleted_at IS NOT NULL`). Optional filters:
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -93,14 +94,16 @@ def main() -> None:
         if not r.get("meta_creative_id"):
             unused += 1
 
-    emit_success({
-        "business_id": args.business_id,
-        "count": len(rows),
-        "unused_count": unused,
-        "by_kind": by_kind,
-        "by_service_tag": by_service,
-        "assets": rows,
-    })
+    emit_success(
+        {
+            "business_id": args.business_id,
+            "count": len(rows),
+            "unused_count": unused,
+            "by_kind": by_kind,
+            "by_service_tag": by_service,
+            "assets": rows,
+        }
+    )
 
 
 if __name__ == "__main__":

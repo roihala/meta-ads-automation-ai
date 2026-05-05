@@ -23,7 +23,9 @@ export interface ImpactRow {
   note?: string;
 }
 
-export function humanImpactRows(impact: Record<string, unknown> | null): ImpactRow[] {
+export function humanImpactRows(
+  impact: Record<string, unknown> | null,
+): ImpactRow[] {
   if (!impact) return [];
   const rows: ImpactRow[] = [];
   for (const [k, v] of Object.entries(impact)) {
@@ -38,7 +40,11 @@ export function humanImpactRows(impact: Record<string, unknown> | null): ImpactR
       const isDays = /DAYS/i.test(k);
       const sign = v > 0 ? "+" : "";
       const suffix = isPct ? "%" : isDays ? " ימים" : "";
-      const positive = isDays ? v < 0 : /REDUCTION|DECREASE/i.test(k) ? v < 0 : v > 0;
+      const positive = isDays
+        ? v < 0
+        : /REDUCTION|DECREASE/i.test(k)
+          ? v < 0
+          : v > 0;
       rows.push({ label, value: `${sign}${v}${suffix}`, positive });
       continue;
     }
@@ -104,7 +110,9 @@ export interface ExecutionRow {
   isId?: boolean;
 }
 
-export function humanExecutionRows(result: Record<string, unknown> | null): ExecutionRow[] {
+export function humanExecutionRows(
+  result: Record<string, unknown> | null,
+): ExecutionRow[] {
   if (!result) return [];
   const rows: ExecutionRow[] = [];
   for (const [k, v] of Object.entries(result)) {
@@ -115,7 +123,8 @@ export function humanExecutionRows(result: Record<string, unknown> | null): Exec
     const isId = /(^|_)id$/i.test(k);
     let value: string;
     if (typeof v === "string") value = v;
-    else if (typeof v === "number") value = Number.isInteger(v) ? v.toString() : v.toFixed(2);
+    else if (typeof v === "number")
+      value = Number.isInteger(v) ? v.toString() : v.toFixed(2);
     else if (typeof v === "boolean") value = v ? "כן" : "לא";
     else {
       try {
@@ -129,7 +138,9 @@ export function humanExecutionRows(result: Record<string, unknown> | null): Exec
   return rows;
 }
 
-export function humanPayloadRows(payload: Record<string, unknown> | null): PayloadRow[] {
+export function humanPayloadRows(
+  payload: Record<string, unknown> | null,
+): PayloadRow[] {
   if (!payload) return [];
   const rows: PayloadRow[] = [];
   for (const [k, v] of Object.entries(payload)) {
@@ -139,7 +150,8 @@ export function humanPayloadRows(payload: Record<string, unknown> | null): Paylo
     const label = PAYLOAD_KEY_LABEL_HE[k] ?? k;
     let value: string;
     if (typeof v === "boolean") value = v ? "כן" : "לא";
-    else if (typeof v === "number") value = Number.isInteger(v) ? v.toString() : v.toFixed(2);
+    else if (typeof v === "number")
+      value = Number.isInteger(v) ? v.toString() : v.toFixed(2);
     else value = String(v);
     rows.push({ key: k, label, value });
   }

@@ -13,11 +13,15 @@ const ALLOWED_FLOWS = new Set([
 
 export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "disabled_in_production" }, { status: 403 });
+    return NextResponse.json(
+      { error: "disabled_in_production" },
+      { status: 403 },
+    );
   }
 
   const session = await getAuth().getSession();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
   const flow = typeof body?.flow === "string" ? body.flow : "";
@@ -35,8 +39,12 @@ export async function POST(req: NextRequest) {
     stdio: ["ignore", "pipe", "pipe"],
   });
 
-  child.stdout?.on("data", (b) => process.stdout.write(`[runner:${flow}] ${b}`));
-  child.stderr?.on("data", (b) => process.stderr.write(`[runner:${flow}] ${b}`));
+  child.stdout?.on("data", (b) =>
+    process.stdout.write(`[runner:${flow}] ${b}`),
+  );
+  child.stderr?.on("data", (b) =>
+    process.stderr.write(`[runner:${flow}] ${b}`),
+  );
 
   const earlyFailure = await new Promise<string | null>((resolve) => {
     const timer = setTimeout(() => resolve(null), 1200);
