@@ -8,8 +8,8 @@
 
 ## Current state
 
-- **Current phase:** `0 — Pre-gates (M1 + M2 + M3)` — *not started*
-- **Plan approved?** *pending Roi approval*
+- **Current phase:** `0 — Pre-gates (M1 + M2 + M3)` — _not started_
+- **Plan approved?** _pending Roi approval_
 - **Next-session entry point:** apply `migrations/011_gallery_scoring_and_feedback.sql`, then scaffold `campaigner/tools/check_tracking_health.py`.
 
 ---
@@ -61,9 +61,9 @@
 
 ## Session log
 
-| Date | Session focus | Files touched | Tests run | Outcome | Blockers |
-|---|---|---|---|---|---|
-| 2026-04-23 | Research audit + plan drafting | `docs/plans/cheeky-seeking-blossom.md` (new), `docs/plans/decision-map.md` (new), `docs/plans/cheeky-seeking-blossom-progress.md` (new) | — | Plan + decision map + progress tracker written. Awaiting approval. | Plan approval pending; implementation not yet started. |
+| Date       | Session focus                  | Files touched                                                                                                                           | Tests run | Outcome                                                            | Blockers                                               |
+| ---------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------ | ------------------------------------------------------ |
+| 2026-04-23 | Research audit + plan drafting | `docs/plans/cheeky-seeking-blossom.md` (new), `docs/plans/decision-map.md` (new), `docs/plans/cheeky-seeking-blossom-progress.md` (new) | —         | Plan + decision map + progress tracker written. Awaiting approval. | Plan approval pending; implementation not yet started. |
 
 ---
 
@@ -77,7 +77,7 @@
 
 ## Decisions log (implementation)
 
-*(empty — populate as implementation progresses)*
+_(empty — populate as implementation progresses)_
 
 ---
 

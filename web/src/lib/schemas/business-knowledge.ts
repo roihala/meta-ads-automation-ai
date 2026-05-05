@@ -36,7 +36,9 @@ export const businessKnowledgeFormSchema = z.object({
     .trim()
     .transform((v) => (v === "" ? null : v))
     .nullable()
-    .refine((v) => v === null || /^https?:\/\/.+/i.test(v), { message: "URL לא תקין (http(s)://...)" }),
+    .refine((v) => v === null || /^https?:\/\/.+/i.test(v), {
+      message: "URL לא תקין (http(s)://...)",
+    }),
   service_regions: z.array(z.string()).nullable(),
   customer_age_min: optionalIntBounded(13, 80),
   customer_age_max: optionalIntBounded(13, 80),
@@ -63,7 +65,9 @@ const _verticalBrand = z.enum(VERTICALS as [string, ...string[]]);
 
 export type BusinessKnowledgeForm = z.infer<typeof businessKnowledgeFormSchema>;
 
-export function parseProductsRaw(raw: string | null): Array<{ name: string; description?: string }> | null {
+export function parseProductsRaw(
+  raw: string | null,
+): Array<{ name: string; description?: string }> | null {
   if (!raw) return null;
   const lines = raw
     .split(/\n+/)

@@ -11,11 +11,13 @@ Usage:
         with conn.cursor() as cur:
             cur.execute("SELECT 1")
 """
+
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
-from typing import Any, Iterator, Sequence
+from typing import Any
 
 import psycopg
 from psycopg.rows import dict_row

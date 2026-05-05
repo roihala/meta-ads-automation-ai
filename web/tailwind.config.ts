@@ -15,10 +15,22 @@ const config: Config = {
       },
       fontSize: {
         // Tightened display sizes with negative tracking baked in
-        display: ["2.25rem", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "700" }],
-        h1: ["1.75rem", { lineHeight: "1.15", letterSpacing: "-0.02em", fontWeight: "700" }],
-        h2: ["1.375rem", { lineHeight: "1.25", letterSpacing: "-0.015em", fontWeight: "600" }],
-        h3: ["1rem", { lineHeight: "1.35", letterSpacing: "-0.01em", fontWeight: "600" }],
+        display: [
+          "2.25rem",
+          { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "700" },
+        ],
+        h1: [
+          "1.75rem",
+          { lineHeight: "1.15", letterSpacing: "-0.02em", fontWeight: "700" },
+        ],
+        h2: [
+          "1.375rem",
+          { lineHeight: "1.25", letterSpacing: "-0.015em", fontWeight: "600" },
+        ],
+        h3: [
+          "1rem",
+          { lineHeight: "1.35", letterSpacing: "-0.01em", fontWeight: "600" },
+        ],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -70,7 +82,7 @@ const config: Config = {
           300: "hsl(33 93% 73%)",
           400: "hsl(33 92% 63%)",
           500: "hsl(33 93% 54%)",
-          600: "hsl(33 88% 48%)",   /* #E8850F — the gradient end on weon.co.il */
+          600: "hsl(33 88% 48%)" /* #E8850F — the gradient end on weon.co.il */,
           700: "hsl(28 85% 40%)",
           800: "hsl(25 78% 33%)",
           900: "hsl(22 70% 27%)",

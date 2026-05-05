@@ -3,6 +3,7 @@
 ## ⚠️ IMPORTANTE
 
 As credenciais copiadas do projeto `chatbot-imoveis` incluem:
+
 - ✅ **OpenAI API Key** - PRONTA PARA USO
 - ✅ **Anthropic API Key** - PRONTA PARA USO
 - ⚠️ **Meta Access Token** - É do WhatsApp Business, NÃO do Meta Ads
@@ -69,6 +70,7 @@ O token inicial expira em 1-2 horas. Para uso em produção:
 5. Atualize o `.env` com o novo token
 
 **Alternativa (Token permanente):**
+
 ```bash
 curl -i -X GET "https://graph.facebook.com/v18.0/oauth/access_token?grant_type=fb_exchange_token&client_id=SEU_APP_ID&client_secret=SEU_APP_SECRET&fb_exchange_token=SEU_TOKEN_CURTO"
 ```
@@ -140,6 +142,7 @@ Se aparecer "✅ Credenciais OK!", está tudo certo!
 **Causa:** Token expirado ou sem permissões
 
 **Solução:**
+
 1. Gere um novo token no Graph API Explorer
 2. Verifique se adicionou as permissões necessárias
 3. Estenda a validade do token
@@ -149,6 +152,7 @@ Se aparecer "✅ Credenciais OK!", está tudo certo!
 **Causa:** Faltam permissões no token
 
 **Solução:**
+
 1. No Graph API Explorer, adicione:
    - `ads_management`
    - `business_management`
@@ -159,6 +163,7 @@ Se aparecer "✅ Credenciais OK!", está tudo certo!
 **Causa:** ID da conta incorreto
 
 **Solução:**
+
 1. Verifique se o ID tem o prefixo `act_`
 2. Confirme que você tem acesso à conta
 3. Vá em https://business.facebook.com/settings/ad-accounts

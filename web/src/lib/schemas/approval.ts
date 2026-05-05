@@ -18,8 +18,22 @@ export const TASK_TYPES = [
 ] as const;
 
 export const URGENCY = ["low", "medium", "high", "urgent"] as const;
-export const STATUS = ["pending", "approved", "rejected", "executed", "failed", "expired", "dry_run"] as const;
-export const TARGET_KIND = ["campaign", "adset", "ad", "creative", "account"] as const;
+export const STATUS = [
+  "pending",
+  "approved",
+  "rejected",
+  "executed",
+  "failed",
+  "expired",
+  "dry_run",
+] as const;
+export const TARGET_KIND = [
+  "campaign",
+  "adset",
+  "ad",
+  "creative",
+  "account",
+] as const;
 
 export const approvalSchema = z.object({
   id: z.string().uuid(),

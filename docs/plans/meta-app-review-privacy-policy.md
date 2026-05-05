@@ -11,7 +11,7 @@
 
 ## 1. Who we are
 
-This Privacy Policy describes how **Aiweon** (*"Aiweon," "we," "us"*) handles data in connection with **Campaigner**, an internal tool Aiweon uses to manage its own advertising activity on Facebook and Instagram.
+This Privacy Policy describes how **Aiweon** (_"Aiweon," "we," "us"_) handles data in connection with **Campaigner**, an internal tool Aiweon uses to manage its own advertising activity on Facebook and Instagram.
 
 Aiweon is a digital marketing agency and SaaS platform based in Israel.
 
@@ -32,13 +32,13 @@ This policy does **not** describe the privacy practices of Meta Platforms (Faceb
 
 Campaigner reads the following categories of data from Meta's APIs, on behalf of and limited to Aiweon's own Meta Business Manager:
 
-| Category | Examples | Source permission |
-|---|---|---|
-| Ad performance data | Impressions, clicks, spend, cost-per-result, video retention, hook rate | `ads_read` |
-| Ad object metadata | Campaign, ad set, and ad names, status, budget, targeting config | `ads_read`, `ads_management` |
-| Business Manager context | Ad account, Page, Pixel, and Business IDs owned by Aiweon | `business_management`, `pages_show_list` |
-| Page engagement aggregates | Reactions, comments, shares, video retention on Page posts promoted as ads | `pages_read_engagement` |
-| Instagram linkage | Instagram Professional account ID and username linked to Aiweon's Facebook Page | `instagram_basic` |
+| Category                   | Examples                                                                        | Source permission                        |
+| -------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------- |
+| Ad performance data        | Impressions, clicks, spend, cost-per-result, video retention, hook rate         | `ads_read`                               |
+| Ad object metadata         | Campaign, ad set, and ad names, status, budget, targeting config                | `ads_read`, `ads_management`             |
+| Business Manager context   | Ad account, Page, Pixel, and Business IDs owned by Aiweon                       | `business_management`, `pages_show_list` |
+| Page engagement aggregates | Reactions, comments, shares, video retention on Page posts promoted as ads      | `pages_read_engagement`                  |
+| Instagram linkage          | Instagram Professional account ID and username linked to Aiweon's Facebook Page | `instagram_basic`                        |
 
 Campaigner does **not** collect:
 
@@ -62,11 +62,11 @@ Data does **not** leave Aiweon's infrastructure. Campaigner does not share Meta-
 
 ## 6. Retention
 
-| Data | Retention |
-|---|---|
-| Ad performance insights (daily snapshots) | 90 days |
-| Audit log of agent decisions and operator approvals | Indefinite (required for internal traceability and compliance review) |
-| Generated creative assets (images, copy) | Indefinite while campaigns remain active, or until deletion is requested |
+| Data                                                | Retention                                                                |
+| --------------------------------------------------- | ------------------------------------------------------------------------ |
+| Ad performance insights (daily snapshots)           | 90 days                                                                  |
+| Audit log of agent decisions and operator approvals | Indefinite (required for internal traceability and compliance review)    |
+| Generated creative assets (images, copy)            | Indefinite while campaigns remain active, or until deletion is requested |
 
 Retention of Meta-sourced data shall not exceed the periods described above. Aiweon reviews retention policies annually.
 

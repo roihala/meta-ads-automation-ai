@@ -7,6 +7,7 @@ and the golden-set can query something end-to-end. Idempotent: ON CONFLICT
 
 Prereq: migrations applied (bash scripts/migrate.sh).
 """
+
 from __future__ import annotations
 
 import os
@@ -18,9 +19,11 @@ sys.path.insert(0, str(ROOT))
 
 from campaigner.lib.db import get_connection  # noqa: E402
 
-
 REQUIRED = [
-    ("BUSINESS_ID", "uuid of the Aiweon row — see `docker compose run --rm campaigner python -c 'import uuid; print(uuid.uuid4())'`"),
+    (
+        "BUSINESS_ID",
+        "uuid of the Aiweon row — see `docker compose run --rm campaigner python -c 'import uuid; print(uuid.uuid4())'`",
+    ),
     ("META_AD_ACCOUNT_ID", "Meta ad account id, must start with act_"),
     ("META_PAGE_ID", "Meta page id"),
     ("META_ACCESS_TOKEN", "Meta user or system-user access token"),

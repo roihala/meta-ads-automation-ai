@@ -23,14 +23,19 @@ export const supabaseClient: DataClient = {
   getFirstBusiness: async () => notImplemented("getFirstBusiness"),
   updateBusinessSettings: async () => notImplemented("updateBusinessSettings"),
   updateSeasonalHints: async () => notImplemented("updateSeasonalHints"),
-  getLatestBudgetHealthDecision: async () => notImplemented("getLatestBudgetHealthDecision"),
+  getLatestBudgetHealthDecision: async () =>
+    notImplemented("getLatestBudgetHealthDecision"),
   getBusinessKnowledge: async () => notImplemented("getBusinessKnowledge"),
-  upsertBusinessKnowledge: async () => notImplemented("upsertBusinessKnowledge"),
+  upsertBusinessKnowledge: async () =>
+    notImplemented("upsertBusinessKnowledge"),
   setPrimaryKpi: async () => notImplemented("setPrimaryKpi"),
   getLatestHeartbeats: async () => notImplemented("getLatestHeartbeats"),
   listPendingApprovals: async () => notImplemented("listPendingApprovals"),
   getApprovalById: async () => notImplemented("getApprovalById"),
-  listDecisionsForApproval: async () => notImplemented("listDecisionsForApproval"),
+  createPromotionApproval: async () =>
+    notImplemented("createPromotionApproval"),
+  listDecisionsForApproval: async () =>
+    notImplemented("listDecisionsForApproval"),
   listDecisionsForRun: async () => notImplemented("listDecisionsForRun"),
   approveApproval: async () => notImplemented("approveApproval"),
   rejectApproval: async () => notImplemented("rejectApproval"),

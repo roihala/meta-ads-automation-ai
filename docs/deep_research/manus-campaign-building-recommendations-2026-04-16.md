@@ -2,16 +2,16 @@
 
 ## Executive Summary
 
-*   **Andromeda's Dominance**: Meta's Andromeda ML engine (2024-2025 rollout) fundamentally reshapes ad delivery, prioritizing creative signals and broad targeting over granular audience segmentation. [1]
-*   **"Power of One" Evolved**: While consolidation is key, the "Power of One" concept has evolved. Advantage+ Sales campaigns now allow multiple ad sets, offering flexibility for testing while maintaining a consolidated structure. [2]
-*   **Advantage+ for eCommerce**: Advantage+ Shopping Campaigns (ASC) and its successor, Advantage+ Sales, are the default and highly effective for eCommerce scaling. Manual campaigns are reserved for specific testing or "learning protection." [2]
-*   **Objective Selection**: Campaign objectives should align directly with business goals. For lead generation, the "Leads" objective is generally appropriate, though "Sales" with a lead event can be considered for high-quality pixel data. [3]
-*   **Broad Targeting with Strong Creative**: The mantra for 2026 is "broad targeting + strong creative." Andromeda's AI excels at finding audiences based on creative performance, making overly detailed targeting often counterproductive. [4]
-*   **Budget for Learning Phase**: A minimum daily budget is crucial to exit the learning phase reliably, calculated as (Target CPA * 50) / 7. Meta requires approximately 50 optimization events per week per ad set. [5]
-*   **CBO as Default**: Campaign Budget Optimization (CBO) is the recommended default for launch, allowing Meta's AI to dynamically allocate budget across ad sets for optimal performance. [6]
-*   **Creative Volume & Diversity**: Launch with 3-5 high-quality creatives, aiming for 10-50+ in a steady state. A mix of short-form video and static formats, optimized for various placements (9:16, 4:5, 1:1), is essential. [7]
-*   **Advantage+ Placements**: Advantage+ Placements (auto) is the correct default for launch, leveraging AI to optimize delivery across all available placements. Manual placements are rarely justified. [8]
-*   **Robust Pixel/CAPI Setup**: A verified Pixel and Conversions API (CAPI) setup, including Aggregated Event Measurement, is non-negotiable for providing strong signal data to Andromeda. [9]
+- **Andromeda's Dominance**: Meta's Andromeda ML engine (2024-2025 rollout) fundamentally reshapes ad delivery, prioritizing creative signals and broad targeting over granular audience segmentation. [1]
+- **"Power of One" Evolved**: While consolidation is key, the "Power of One" concept has evolved. Advantage+ Sales campaigns now allow multiple ad sets, offering flexibility for testing while maintaining a consolidated structure. [2]
+- **Advantage+ for eCommerce**: Advantage+ Shopping Campaigns (ASC) and its successor, Advantage+ Sales, are the default and highly effective for eCommerce scaling. Manual campaigns are reserved for specific testing or "learning protection." [2]
+- **Objective Selection**: Campaign objectives should align directly with business goals. For lead generation, the "Leads" objective is generally appropriate, though "Sales" with a lead event can be considered for high-quality pixel data. [3]
+- **Broad Targeting with Strong Creative**: The mantra for 2026 is "broad targeting + strong creative." Andromeda's AI excels at finding audiences based on creative performance, making overly detailed targeting often counterproductive. [4]
+- **Budget for Learning Phase**: A minimum daily budget is crucial to exit the learning phase reliably, calculated as (Target CPA \* 50) / 7. Meta requires approximately 50 optimization events per week per ad set. [5]
+- **CBO as Default**: Campaign Budget Optimization (CBO) is the recommended default for launch, allowing Meta's AI to dynamically allocate budget across ad sets for optimal performance. [6]
+- **Creative Volume & Diversity**: Launch with 3-5 high-quality creatives, aiming for 10-50+ in a steady state. A mix of short-form video and static formats, optimized for various placements (9:16, 4:5, 1:1), is essential. [7]
+- **Advantage+ Placements**: Advantage+ Placements (auto) is the correct default for launch, leveraging AI to optimize delivery across all available placements. Manual placements are rarely justified. [8]
+- **Robust Pixel/CAPI Setup**: A verified Pixel and Conversions API (CAPI) setup, including Aggregated Event Measurement, is non-negotiable for providing strong signal data to Andromeda. [9]
 
 ## Section-by-Section Answers
 
@@ -27,12 +27,12 @@ Advantage+ Shopping Campaigns (ASC) and Advantage+ Sales have largely replaced m
 
 Meta has consolidated and renamed campaign objectives. The current map for 2025-2026, and when an agent should pick each, is as follows [3]:
 
-*   **Awareness**: Use when the primary goal is to maximize reach and brand recall. Suitable for top-of-funnel branding efforts.
-*   **Traffic**: Select when the objective is to drive as many clicks as possible to a website or landing page. Useful for content promotion or driving initial interest.
-*   **Engagement**: Choose for maximizing interactions with posts (likes, comments, shares), video views, or direct messages. Ideal for community building or direct communication.
-*   **Leads**: The go-to objective for generating leads through Instant Forms, Messenger, calls, or website conversions. Best for businesses focused on acquiring contact information or qualified prospects.
-*   **Sales**: The primary objective for driving purchases, catalog sales, or other high-value conversion events on a website or app. Essential for eCommerce businesses.
-*   **App Promotion**: Designed to maximize app installs and in-app events. Specific to mobile application marketing.
+- **Awareness**: Use when the primary goal is to maximize reach and brand recall. Suitable for top-of-funnel branding efforts.
+- **Traffic**: Select when the objective is to drive as many clicks as possible to a website or landing page. Useful for content promotion or driving initial interest.
+- **Engagement**: Choose for maximizing interactions with posts (likes, comments, shares), video views, or direct messages. Ideal for community building or direct communication.
+- **Leads**: The go-to objective for generating leads through Instant Forms, Messenger, calls, or website conversions. Best for businesses focused on acquiring contact information or qualified prospects.
+- **Sales**: The primary objective for driving purchases, catalog sales, or other high-value conversion events on a website or app. Essential for eCommerce businesses.
+- **App Promotion**: Designed to maximize app installs and in-app events. Specific to mobile application marketing.
 
 For a lead generation business (not eCommerce), the "Leads" objective remains the most straightforward and often the right choice. However, top operators may use the "Sales" objective with a lead event (e.g., "Submit Application," "Contact") configured in the Pixel/CAPI. This strategy is employed when the lead event is considered a high-value conversion, and the advertiser wants to leverage the AI's ability to find users most likely to complete such events, potentially leading to higher quality leads [3].
 
@@ -54,7 +54,7 @@ When launching with zero pixel data, an agent should start with the **broadest p
 
 The current minimum viable daily budget for a new Meta campaign in 2025-2026 is determined by the need to reliably exit the learning phase. Meta's official guidance, widely cited by practitioners, states that an ad set requires approximately **50 optimization events per week** to exit the learning phase stably [5].
 
-To compute a "good starting daily budget" given a target CPA (Cost Per Acquisition) or target conversion volume, the formula is: **(Target CPA * 50) / 7 = Minimum Daily Budget per ad set**. For example, if the target CPA is $20, the minimum daily budget would be ($20 * 50) / 7 = $142.86. If an advertiser cannot afford this, they should consider optimizing for a higher-funnel event with a lower CPA to gather data faster [5].
+To compute a "good starting daily budget" given a target CPA (Cost Per Acquisition) or target conversion volume, the formula is: **(Target CPA \* 50) / 7 = Minimum Daily Budget per ad set**. For example, if the target CPA is $20, the minimum daily budget would be ($20 \* 50) / 7 = $142.86. If an advertiser cannot afford this, they should consider optimizing for a higher-funnel event with a lower CPA to gather data faster [5].
 
 Budget should be allocated initially with **Campaign Budget Optimization (CBO)** as the 2026 default for launch. CBO allows Meta's AI to automatically distribute the budget across ad sets within a campaign to achieve the best overall results, leveraging the Andromeda engine's capabilities. Ad Set Budget Optimization (ABO) is primarily used for specific testing scenarios where precise control over individual ad set spending is required, but it is not the default for initial launch and scaling [6].
 
@@ -63,10 +63,11 @@ Budget should be allocated initially with **Campaign Budget Optimization (CBO)**
 An agent should upload **3-5 high-quality creatives at launch** in 2026. While the steady-state target for scaling campaigns is often 10-50+ creatives, starting with a smaller, highly optimized set allows the AI to quickly identify winning creative angles. The focus should be on quality and diversity of initial concepts rather than sheer volume [7].
 
 Non-negotiable formats at launch include [7]:
-*   **Reels (9:16)**: Essential for short-form video content, high engagement.
-*   **Feed (4:5)**: Optimal for vertical images and videos in the main feed.
-*   **Feed (1:1)**: Standard square format, versatile across many placements.
-*   **Stories (9:16)**: Similar to Reels, crucial for immersive, full-screen experiences.
+
+- **Reels (9:16)**: Essential for short-form video content, high engagement.
+- **Feed (4:5)**: Optimal for vertical images and videos in the main feed.
+- **Feed (1:1)**: Standard square format, versatile across many placements.
+- **Stories (9:16)**: Similar to Reels, crucial for immersive, full-screen experiences.
 
 Other placements like Right Column can often be skipped initially, as Advantage+ Placements will automatically optimize delivery to the most effective areas. The key is to have strong assets for the primary, high-impact placements.
 
@@ -87,14 +88,16 @@ Aspect ratios should be prepared for launch to cover the **four canonical ratios
 ### 7. Optimization Event & Pixel / CAPI Setup
 
 Before launching a new campaign, an agent must verify several critical components [9]:
-*   **Pixel Events**: Ensure all relevant standard and custom events are correctly installed and firing on the website/app.
-*   **Conversions API (CAPI)**: Verify that CAPI is correctly implemented and deduplicating events with the Pixel. This provides a more reliable and comprehensive data signal.
-*   **Aggregated Event Measurement (AEM)**: Confirm that AEM is configured, and the most important conversion events are prioritized. This is crucial for iOS 14+ attribution.
-*   **Domain Verification**: Ensure the domain associated with the ad account is verified in Meta Business Manager.
+
+- **Pixel Events**: Ensure all relevant standard and custom events are correctly installed and firing on the website/app.
+- **Conversions API (CAPI)**: Verify that CAPI is correctly implemented and deduplicating events with the Pixel. This provides a more reliable and comprehensive data signal.
+- **Aggregated Event Measurement (AEM)**: Confirm that AEM is configured, and the most important conversion events are prioritized. This is crucial for iOS 14+ attribution.
+- **Domain Verification**: Ensure the domain associated with the ad account is verified in Meta Business Manager.
 
 For a lead-gen business, the campaign should optimize for the **highest-value conversion event that occurs frequently enough to exit the learning phase**. Common events include "Lead," "Submit Application," "Contact," or "Complete Registration." If the volume of these events is too low, it may be necessary to optimize for a higher-funnel event (e.g., "View Content" or "Landing Page View") initially to gather data, then switch to the desired lead event once sufficient data is accumulated [9].
 
 To handle a new business with zero pixel data, a **"cold-start" playbook** is essential [9]:
+
 1.  **Broad Targeting**: Start with broad audience targeting to maximize reach and data collection.
 2.  **Engagement/Traffic Objectives**: Initially run campaigns with Engagement or Traffic objectives to drive initial activity and populate the pixel with data, even if it's not direct conversions.
 3.  **Rapid Creative Testing**: Deploy a diverse set of creatives and iterate quickly based on early engagement metrics.
@@ -104,19 +107,21 @@ To handle a new business with zero pixel data, a **"cold-start" playbook** is es
 ### 8. Ad Copy & Landing Page Requirements
 
 For 2025-2026 Meta ads, best practices for ad copy emphasize clarity, conciseness, and a strong hook [7].
-*   **Primary Text Length**: Keep primary text concise, with the most important information in the first 1-3 lines before the "See More" break. Longer text can be used for storytelling, but ensure the initial hook is compelling.
-*   **Headline Length**: Headlines should be short, punchy, and clearly communicate the main benefit or offer. Aim for 5-7 words for maximum impact and readability across placements.
-*   **CTA Selection**: Use clear, action-oriented CTAs that align with the campaign objective (e.g., "Shop Now," "Learn More," "Sign Up," "Download"). Test different CTAs to see which resonates best with the audience.
+
+- **Primary Text Length**: Keep primary text concise, with the most important information in the first 1-3 lines before the "See More" break. Longer text can be used for storytelling, but ensure the initial hook is compelling.
+- **Headline Length**: Headlines should be short, punchy, and clearly communicate the main benefit or offer. Aim for 5-7 words for maximum impact and readability across placements.
+- **CTA Selection**: Use clear, action-oriented CTAs that align with the campaign objective (e.g., "Shop Now," "Learn More," "Sign Up," "Download"). Test different CTAs to see which resonates best with the audience.
 
 **Landing page speed, mobile experience, and match-to-ad still materially affect delivery and cost in 2026 (post-Andromeda)** [9]. Andromeda's AI prioritizes user experience. A slow, non-mobile-optimized, or irrelevant landing page will lead to higher bounce rates, lower conversion rates, and ultimately, higher costs and reduced ad delivery as the AI deprioritizes ads leading to poor experiences. The AI assesses the entire user journey, not just the ad itself.
 
 Top mistakes in landing page/offer setup that cause great ads to flop include [9]:
-*   **Slow Load Times**: Pages that take more than 2-3 seconds to load, especially on mobile.
-*   **Poor Mobile Responsiveness**: Pages that are not optimized for mobile devices, leading to a frustrating user experience.
-*   **Mismatch with Ad Creative/Offer**: The landing page content, offer, or messaging does not directly align with what was promised in the ad, leading to user confusion and distrust.
-*   **Complex Forms**: Overly long or complicated forms for lead generation, creating friction for users.
-*   **Lack of Clear CTA**: No clear call-to-action on the landing page, leaving users unsure of the next step.
-*   **Technical Issues**: Broken links, tracking errors, or other technical glitches that prevent conversions.
+
+- **Slow Load Times**: Pages that take more than 2-3 seconds to load, especially on mobile.
+- **Poor Mobile Responsiveness**: Pages that are not optimized for mobile devices, leading to a frustrating user experience.
+- **Mismatch with Ad Creative/Offer**: The landing page content, offer, or messaging does not directly align with what was promised in the ad, leading to user confusion and distrust.
+- **Complex Forms**: Overly long or complicated forms for lead generation, creating friction for users.
+- **Lack of Clear CTA**: No clear call-to-action on the landing page, leaving users unsure of the next step.
+- **Technical Issues**: Broken links, tracking errors, or other technical glitches that prevent conversions.
 
 ### 9. Naming Conventions & Account Organization
 
@@ -126,35 +131,35 @@ There is a current best-practice naming convention for campaigns/ad sets/ads tha
 
 **Example**: `TOFU_Sales_Broad_Video_20260416`
 
-*   **Funnel Stage**: TOFU (Top of Funnel), MOFU (Middle of Funnel), BOFU (Bottom of Funnel)
-*   **Objective**: Sales, Leads, Traffic, Engagement, Awareness
-*   **Audience Type**: Broad, LAL (Lookalike), Custom, Retargeting, Interest
-*   **Creative Type**: Video, Image, Carousel, Dynamic
-*   **Date**: YYYYMMDD (e.g., 20260416)
+- **Funnel Stage**: TOFU (Top of Funnel), MOFU (Middle of Funnel), BOFU (Bottom of Funnel)
+- **Objective**: Sales, Leads, Traffic, Engagement, Awareness
+- **Audience Type**: Broad, LAL (Lookalike), Custom, Retargeting, Interest
+- **Creative Type**: Video, Image, Carousel, Dynamic
+- **Date**: YYYYMMDD (e.g., 20260416)
 
 This convention allows for quick identification and analysis. Metadata that should live in the name versus in tags/UTMs:
 
-*   **In Name**: High-level, immediately visible identifiers crucial for understanding the campaign's purpose and structure (Funnel Stage, Objective, broad Audience Type, Creative Type, Date).
-*   **In Tags/UTMs**: Granular tracking parameters, specific audience IDs, detailed creative variations, and other data points that are important for deep analysis but would make the name unwieldy. UTMs are essential for tracking performance in external analytics platforms.
+- **In Name**: High-level, immediately visible identifiers crucial for understanding the campaign's purpose and structure (Funnel Stage, Objective, broad Audience Type, Creative Type, Date).
+- **In Tags/UTMs**: Granular tracking parameters, specific audience IDs, detailed creative variations, and other data points that are important for deep analysis but would make the name unwieldy. UTMs are essential for tracking performance in external analytics platforms.
 
 ### 10. Common Launch-Phase Mistakes
 
-Top operators consistently call out several damaging mistakes at the *launch/build* phase that prevent a campaign from ever exiting learning or succeeding [9]:
+Top operators consistently call out several damaging mistakes at the _launch/build_ phase that prevent a campaign from ever exiting learning or succeeding [9]:
 
-*   **Over-segmentation**: Creating too many ad sets with small budgets or overlapping audiences. This fragments data, prevents any single ad set from getting enough optimization events, and keeps campaigns perpetually in the learning phase.
-*   **Insufficient Budget**: Not allocating enough daily budget to meet the 50 optimization events/week threshold, leading to prolonged learning and unstable delivery.
-*   **Poor Signal Quality**: Launching without a properly configured Pixel and CAPI, or without verifying Aggregated Event Measurement. This starves Andromeda of the data it needs to optimize effectively.
-*   **Weak/Undiversified Creative**: Relying on a single creative or a set of similar creatives that quickly fatigue. Andromeda thrives on diverse, high-performing creative signals.
-*   **Ignoring Landing Page Experience**: Directing traffic to slow, non-mobile-optimized, or irrelevant landing pages. This immediately signals poor user experience to Andromeda, leading to reduced delivery and higher costs.
-*   **Frequent Edits During Learning**: Making significant changes to ad sets (budget, targeting, creative) during the learning phase, which resets the learning and prolongs instability.
-*   **Focusing on Vanity Metrics**: Prioritizing metrics like CTR over actual business outcomes (ROAS, CPA, Leads). High CTR with low conversion quality is a common trap.
+- **Over-segmentation**: Creating too many ad sets with small budgets or overlapping audiences. This fragments data, prevents any single ad set from getting enough optimization events, and keeps campaigns perpetually in the learning phase.
+- **Insufficient Budget**: Not allocating enough daily budget to meet the 50 optimization events/week threshold, leading to prolonged learning and unstable delivery.
+- **Poor Signal Quality**: Launching without a properly configured Pixel and CAPI, or without verifying Aggregated Event Measurement. This starves Andromeda of the data it needs to optimize effectively.
+- **Weak/Undiversified Creative**: Relying on a single creative or a set of similar creatives that quickly fatigue. Andromeda thrives on diverse, high-performing creative signals.
+- **Ignoring Landing Page Experience**: Directing traffic to slow, non-mobile-optimized, or irrelevant landing pages. This immediately signals poor user experience to Andromeda, leading to reduced delivery and higher costs.
+- **Frequent Edits During Learning**: Making significant changes to ad sets (budget, targeting, creative) during the learning phase, which resets the learning and prolongs instability.
+- **Focusing on Vanity Metrics**: Prioritizing metrics like CTR over actual business outcomes (ROAS, CPA, Leads). High CTR with low conversion quality is a common trap.
 
 Which pre-Andromeda launch rules are now actively misleading [9]:
 
-*   **Granular Interest Targeting**: The belief that highly specific interest targeting is always superior. Andromeda's broad targeting with strong creative often outperforms this.
-*   **Excessive Ad Set Duplication**: Duplicating ad sets to scale. This often leads to audience overlap and competition, which Andromeda is designed to manage more efficiently within a consolidated structure.
-*   **Manual Placement Optimization**: Spending significant time manually selecting placements. Advantage+ Placements are now the default and generally more effective.
-*   **Strict Budget Caps on Ad Sets**: Overly restrictive ABO (Ad Set Budget Optimization) when CBO (Campaign Budget Optimization) would allow the AI to find efficiencies.
+- **Granular Interest Targeting**: The belief that highly specific interest targeting is always superior. Andromeda's broad targeting with strong creative often outperforms this.
+- **Excessive Ad Set Duplication**: Duplicating ad sets to scale. This often leads to audience overlap and competition, which Andromeda is designed to manage more efficiently within a consolidated structure.
+- **Manual Placement Optimization**: Spending significant time manually selecting placements. Advantage+ Placements are now the default and generally more effective.
+- **Strict Budget Caps on Ad Sets**: Overly restrictive ABO (Ad Set Budget Optimization) when CBO (Campaign Budget Optimization) would allow the AI to find efficiencies.
 
 ## Day Zero Launch Checklist
 
@@ -163,7 +168,7 @@ This ordered, practical checklist guides an AI agent to launch a new campaign co
 1.  **Verify Tracking Infrastructure**: Ensure Meta Pixel and Conversions API (CAPI) are fully implemented, deduplicated, and sending all relevant standard and custom events. Verify domain and Aggregated Event Measurement (AEM) are configured and prioritized. [9]
 2.  **Define Objective**: Select the single campaign objective that most directly aligns with the business goal (e.g., Sales for eCommerce, Leads for lead generation). [3]
 3.  **Set Broad Audience**: Use broad targeting (country-wide, age/gender only) with Advantage+ Audience. Leverage custom audiences (CRM, site visitors) as seed data for Advantage+ if available. Avoid overly detailed interest targeting. [4]
-4.  **Calculate Minimum Budget**: Determine the minimum daily budget per ad set using the formula: (Target CPA * 50) / 7. Allocate budget using Campaign Budget Optimization (CBO). [5]
+4.  **Calculate Minimum Budget**: Determine the minimum daily budget per ad set using the formula: (Target CPA \* 50) / 7. Allocate budget using Campaign Budget Optimization (CBO). [5]
 5.  **Prepare Diverse Creatives**: Create 3-5 high-quality, distinct creative concepts. Ensure assets are optimized for key aspect ratios (9:16, 4:5, 1:1, 16:9) and include a mix of short-form video and static images. Focus on a strong hook in the first 3 seconds for videos. [7]
 6.  **Enable Advantage+ Placements**: Set placements to Advantage+ Placements (auto) to allow Meta's AI to optimize delivery. [8]
 7.  **Craft Compelling Ad Copy**: Write concise primary text with a strong hook, clear headlines, and action-oriented CTAs. Ensure the landing page experience is fast, mobile-optimized, and perfectly matches the ad's offer. [9]
@@ -172,19 +177,19 @@ This ordered, practical checklist guides an AI agent to launch a new campaign co
 
 ## Deprecated Launch Rules
 
-| Pre-Andromeda Rule (Misleading in 2026) | What Replaced It (2026 Best Practice) |
-| :-------------------------------------- | :------------------------------------ |
-| Granular interest targeting as default  | Broad targeting + strong creative with Advantage+ Audience [4] |
-| Excessive ad set duplication for scaling | Consolidated campaign structure with CBO and Advantage+ Sales [2] |
-| Manual placement optimization as standard | Advantage+ Placements (auto) as default [8] |
-| Strict ABO (Ad Set Budget Optimization) | CBO (Campaign Budget Optimization) as default for launch [6] |
-| Focusing solely on CTR as a primary metric | Focus on ROAS, CPA, and conversion quality [9] |
+| Pre-Andromeda Rule (Misleading in 2026)    | What Replaced It (2026 Best Practice)                             |
+| :----------------------------------------- | :---------------------------------------------------------------- |
+| Granular interest targeting as default     | Broad targeting + strong creative with Advantage+ Audience [4]    |
+| Excessive ad set duplication for scaling   | Consolidated campaign structure with CBO and Advantage+ Sales [2] |
+| Manual placement optimization as standard  | Advantage+ Placements (auto) as default [8]                       |
+| Strict ABO (Ad Set Budget Optimization)    | CBO (Campaign Budget Optimization) as default for launch [6]      |
+| Focusing solely on CTR as a primary metric | Focus on ROAS, CPA, and conversion quality [9]                    |
 
 ## Open Questions
 
-*   **Israel/MENA Specific Creative Nuances**: While broad targeting is generally recommended, the optimal balance between localized creative (Hebrew/Arabic) and broader English content for specific segments within Israel/MENA, especially given the volatile geopolitical context, requires further practitioner consensus and A/B testing. [10]
-*   **Optimal Creative Refresh Rate for Niche Markets**: The recommended creative refresh rate (5-10 new creatives/week for scaling) might be unsustainable or unnecessary for very niche markets with limited audience size. The optimal frequency for such scenarios is an open question. [7]
-*   **Advanced CAPI Strategies for Complex Funnels**: For businesses with highly complex, multi-step conversion funnels, the most effective CAPI event prioritization and custom event configurations to maximize Andromeda's optimization capabilities remain an area of ongoing experimentation among top practitioners. [9]
+- **Israel/MENA Specific Creative Nuances**: While broad targeting is generally recommended, the optimal balance between localized creative (Hebrew/Arabic) and broader English content for specific segments within Israel/MENA, especially given the volatile geopolitical context, requires further practitioner consensus and A/B testing. [10]
+- **Optimal Creative Refresh Rate for Niche Markets**: The recommended creative refresh rate (5-10 new creatives/week for scaling) might be unsustainable or unnecessary for very niche markets with limited audience size. The optimal frequency for such scenarios is an open question. [7]
+- **Advanced CAPI Strategies for Complex Funnels**: For businesses with highly complex, multi-step conversion funnels, the most effective CAPI event prioritization and custom event configurations to maximize Andromeda's optimization capabilities remain an area of ongoing experimentation among top practitioners. [9]
 
 ## Source List
 

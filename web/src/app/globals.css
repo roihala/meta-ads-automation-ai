@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 33 15% 10%;
 
-    --primary: 33 93% 54%;          /* #F7941D — Aiweon orange (exact) */
+    --primary: 33 93% 54%; /* #F7941D — Aiweon orange (exact) */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 33 15% 96%;
@@ -38,7 +38,7 @@
     --border: 33 15% 90%;
     --input: 33 15% 90%;
     --ring: 33 93% 54%;
-    --radius: 0.75rem;              /* 12px — matches weon.co.il's 10–16px rounded feel */
+    --radius: 0.75rem; /* 12px — matches weon.co.il's 10–16px rounded feel */
   }
 
   .dark {
@@ -82,7 +82,10 @@
   }
 
   html {
-    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1,
+      "ss01" 1;
     color-scheme: light dark;
   }
 
@@ -105,17 +108,17 @@
     direction: ltr;
     unicode-bidi: isolate;
     font-variant-numeric: tabular-nums;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
   /* Subtle page backdrop — a single soft radial spark in brand orange */
   .dark body {
-    background-image:
-      radial-gradient(
-        ellipse 900px 480px at 95% -10%,
-        hsl(33 93% 56% / 0.07),
-        transparent 70%
-      );
+    background-image: radial-gradient(
+      ellipse 900px 480px at 95% -10%,
+      hsl(33 93% 56% / 0.07),
+      transparent 70%
+    );
     background-attachment: fixed;
   }
 }

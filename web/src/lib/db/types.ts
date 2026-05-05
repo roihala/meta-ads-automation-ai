@@ -10,7 +10,7 @@ export type PrimaryKpi = "cpa" | "cpl" | "roas" | "cpm" | "cpi";
 export interface SeasonalHint {
   name: string;
   start: string; // YYYY-MM-DD
-  end: string;   // YYYY-MM-DD
+  end: string; // YYYY-MM-DD
   multiplier: number;
   confidence: "user_stated" | "learned";
 }
@@ -216,20 +216,49 @@ export interface DataClient {
   mode: DbMode;
   getBusinessById(id: string): Promise<Business | null>;
   getFirstBusiness(): Promise<Business | null>;
-  updateBusinessSettings(id: string, patch: BusinessSettingsUpdate): Promise<Business | null>;
-  updateSeasonalHints(id: string, hints: SeasonalHints): Promise<Business | null>;
-  getLatestBudgetHealthDecision(businessId: string): Promise<AgentDecision | null>;
+  updateBusinessSettings(
+    id: string,
+    patch: BusinessSettingsUpdate,
+  ): Promise<Business | null>;
+  updateSeasonalHints(
+    id: string,
+    hints: SeasonalHints,
+  ): Promise<Business | null>;
+  getLatestBudgetHealthDecision(
+    businessId: string,
+  ): Promise<AgentDecision | null>;
 
   getBusinessKnowledge(businessId: string): Promise<BusinessKnowledge | null>;
-  upsertBusinessKnowledge(data: BusinessKnowledgeUpsert): Promise<BusinessKnowledge>;
+  upsertBusinessKnowledge(
+    data: BusinessKnowledgeUpsert,
+  ): Promise<BusinessKnowledge>;
   setPrimaryKpi(businessId: string, kpi: PrimaryKpi | null): Promise<void>;
 
   getLatestHeartbeats(businessId: string): Promise<Heartbeat[]>;
 
   listPendingApprovals(businessId: string): Promise<Approval[]>;
   getApprovalById(id: string): Promise<Approval | null>;
+  /**
+   * Create a "promote creative to campaign" approval row from the gallery
+   * priority queue. Sets task_type='new_creative' and stashes the asset id +
+   * score/reasons in payload. The agent's execute_task currently flags
+   * new_creative as UNSUPPORTED_MVP — that's expected: the row sits as a
+   * human-visible pending approval until execute_task is extended to
+   * dispatch it.
+   */
+  createPromotionApproval(input: {
+    business_id: string;
+    asset_id: string;
+    score: number;
+    reasons: string[];
+    rationale: string;
+    created_by_run_id: string;
+  }): Promise<{ id: string; created_at: string }>;
   listDecisionsForApproval(approvalId: string): Promise<AgentDecision[]>;
-  listDecisionsForRun(businessId: string, runId: string): Promise<AgentDecision[]>;
+  listDecisionsForRun(
+    businessId: string,
+    runId: string,
+  ): Promise<AgentDecision[]>;
   approveApproval(id: string, approvedBy: string): Promise<void>;
   rejectApproval(id: string, reason: string): Promise<void>;
   unapproveApproval(id: string): Promise<{ reverted: boolean }>;
@@ -238,7 +267,10 @@ export interface DataClient {
   listGalleryAssets(businessId: string): Promise<CreativeAsset[]>;
   getGalleryAssetById(id: string): Promise<CreativeAsset | null>;
   createGalleryAsset(data: CreativeAssetCreate): Promise<CreativeAsset>;
-  softDeleteGalleryAsset(id: string, businessId: string): Promise<{ deleted: boolean }>;
+  softDeleteGalleryAsset(
+    id: string,
+    businessId: string,
+  ): Promise<{ deleted: boolean }>;
 
   ping(): Promise<{ ok: true; mode: DbMode }>;
 }

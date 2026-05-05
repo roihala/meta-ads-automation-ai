@@ -12,10 +12,15 @@ const heebo = Heebo({
 
 export const metadata: Metadata = {
   title: "Campaigner · Aiweon",
-  description: "החזון שלך | הידע שלנו | הכוח של AI — פלטפורמת אופטימיזציה של קמפיינים במטא, בלב של Aiweon.",
+  description:
+    "החזון שלך | הידע שלנו | הכוח של AI — פלטפורמת אופטימיזציה של קמפיינים במטא, בלב של Aiweon.",
   icons: {
     icon: [
-      { url: "/brand/aiweon-favicon-64.png", sizes: "64x64", type: "image/png" },
+      {
+        url: "/brand/aiweon-favicon-64.png",
+        sizes: "64x64",
+        type: "image/png",
+      },
       { url: "/brand/aiweon-mark.png", sizes: "any", type: "image/png" },
     ],
     apple: "/brand/aiweon-mark.png",
@@ -26,9 +31,18 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="he" dir="rtl" className={heebo.variable} suppressHydrationWarning>
+    <html
+      lang="he"
+      dir="rtl"
+      className={heebo.variable}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-background text-foreground antialiased">
         <ThemeProvider>{children}</ThemeProvider>
       </body>

@@ -18,7 +18,7 @@
 
 - **Spec §21 + §11.8** אמרו Google Secret Manager, עם runner שפותח ב-`gcloud secrets versions access latest`.
 - **Backend PRD §3 + §4.4** אמרו `.env.production` mounted on Cloud Run Job, נכתב בזמן deploy ע"י `gcloud run jobs update --env-vars-file`.
-- ה-PRD הכיר ב-tradeoff במפורש: *".env on-instance is simpler than Secret Manager but means a compromised Cloud Run service exposes all three tokens."*
+- ה-PRD הכיר ב-tradeoff במפורש: _".env on-instance is simpler than Secret Manager but means a compromised Cloud Run service exposes all three tokens."_
 
 ### ההחלטה
 
@@ -35,6 +35,7 @@
 ### dev-local
 
 `.env` בתיקיית הפרויקט, ב-`.gitignore`. סיבות:
+
 - dev משתמש ממילא בערכים אחרים (ad account `act_202495959`, ולא Bemtech production).
 - ה-rotation של 60 יום לא חל על ה-dev token באותו קצב.
 - network-hop ל-GCP בכל הרצה ידנית של כלי = חיכוך פיתוח.
@@ -44,11 +45,11 @@ Python tools: `os.getenv(...)` זהה ב-prod וב-dev. `python-dotenv` נטען
 
 ### שמות ה-secrets ב-GCP
 
-| שם ב-Secret Manager | ערך |
-|---|---|
-| `anthropic-api-key` | `sk-ant-...` |
+| שם ב-Secret Manager | ערך                        |
+| ------------------- | -------------------------- |
+| `anthropic-api-key` | `sk-ant-...`               |
 | `meta-token-aiweon` | Meta long-lived user token |
-| `supabase-sr` | Supabase service_role key |
+| `supabase-sr`       | Supabase service_role key  |
 
 ### שמות ה-service account
 
@@ -135,6 +136,7 @@ Python tools: `os.getenv(...)` זהה ב-prod וב-dev. `python-dotenv` נטען
 ### דגש ל-v2 (מחוץ ל-scope של 1.2 אבל נגזר ממנה)
 
 כש-v2 יגיע (= ad account שני), יהיה צריך להכריע על **onboarding policy ללקוחות**:
+
 - האם להפוך BV של הלקוח לחובה?
 - אם לא — איך מטפלים במסלול User Token rotation מצד הלקוח? (web UI ל-refresh, reminder במייל, וכד')
 - זו שיחה חדשה במפת השיחות של v2, לא כאן.
@@ -166,18 +168,19 @@ Python tools: `os.getenv(...)` זהה ב-prod וב-dev. `python-dotenv` נטען
 
 ### תכולת ההגשה
 
-| # | Permission | תכלית עיקרית |
-|---|---|---|
-| 1 | `ads_management` | יצירה/עדכון/השהיה/תקציב של קמפיינים לאחר אישור אנושי |
-| 2 | `ads_read` | קריאת insights יומיים ל-observe-propose loop ולזיהוי fatigue |
-| 3 | `business_management` | אימות Business Manager ↔ ad account/page/pixel (guardrail) |
-| 4 | `pages_show_list` | אימות שה-page_id המוגדר נגיש ב-Business (heartbeat) |
-| 5 | `pages_read_engagement` | קריאת engagement trends ל-creative fatigue detection |
-| 6 | `instagram_basic` | אימות לינקאז' IG ל-Advantage+ Placements מלא |
+| #   | Permission              | תכלית עיקרית                                                 |
+| --- | ----------------------- | ------------------------------------------------------------ |
+| 1   | `ads_management`        | יצירה/עדכון/השהיה/תקציב של קמפיינים לאחר אישור אנושי         |
+| 2   | `ads_read`              | קריאת insights יומיים ל-observe-propose loop ולזיהוי fatigue |
+| 3   | `business_management`   | אימות Business Manager ↔ ad account/page/pixel (guardrail)   |
+| 4   | `pages_show_list`       | אימות שה-page_id המוגדר נגיש ב-Business (heartbeat)          |
+| 5   | `pages_read_engagement` | קריאת engagement trends ל-creative fatigue detection         |
+| 6   | `instagram_basic`       | אימות לינקאז' IG ל-Advantage+ Placements מלא                 |
 
 ### Deliverable של השיחה
 
 [`docs/plans/meta-app-review-submission.md`](meta-app-review-submission.md) — טיוטה מלאה באנגלית הכוללת:
+
 - App overview narrative משותף
 - Use-case מלא לכל אחת מ-6 ההרשאות (purpose, flow, data accessed, justification, video timestamp)
 - תסריט video demo אחד של ~3 דקות
@@ -188,6 +191,7 @@ Python tools: `os.getenv(...)` זהה ב-prod וב-dev. `python-dotenv` נטען
 ### Placeholders שנותרו לסגור ב-task 2.2
 
 שלושה `[TBD]` ב-§2 של מסמך ההגשה:
+
 - **App name** — האם לשנות שם לאפליקציה הקיימת (Meta App ID `3175000345993024`, שירש מה-fork הברזילאי), או ליצור אפליקציה חדשה "Campaigner by Aiweon". ההמלצה: ליצור חדשה — האפליקציה הקיימת נושאת היסטוריה לא-רלוונטית שיכולה לפגוע ב-review.
 - **Privacy Policy URL** — דומיין `aiweon.co.il` קיים, אבל URL ספציפי ל-privacy לא אותר בקוד. צריך או להשתמש בקיים / לפרסם דף חדש.
 - **Data Deletion URL או instructions** — לא קיים; צריך או להקים endpoint / לתעד mailto process.
@@ -234,18 +238,21 @@ Python tools: `os.getenv(...)` זהה ב-prod וב-dev. `python-dotenv` נטען
 ### הנימוקים
 
 **למה Supabase נשאר** (באופן שלא חוזרים על ההחלטה הקודמת):
+
 - Schema היחס-רלציוני (§10 של הספק) מתאים ל-Postgres 1:1.
 - RLS מובנה ל-v2 multi-tenant.
 - Supabase Storage ל-`creative_gallery`.
 - `generic_agent` הוא פרויקט נפרד עם צרכי-נתונים שונים; אין יתרון באחדת סטאקים.
 
 **למה Postgres-in-Docker ל-dev-local** (ולא Supabase staging כ-dev target):
+
 - Roi יכול להתחיל לפתח עכשיו בלי להמתין להקמת Supabase project.
 - 10 דקות setup (service ב-compose, 2 פקודות).
 - Parity מלא ל-prod — אותו engine (Postgres 16), אותן migrations.
 - אין network hop = iteration loop מהיר יותר.
 
 **למה Dual-write (A) ולא B/C** (בסדר יורד של חשיבות):
+
 1. **בטיחות אפליקציה.** ב-B יש סיכון של "dev tool כותב בטעות ל-prod" אם `search_path` לא נכון ב-session. ב-A כל statement מכיל את שם הסכמה במפורש — אין סיכון כזה.
 2. **Debuggability.** קריאת `001_businesses.sql` מראה את שתי הסכמות זו ליד זו. ב-B צריך לשחזר איזה `search_path` היה באיזה session.
 3. **MVP volume.** 7 migrations × ~2× = פעולה חד-פעמית קטנה. C (templating) הוא over-tooling ל-scope זה.
@@ -325,6 +332,7 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 ### ההתלבטות
 
 שלוש אופציות + hybrid:
+
 - **A** Operator-authored (Roi כותב מאפס)
 - **B** Aiweon team-authored (marketer מהצוות של Aiweon)
 - **C** חילוץ מחומרים קיימים (AI-assisted extraction)
@@ -335,6 +343,7 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 **D-lite + Roi כ-owner יחיד** (אין צוות marketing נפרד בעסק שמעורב בתהליך; Roi = authority + reviewer).
 
 **"Lite"** כי הנחת היסוד של D — שיש חומר משמעותי לחלץ ממנו — אינה מחזיקה. Roi חשף ש-**החשבון החדש של Meta נטול היסטוריה**, וגם החומר ה-organic של Aiweon (website + social) דל יחסית. לכן:
+
 - C-step (extraction): קליל. ניצלתי טאגליין ("הבית של מותגים ויוצרי תוכן"), positioning, שם, דומיין.
 - שאר המבנה: **skeleton** עם `[TBD]` מפורשים לכל מה שדורש קלט ייחודי של Aiweon, + defaults ברי-שימוש בכל מקום שאפשר.
 
@@ -351,12 +360,14 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 **Owner:** Roi — עורך ישיר לתוספות lexical קטנות; שיחה חדשה + decisions-log amendment לשינויי structure.
 
 **לו"ז:**
+
 - **היום (2026-04-19):** v0 skeleton כתוב ב-[`campaigner/prompts/hebrew-copy-style.md`](../../campaigner/prompts/hebrew-copy-style.md).
 - **עד 2026-04-26:** Roi עובר על ה-skeleton, ממלא את ה-`[TBD]` (דואג ל-§1 overview, §2 voice dimensions, §3 preferred lexicon, §4 CTAs, §5 headline patterns, §6 proof points, §7 audience segments, §8 working examples).
 - **עד 2026-05-03:** אני סורק את הגרסה הממולאת, מפיק feedback על עקביות / חוסרים / מילים נוספות שכדאי לאסור. סיבוב 2.
 - **עד 2026-05-10:** v1 נעול. Claude יכול להיטען עליו ב-Phase 2.
 
 **Iteration triggers post-lock** (מ-§10 של הקובץ):
+
 - Phase 2 creative מראה דפוס שיטתי שגוי.
 - Variant underperforms שבועיים → חשד שה-voice תורם.
 - Aiweon מבקש שינוי positioning.
@@ -467,6 +478,7 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 2. [`docs/plans/conversation-map.md`](conversation-map.md): 1.7 ✅ + עדכון סטטוס.
 
 **לא שונו מכוון:**
+
 - Backend PRD — לא מזכיר multi-user ב-MVP, אין מה לעדכן.
 - Spec §10.7 — RLS enabled נשאר (infrastructure ready for v2).
 - Frontend PRD §378 "three-user setup" — נשאר במסמך כ-**v2 gate**, לא MVP gate. זה amendment קטן שייעשה בפתיחת frontend Phase 0 (task 4.7), לא כאן.
@@ -488,6 +500,7 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 ### ההתלבטות
 
 ארבעה מפתחות:
+
 1. **פלטפורמה** — GitHub Actions vs Cloud Build.
 2. **טריגרים** — PR/push/tags.
 3. **Tests ב-CI** — GH Actions `services:` native vs `docker compose` כמו local.
@@ -517,6 +530,7 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 4. [`docs/plans/conversation-map.md`](conversation-map.md): 3.1 ✅ + עדכון סטטוס.
 
 **לא שונו מכוון:**
+
 - `docs/plans/campaigner-backend-prd.md` + `campaigner-frontend-prd.md` — לא היו CI/CD פרוטים; ה-workflow נקשר ל-PRD-ים בעקיפין דרך ה-spec §19 עץ הקבצים, שלא השתנה (אין צורך לעדכן).
 
 ### מה נשאר פתוח (depends on)
@@ -566,6 +580,7 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 ### Remote mechanism — נדחה
 
 נסגר רק אחרי ש-1.4 תוכרע:
+
 - **אם Supabase ינצח:** `scripts/migrate_remote.sh` קורא ל-`supabase db push` (או ל-`psql` ישיר עם `FROM (SELECT version FROM schema_migrations)` semantics). ה-SQL migrations ב-`_sql_pending_decision/` חוזרות לפעולה.
 - **אם Mongo ינצח:** `scripts/migrate_remote.sh` מפעיל את אותם `migrations/mongo/*.py` אבל עם `MONGO_URL` של Atlas/self-hosted. Idempotency נשמרת — אפשר להריץ את אותו קובץ על prod כמה פעמים ללא נזק.
 - **בכל מקרה:** ה-runner יקרא מ-Secret Manager ([§1.1](#11-secret-management--google-secret-manager)) ל-connection string של ה-remote.
@@ -622,11 +637,13 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 נסגר אחרי 1.4:
 
 **אם Supabase ינצח:**
+
 - Layer 1: מופעל automatically ב-Supabase dashboard (Point-in-Time Recovery). ללא קוד.
 - Layer 2: `scripts/weekly_backup.sh` — `pg_dump $SUPABASE_CONN_STRING | gzip | gsutil cp - gs://bemtech-backups-campaigner/week-$(date +%V)-$(date +%Y).sql.gz`. Cron weekly.
 - Test restore: `gsutil cp` → `psql` to staging schema → `validate_local_env.py` equivalent.
 
 **אם Mongo ינצח:**
+
 - Layer 1: Atlas Automated Backup או ה-equivalent של self-hosted.
 - Layer 2: `mongodump --uri="$MONGO_URL" --archive | gzip | gsutil cp - gs://...`.
 - Test restore: `mongorestore` ל-staging cluster.
@@ -659,6 +676,7 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 **הסיכון:** Claude Code ב-`claude -p`, headless, מריץ tools ב-loop. שגיאה שמייצרת retry → tool call → אותה שגיאה → retry. בלי upper bound, invocation יכול לשרוף מאות דולר תוך דקות.
 
 **האלטרנטיבות שנשקלו:**
+
 - **A.** להסתמך רק על `--max-turns` של Claude Code.
 - **B.** Cost ceiling בלבד — watch cumulative spend, kill at threshold.
 - **C.** Multi-layer: prevention (max-turns) + detection (cost ceiling per-run) + anomaly detection (daily aggregate).
@@ -671,11 +689,11 @@ Roi ציין שהוא עדיין לא מחויב ל-Supabase ושוקל סטאק
 
 סוגר את ה-worst case של loop אינסופי באותה invocation.
 
-| Runner | --max-turns | נימוק |
-|---|---|---|
-| `daily_observe_propose.sh` | 40 | fetch → analyze → 5-10 proposals × (check + write) ≈ 30 turns maximum. 40 = 33% buffer. |
-| `execute_approvals.sh` | 30 | read approvals → for each (~5 max) → re-check guardrails + execute. ≈ 20 turns. 30 = 50% buffer. |
-| `weekly_creative_firehose.sh` | 60 | Andromeda מעודד 10-50 creatives. Per creative: prompt + generate + validate + write. 10 creatives × 5 turns = 50. 60 = buffer. |
+| Runner                        | --max-turns | נימוק                                                                                                                          |
+| ----------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `daily_observe_propose.sh`    | 40          | fetch → analyze → 5-10 proposals × (check + write) ≈ 30 turns maximum. 40 = 33% buffer.                                        |
+| `execute_approvals.sh`        | 30          | read approvals → for each (~5 max) → re-check guardrails + execute. ≈ 20 turns. 30 = 50% buffer.                               |
+| `weekly_creative_firehose.sh` | 60          | Andromeda מעודד 10-50 creatives. Per creative: prompt + generate + validate + write. 10 creatives × 5 turns = 50. 60 = buffer. |
 
 Hit של max-turns → Claude מחזיר exit code שאינו 0. Runner לוכד, כותב `agent_decisions` עם `decision_type='max_turns_exceeded'`.
 
@@ -683,11 +701,11 @@ Hit של max-turns → Claude מחזיר exit code שאינו 0. Runner לוכד
 
 Claude Code CLI תומך ב-`--output-format json` שמחזיר `total_cost_usd` בסוף run. Runner wrapper בודק:
 
-| Runner | Cost ceiling | Hard kill? |
-|---|---|---|
-| daily_observe_propose | $2.00 | אזהרה ב-log, לא kill |
-| execute_approvals | $1.00 | אזהרה ב-log, לא kill |
-| weekly_creative_firehose | $5.00 | אזהרה ב-log, לא kill |
+| Runner                   | Cost ceiling | Hard kill?           |
+| ------------------------ | ------------ | -------------------- |
+| daily_observe_propose    | $2.00        | אזהרה ב-log, לא kill |
+| execute_approvals        | $1.00        | אזהרה ב-log, לא kill |
+| weekly_creative_firehose | $5.00        | אזהרה ב-log, לא kill |
 
 **למה לא hard kill?** כי `--max-turns` הוא ה-prevention. Cost ceiling = **anomaly flag** — אם run חד-פעמי עולה פי 3 מהצפוי אבל הושלם, רוצים לדעת ולא לבטל נתונים כבר שנכתבו.
 
@@ -696,6 +714,7 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 ### Layer 3 — daily cost anomaly check (monitoring)
 
 `scripts/check_daily_cost.py` רץ אחרי חצות IL:
+
 - Query `agent_decisions` ב-24 שעות אחרונות.
 - Sum `outputs.run_cost_usd` לפי `run_id`.
 - השווה ל-rolling 7-day baseline.
@@ -710,6 +729,7 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 `agent_decisions` מקבל שדה `outputs.run_cost_usd` (float, nullable). Backward compatible — קיים בתיעוד של [spec §10.5](campaigner-spec.md) כחלק מ-JSONB outputs, רק צריך לכתוב אותו בפועל.
 
 גם: `decision_type` enum מקבל שני ערכים חדשים:
+
 - `max_turns_exceeded` — Layer 1 hit.
 - `cost_anomaly` — Layer 2 flag.
 - (קיימים: `propose`, `approve`, `reject`, `execute`, `run_summary`, ...)
@@ -729,6 +749,7 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 2. [`docs/plans/conversation-map.md`](conversation-map.md): 3.4 ✅ + עדכון סטטוס.
 
 **Implementation landing (future):**
+
 - `runners/daily_observe_propose.sh`, `runners/execute_approvals.sh`, `runners/weekly_creative_firehose.sh` — task 4.6. כל runner יקרא ל-`claude -p ... --max-turns N --output-format json | python campaigner/lib/cost_tracker.py`.
 - `campaigner/lib/cost_tracker.py` — task 4.2. Parse JSON output, log `run_summary` decision עם `run_cost_usd`, kick anomaly flag אם ceiling.
 - `scripts/check_daily_cost.py` — task 4.6 או Phase 2. Query + email alert.
@@ -750,16 +771,17 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 ### ההתלבטות
 
 12 פריטים שזוהו בסקירה:
+
 1. `user_business_access` — frontend PRD מניח שהטבלה קיימת; §1.7 קבע שלא.
 2. `businesses.meta_auth_mode` — בmigration 001 אבל לא ב-spec §10.1.
 3. תוקף טוקן Meta — ה-PRDs מפנים ל-"פרסר טקסט חופשי מ-agent_decisions.summary", צריך שדה structured.
 4. Phase 4 frontend — סתירה פנימית: AC אומר "no filters", non-goals אומר "no batch approve, no CSV", אבל Phase 4 מתאר את שלושתם.
-5-7. `baselines.low_confidence`, `business_knowledge.tracking_verified` + tracking_* fields, `approvals.approved_by_override` — PRDs מפנים; אין ב-schema.
-8. `payload.guardrail_override_required` — מי הכותב, ואיך frontend שואל ב-WHERE ללא JSONB dig.
-9. `approved_by` — מה הערכים ב-CLI? ב-web?
-10. `refresh_baselines.py` — spec §18.1 מגדיר cron slot, אבל לא את ה-runtime (Job נפרד? entrypoint? SA?).
-11. `onboarding/aiweon.yaml` — מוזכר ב-spec §11.5 ובbackend PRD; schema לא מוגדר.
-12. `heartbeats.expected_duration` — frontend מחשב `×2` לאיתור overdue, הערך לא נשמר באף מקום.
+   5-7. `baselines.low_confidence`, `business_knowledge.tracking_verified` + tracking\_\* fields, `approvals.approved_by_override` — PRDs מפנים; אין ב-schema.
+5. `payload.guardrail_override_required` — מי הכותב, ואיך frontend שואל ב-WHERE ללא JSONB dig.
+6. `approved_by` — מה הערכים ב-CLI? ב-web?
+7. `refresh_baselines.py` — spec §18.1 מגדיר cron slot, אבל לא את ה-runtime (Job נפרד? entrypoint? SA?).
+8. `onboarding/aiweon.yaml` — מוזכר ב-spec §11.5 ובbackend PRD; schema לא מוגדר.
+9. `heartbeats.expected_duration` — frontend מחשב `×2` לאיתור overdue, הערך לא נשמר באף מקום.
 
 ### ההחלטה
 
@@ -768,6 +790,7 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 ### תכולת ההחלטה
 
 **Schema — migration [008_schema_additions.sql](../../migrations/008_schema_additions.sql):**
+
 - `businesses.meta_access_token_expires_at timestamptz` — structured token expiry.
 - `business_knowledge.tracking_verified boolean` + 4 שדות tracking — Day-Zero guardrail.
 - `baselines.low_confidence boolean` — cold-start flag per EVALUATION §9 #1.
@@ -776,6 +799,7 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 - אינדקס חלקי: `approvals_override_idx` (business_id, status) WHERE `guardrail_override_required = true`.
 
 **Spec updates:**
+
 - §10.1: הוספנו `meta_access_token_expires_at` + `meta_auth_mode` (sync עם migration 001).
 - §10.2: הוספנו 5 שדות tracking.
 - §10.3: הוספנו `low_confidence`.
@@ -787,6 +811,7 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 - §18.1: הוסף פסקה על ה-runtime של `monthly-baseline-refresh` (Cloud Run Job נפרד, entrypoint אחר, בלי Anthropic secret).
 
 **Backend PRD updates:**
+
 - AC חדש: "`approved_by` values" — `admin@aiweon.co.il` (web) | `terminal` (CLI) | `auto` (v2).
 - AC חדש: "`expected_duration` per flow — constant, not column" + endpoint `/api/flow-config`.
 - AC חדש: "`monthly-baseline-refresh` runtime" — Cloud Run Job נפרד.
@@ -796,6 +821,7 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 - הסרת persona "Aiweon marketing stakeholder" (§1.7).
 
 **Frontend PRD updates:**
+
 - Personas: הסרת Stakeholder; הוסף callout ש-§1.7 דוחה את ה-persona ל-v2.
 - Problem statement: הסרת "stakeholder laptop" + "Aiweon's marketing team".
 - Tier 3: הסרת "cross-business data leakage" (single business).
@@ -879,14 +905,15 @@ Log entry: `decision_type='cost_anomaly'` עם `run_cost_usd` + baseline.
 
 **כללי מבנה (hard, deterministic):**
 
-| תנאי | מבנה |
-|---|---|
-| `G == 1` + target CPL אחיד בין השירותים (±30%) | **1 קמפיין + 1 ad set**, שירותים = creative variants מתויגים |
-| `G == 1` + target CPL נבדל > 30% | **1 קמפיין + עד N ad sets** (אחד לשירות), CBO פעיל |
-| `G >= 2` + תקציב ≥ `G × (max target CPA × 50) / 7` | **G קמפיינים** נפרדים |
-| Otherwise | כפייה ל-`G = 1`, התראה למשתמש שהתקציב לא תומך בהפרדה |
+| תנאי                                               | מבנה                                                         |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| `G == 1` + target CPL אחיד בין השירותים (±30%)     | **1 קמפיין + 1 ad set**, שירותים = creative variants מתויגים |
+| `G == 1` + target CPL נבדל > 30%                   | **1 קמפיין + עד N ad sets** (אחד לשירות), CBO פעיל           |
+| `G >= 2` + תקציב ≥ `G × (max target CPA × 50) / 7` | **G קמפיינים** נפרדים                                        |
+| Otherwise                                          | כפייה ל-`G = 1`, התראה למשתמש שהתקציב לא תומך בהפרדה         |
 
 **Hard caps ל-MVP:**
+
 - **Max 3 ad sets per campaign**. מעל זה = over-segmentation (flagged as deprecated ב-CAMPAIGN_BUILDING §10).
 - **Max 2 parallel campaigns per business**. שלישי דורש HITL justification מפורש.
 - **CBO only** — אסור ABO בין שירותים. חלוקה "הוגנת" בין שירותים היא ABO מחופש ויוצרת את אותה over-segmentation.

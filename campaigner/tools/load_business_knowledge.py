@@ -7,6 +7,7 @@ diagnosis and rationale writing.
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,7 +23,9 @@ from campaigner.tools._contract import (
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Load business + business_knowledge for Claude context.")
+    p = argparse.ArgumentParser(
+        description="Load business + business_knowledge for Claude context."
+    )
     p.add_argument("--business-id", required=True)
     args = p.parse_args()
 
@@ -33,8 +36,9 @@ def main() -> None:
         return
 
     try:
-        business = with_db_retry(lambda: fetch_one(
-            """
+        business = with_db_retry(
+            lambda: fetch_one(
+                """
             SELECT id, name, timezone, meta_ad_account_id, meta_page_id,
                    meta_auth_mode, gcp_project_id,
                    monthly_budget_ils, daily_budget_ils, primary_kpi,
@@ -42,13 +46,15 @@ def main() -> None:
             FROM businesses
             WHERE id = %s
             """,
-            (args.business_id,),
-        ))
+                (args.business_id,),
+            )
+        )
         if business is None:
             emit_validation_error(f"business not found: {args.business_id}")
             return
-        knowledge = with_db_retry(lambda: fetch_one(
-            """
+        knowledge = with_db_retry(
+            lambda: fetch_one(
+                """
             SELECT vertical, website_url, service_regions,
                    customer_age_min, customer_age_max,
                    products, delivery_time_days,
@@ -58,18 +64,21 @@ def main() -> None:
             FROM business_knowledge
             WHERE business_id = %s
             """,
-            (args.business_id,),
-        ))
+                (args.business_id,),
+            )
+        )
     except Exception as e:
         emit_runtime_error(f"business knowledge load failed: {e}", exc=e)
         return
 
-    emit_success({
-        "business_id": args.business_id,
-        "business": business,
-        "knowledge": knowledge,
-        "knowledge_present": knowledge is not None,
-    })
+    emit_success(
+        {
+            "business_id": args.business_id,
+            "business": business,
+            "knowledge": knowledge,
+            "knowledge_present": knowledge is not None,
+        }
+    )
 
 
 if __name__ == "__main__":

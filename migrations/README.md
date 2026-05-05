@@ -8,10 +8,10 @@ Schema for Campaigner's Postgres target (local dev + Supabase-compatible).
 
 ## 1. Layout
 
-| Path | Purpose |
-|---|---|
-| [`001_businesses.sql`](001_businesses.sql) … [`008_schema_additions.sql`](008_schema_additions.sql) | Canonical schema. Applied in filename order. Source: [spec §10](../docs/plans/campaigner-spec.md). |
-| [`mongo/init_mongo.py`](mongo/init_mongo.py) | **Fallback only** — creates the equivalent 7 collections in Mongo. Not executed in current flow. Kept in case remote DB target flips to Mongo. |
+| Path                                                                                                | Purpose                                                                                                                                        |
+| --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`001_businesses.sql`](001_businesses.sql) … [`008_schema_additions.sql`](008_schema_additions.sql) | Canonical schema. Applied in filename order. Source: [spec §10](../docs/plans/campaigner-spec.md).                                             |
+| [`mongo/init_mongo.py`](mongo/init_mongo.py)                                                        | **Fallback only** — creates the equivalent 7 collections in Mongo. Not executed in current flow. Kept in case remote DB target flips to Mongo. |
 
 The previous `_sql_pending_decision/` directory (dual-schema `public` + `staging` pattern from the pre-amendment §1.4) has been retired. Dual-schema offered no real isolation for single-DB local dev; if true pre-prod separation is needed later, it will come via a separate Supabase project, not a schema in the same cluster.
 
@@ -55,16 +55,16 @@ bash scripts/migrate.sh                  # re-init fresh
 
 ## 4. Schema summary
 
-| # | Table | Purpose | Spec § |
-|---|---|---|---|
-| 001 | `businesses` | Core tenant record (MVP: Aiweon only) | [§10.1](../docs/plans/campaigner-spec.md#101-businesses) |
-| 002 | `business_knowledge` | Structured business profile + questionnaire | [§10.2](../docs/plans/campaigner-spec.md#102-business_knowledge) |
-| 003 | `baselines` | Rolling metric baselines per scope × window | [§10.3](../docs/plans/campaigner-spec.md#103-baselines) |
-| 004 | `approvals` | HITL queue — every agent decision lands here | [§10.4](../docs/plans/campaigner-spec.md#104-approvals--ה-hitl-queue) |
-| 005 | `agent_decisions` | Observability — every phase writes ≥1 row | [§10.5](../docs/plans/campaigner-spec.md#105-agent_decisions--מנגנון-הדיווח-ר-סעיף-12) |
-| 006 | `creative_gallery` | Generated creatives + Meta creative IDs | [§10.6](../docs/plans/campaigner-spec.md#106-creative_gallery) |
-| 007 | `heartbeats` | Cron liveness for runner failure alerts | [§10.8](../docs/plans/campaigner-spec.md#108-heartbeats--cron-liveness) |
-| 008 | *additions* | Token expiry, tracking verification, baseline confidence, guardrail override | [§10.9](../docs/plans/campaigner-spec.md#109-schema-additions-migration-008) |
+| #   | Table                | Purpose                                                                      | Spec §                                                                                 |
+| --- | -------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 001 | `businesses`         | Core tenant record (MVP: Aiweon only)                                        | [§10.1](../docs/plans/campaigner-spec.md#101-businesses)                               |
+| 002 | `business_knowledge` | Structured business profile + questionnaire                                  | [§10.2](../docs/plans/campaigner-spec.md#102-business_knowledge)                       |
+| 003 | `baselines`          | Rolling metric baselines per scope × window                                  | [§10.3](../docs/plans/campaigner-spec.md#103-baselines)                                |
+| 004 | `approvals`          | HITL queue — every agent decision lands here                                 | [§10.4](../docs/plans/campaigner-spec.md#104-approvals--ה-hitl-queue)                  |
+| 005 | `agent_decisions`    | Observability — every phase writes ≥1 row                                    | [§10.5](../docs/plans/campaigner-spec.md#105-agent_decisions--מנגנון-הדיווח-ר-סעיף-12) |
+| 006 | `creative_gallery`   | Generated creatives + Meta creative IDs                                      | [§10.6](../docs/plans/campaigner-spec.md#106-creative_gallery)                         |
+| 007 | `heartbeats`         | Cron liveness for runner failure alerts                                      | [§10.8](../docs/plans/campaigner-spec.md#108-heartbeats--cron-liveness)                |
+| 008 | _additions_          | Token expiry, tracking verification, baseline confidence, guardrail override | [§10.9](../docs/plans/campaigner-spec.md#109-schema-additions-migration-008)           |
 
 ---
 

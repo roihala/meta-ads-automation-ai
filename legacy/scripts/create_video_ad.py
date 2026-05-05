@@ -2,8 +2,11 @@
 Create a video ad campaign for Aiweon — influencer marketing platform.
 Ad is created PAUSED — activate manually in Meta Ads Manager.
 """
+
 import sys
+
 from dotenv import load_dotenv
+
 from meta_ads_manager import MetaAdsManager
 
 load_dotenv()
@@ -32,9 +35,9 @@ try:
         link_url="https://aiweon.co.il",
         daily_budget_usd=14,  # ~50 ILS/day
         targeting={
-            'geo_locations': {'countries': ['IL']},
-            'age_min': 25,
-            'age_max': 55,
+            "geo_locations": {"countries": ["IL"]},
+            "age_min": 25,
+            "age_max": 55,
         },
         objective="OUTCOME_ENGAGEMENT",
         optimization_goal="THRUPLAY",
@@ -46,5 +49,6 @@ try:
 except Exception as e:
     print(f"\n[ERROR] {str(e)}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)

@@ -40,6 +40,7 @@ Output shape:
 
 Exit codes per contract §11.6 (0 / 1 / 2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -49,7 +50,6 @@ from campaigner.tools._contract import (
     emit_validation_error,
     parse_json_arg,
 )
-
 
 PAUSE_RATIO = 1.5
 SCALE_DOWN_RATIO = 1.2
@@ -63,9 +63,7 @@ def _coerce_float(val, name: str, campaign_id: str) -> float | None:
     try:
         return float(val)
     except (TypeError, ValueError):
-        emit_validation_error(
-            f"campaign {campaign_id!r} field {name!r} is not numeric: {val!r}"
-        )
+        emit_validation_error(f"campaign {campaign_id!r} field {name!r} is not numeric: {val!r}")
         return None  # unreachable
 
 
@@ -107,18 +105,28 @@ def _classify(ratio: float, days_over: int, daily_budget: float, days_left: int)
 def main() -> None:
     p = argparse.ArgumentParser(
         description="Rank campaigns by CPA/target and emit pause/scale_down proposals "
-                    "until projected overage is covered.",
+        "until projected overage is covered.",
     )
-    p.add_argument("--projected-overage", type=float, required=True,
-                   help="ILS we need to save by month-end (from compute_monthly_pace).")
-    p.add_argument("--days-left", type=int, required=True,
-                   help="Days remaining in the current calendar month.")
-    p.add_argument("--campaigns", required=True,
-                   help="JSON list of active campaigns with CPA / target_cpa / daily_budget_ils.")
+    p.add_argument(
+        "--projected-overage",
+        type=float,
+        required=True,
+        help="ILS we need to save by month-end (from compute_monthly_pace).",
+    )
+    p.add_argument(
+        "--days-left", type=int, required=True, help="Days remaining in the current calendar month."
+    )
+    p.add_argument(
+        "--campaigns",
+        required=True,
+        help="JSON list of active campaigns with CPA / target_cpa / daily_budget_ils.",
+    )
     args = p.parse_args()
 
     if args.projected_overage <= 0:
-        emit_validation_error(f"--projected-overage must be positive (got {args.projected_overage})")
+        emit_validation_error(
+            f"--projected-overage must be positive (got {args.projected_overage})"
+        )
         return
     if args.days_left <= 0:
         emit_validation_error(f"--days-left must be positive (got {args.days_left})")
@@ -155,15 +163,17 @@ def main() -> None:
             return
         days_over = int(c.get("days_over_target") or 0)
         ratio = cpa / target
-        scored.append({
-            "campaign_id": cid,
-            "name": c.get("name"),
-            "cpa": cpa,
-            "target_cpa": target,
-            "daily_budget_ils": daily,
-            "days_over_target": days_over,
-            "ratio": round(ratio, 4),
-        })
+        scored.append(
+            {
+                "campaign_id": cid,
+                "name": c.get("name"),
+                "cpa": cpa,
+                "target_cpa": target,
+                "daily_budget_ils": daily,
+                "days_over_target": days_over,
+                "ratio": round(ratio, 4),
+            }
+        )
 
     # Rank worst-CPA-first. Stable tie-break on daily_budget_ils DESC so bigger
     # burners get addressed before smaller ones at equal ratios.
@@ -189,24 +199,26 @@ def main() -> None:
     all_performing = all(c["ratio"] <= SCALE_DOWN_RATIO for c in scored) if scored else True
     remaining_uncovered = max(0.0, args.projected_overage - total_savings)
 
-    emit_success({
-        "projected_overage": args.projected_overage,
-        "days_left": args.days_left,
-        "ranked": ranked,
-        "coverage": {
+    emit_success(
+        {
             "projected_overage": args.projected_overage,
-            "total_suggested_savings": round(total_savings, 2),
-            "remaining_uncovered": round(remaining_uncovered, 2),
-            "fully_covered": remaining_uncovered <= 0,
-            "all_performing": all_performing,
-        },
-        "thresholds": {
-            "pause_ratio_gt": PAUSE_RATIO,
-            "pause_min_days_over": PAUSE_MIN_DAYS_OVER,
-            "scale_down_ratio_gt": SCALE_DOWN_RATIO,
-            "scale_down_pct": SCALE_DOWN_PCT,
-        },
-    })
+            "days_left": args.days_left,
+            "ranked": ranked,
+            "coverage": {
+                "projected_overage": args.projected_overage,
+                "total_suggested_savings": round(total_savings, 2),
+                "remaining_uncovered": round(remaining_uncovered, 2),
+                "fully_covered": remaining_uncovered <= 0,
+                "all_performing": all_performing,
+            },
+            "thresholds": {
+                "pause_ratio_gt": PAUSE_RATIO,
+                "pause_min_days_over": PAUSE_MIN_DAYS_OVER,
+                "scale_down_ratio_gt": SCALE_DOWN_RATIO,
+                "scale_down_pct": SCALE_DOWN_PCT,
+            },
+        }
+    )
 
 
 if __name__ == "__main__":

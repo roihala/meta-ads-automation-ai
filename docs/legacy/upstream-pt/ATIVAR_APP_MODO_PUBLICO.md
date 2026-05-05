@@ -3,11 +3,13 @@
 ## ✅ PROBLEMA IDENTIFICADO E RESOLVIDO
 
 ### Page ID: CORRIGIDO ✅
+
 O Page ID foi atualizado para `268630006333803` (Treinamento de I.A. Para Corretores de Imóveis) e está funcionando corretamente!
 
 ### Novo Problema: App em Modo de Desenvolvimento
 
 **Erro atual:**
+
 ```
 error_subcode: 1885183
 error_user_title: "O post do criativo dos anúncios foi criado por um app que está em modo de desenvolvimento"
@@ -19,12 +21,15 @@ error_user_msg: "Ele deve estar em modo público para criar este anúncio."
 ### Passo a Passo
 
 #### 1. Acesse o Meta App Dashboard
+
 ```
 https://developers.facebook.com/apps/3175000345993024/settings/basic/
 ```
 
 #### 2. Localize a Seção "App Mode"
+
 No topo da página, você verá um indicador mostrando se o app está em:
+
 - 🔴 **Development Mode** (Modo de Desenvolvimento) ← Estado Atual
 - 🟢 **Live Mode** (Modo Público) ← Estado Necessário
 
@@ -55,12 +60,14 @@ Na página de configurações básicas:
 **OU**
 
 Se houver um toggle switch no topo da página:
+
 1. Clique no switch de "Development" para "Live"
 2. Confirme a mudança
 
 #### 5. Verificar Status
 
 Depois de ativar:
+
 - O indicador deve mostrar **🟢 Live**
 - O app estará disponível publicamente
 - Anúncios poderão ser criados normalmente
@@ -70,6 +77,7 @@ Depois de ativar:
 Se o app não deixar ativar Live Mode por falta de Privacy Policy:
 
 ### Opção 1: Usar URL Temporária (Para Testes)
+
 ```
 https://www.chatbotimoveis.com.br/privacy
 ```
@@ -79,6 +87,7 @@ https://www.chatbotimoveis.com.br/privacy
 Se você tem acesso ao site chatbotimoveis.com.br, crie uma página simples de privacidade.
 
 Modelo básico:
+
 ```
 Política de Privacidade - Chatbot Imóveis
 
@@ -107,11 +116,13 @@ Email: contato@chatbotimoveis.com.br
 ### Opção 3: Continuar em Development Mode (Limitado)
 
 Se não puder ativar Live Mode agora, você pode:
+
 - Adicionar testadores ao app (máximo 5-10 usuários)
 - Esses testadores poderão ver os anúncios em teste
 - Limitado para produção real
 
 **Para adicionar testadores:**
+
 1. Vá em: https://developers.facebook.com/apps/3175000345993024/roles/
 2. Adicione usuários como "Testadores" ou "Desenvolvedores"
 

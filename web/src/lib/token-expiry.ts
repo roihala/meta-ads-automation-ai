@@ -13,8 +13,12 @@ const WARNING_DAYS = 10;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export function tokenExpiryState(business: Business, now: Date = new Date()): TokenState {
-  if (business.meta_auth_mode === "system_user_token") return { kind: "no_expiry" };
+export function tokenExpiryState(
+  business: Business,
+  now: Date = new Date(),
+): TokenState {
+  if (business.meta_auth_mode === "system_user_token")
+    return { kind: "no_expiry" };
   if (!business.meta_access_token_expires_at) return { kind: "unknown" };
 
   const expiresAt = new Date(business.meta_access_token_expires_at).getTime();
@@ -22,7 +26,8 @@ export function tokenExpiryState(business: Business, now: Date = new Date()): To
 
   const diffDays = Math.floor((expiresAt - now.getTime()) / MS_PER_DAY);
   if (diffDays < 0) return { kind: "expired", daysAgo: Math.abs(diffDays) };
-  if (diffDays <= CRITICAL_DAYS) return { kind: "critical", daysLeft: diffDays };
+  if (diffDays <= CRITICAL_DAYS)
+    return { kind: "critical", daysLeft: diffDays };
   if (diffDays <= WARNING_DAYS) return { kind: "warning", daysLeft: diffDays };
   return { kind: "healthy", daysLeft: diffDays };
 }
@@ -63,5 +68,9 @@ export function tokenStateStyles(state: TokenState): string {
 }
 
 export function isTokenActionable(state: TokenState): boolean {
-  return state.kind === "warning" || state.kind === "critical" || state.kind === "expired";
+  return (
+    state.kind === "warning" ||
+    state.kind === "critical" ||
+    state.kind === "expired"
+  );
 }

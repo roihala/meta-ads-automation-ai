@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAuth } from "@/lib/auth";
@@ -13,7 +19,9 @@ async function signInAction(formData: FormData) {
   const next = String(formData.get("next") ?? "/");
   const result = await getAuth().signIn(email);
   if (!result.ok) {
-    redirect(`/login?error=${encodeURIComponent(result.error)}${next && next !== "/" ? `&next=${encodeURIComponent(next)}` : ""}`);
+    redirect(
+      `/login?error=${encodeURIComponent(result.error)}${next && next !== "/" ? `&next=${encodeURIComponent(next)}` : ""}`,
+    );
   }
   redirect(next || "/");
 }
@@ -54,7 +62,9 @@ export default async function LoginPage({
             </div>
             {next ? <input type="hidden" name="next" value={next} /> : null}
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
-            <Button type="submit">{mode === "dev-cookie" ? "התחבר" : "שלח קישור"}</Button>
+            <Button type="submit">
+              {mode === "dev-cookie" ? "התחבר" : "שלח קישור"}
+            </Button>
           </form>
         </CardContent>
       </Card>

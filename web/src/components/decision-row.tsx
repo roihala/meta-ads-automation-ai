@@ -42,9 +42,13 @@ export function DecisionRow({
         <span className="font-mono text-xs text-muted-foreground">
           {d.graph_name}/{d.node_name}
         </span>
-        <span className="text-xs text-muted-foreground">{relativeHe(d.created_at)}</span>
+        <span className="text-xs text-muted-foreground">
+          {relativeHe(d.created_at)}
+        </span>
         {d.latency_ms ? (
-          <span className="text-xs text-muted-foreground">{d.latency_ms}ms</span>
+          <span className="text-xs text-muted-foreground">
+            {d.latency_ms}ms
+          </span>
         ) : null}
         {d.confidence != null ? (
           <span className="text-xs text-muted-foreground">
@@ -78,12 +82,17 @@ export function DecisionRow({
       </div>
       <p className="mt-2 text-sm font-medium">{d.summary}</p>
       {d.rationale ? (
-        <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{d.rationale}</p>
+        <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
+          {d.rationale}
+        </p>
       ) : null}
       {d.guardrail_violations && d.guardrail_violations.length > 0 ? (
         <div className="mt-2 flex flex-wrap gap-1">
           {d.guardrail_violations.map((g) => (
-            <span key={g} className="rounded bg-red-100 px-2 py-0.5 text-xs text-red-900">
+            <span
+              key={g}
+              className="rounded bg-red-100 px-2 py-0.5 text-xs text-red-900"
+            >
               🛡 {g}
             </span>
           ))}

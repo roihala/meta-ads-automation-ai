@@ -183,4 +183,4 @@ Cold start account
   └─ יום 15+: baselines מלאים. פועל רגיל.
 ```
 
-ר' [memory: Aiweon new account](../../C:\Users\harel\.claude\projects\d--meta-ads-automation-ai\memory\project_aiweon_new_account.md) לפירוט.
+ר' [memory: Aiweon new account](../../C:\Users\harel.claude\projects\d--meta-ads-automation-ai\memory\project_aiweon_new_account.md) לפירוט.

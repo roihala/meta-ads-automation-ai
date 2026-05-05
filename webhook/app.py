@@ -4,6 +4,7 @@ Meta Lead Ads → Trello webhook server.
 Receives leadgen webhook notifications from Meta, fetches lead details,
 and creates a Trello card for each new lead.
 """
+
 import hashlib
 import hmac
 import json
@@ -11,7 +12,7 @@ import logging
 import os
 
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
@@ -32,13 +33,14 @@ GRAPH_API = "https://graph.facebook.com/v25.0"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def verify_signature(payload: bytes, signature_header: str) -> bool:
     """Verify the X-Hub-Signature-256 header against META_APP_SECRET."""
     if not signature_header:
         return False
-    expected = "sha256=" + hmac.new(
-        META_APP_SECRET.encode("utf-8"), payload, hashlib.sha256
-    ).hexdigest()
+    expected = (
+        "sha256=" + hmac.new(META_APP_SECRET.encode("utf-8"), payload, hashlib.sha256).hexdigest()
+    )
     return hmac.compare_digest(expected, signature_header)
 
 
@@ -58,10 +60,7 @@ def fetch_lead(lead_id: str) -> dict:
 
 def parse_lead_fields(field_data: list[dict]) -> dict:
     """Convert Meta's field_data array into a flat dict."""
-    return {
-        f["name"]: f["values"][0] if f.get("values") else ""
-        for f in field_data
-    }
+    return {f["name"]: f["values"][0] if f.get("values") else "" for f in field_data}
 
 
 def create_trello_card(lead: dict, fields: dict) -> dict:
@@ -105,6 +104,7 @@ def create_trello_card(lead: dict, fields: dict) -> dict:
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────
+
 
 @app.route("/webhook", methods=["GET"])
 def verify():

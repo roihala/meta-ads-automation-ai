@@ -12,6 +12,7 @@ Projeto: Automação de Anúncios Meta + OpenAI DALL-E 3
 ### Anúncios Criados Automaticamente: 2/3
 
 #### ✅ Anúncio 1: Apartamento de Luxo
+
 ```
 Campaign ID: 120242969492520091
 Ad Set ID: 120242969492610091
@@ -21,12 +22,14 @@ Status: PAUSADO (pronto para ativar)
 ```
 
 **Detalhes:**
+
 - 🎨 Imagem: `./generated_images/apt_luxo.png`
 - 📝 Título: "Apartamento de Luxo Frente Mar"
 - 💰 Orçamento: R$ 50,00/dia
 - 🎯 Target: 25-55 anos, Brasil
 
 #### ✅ Anúncio 2: Casa Familiar
+
 ```
 Campaign ID: 120242969593870091
 Ad Set ID: 120242969594120091
@@ -36,12 +39,14 @@ Status: PAUSADO (pronto para ativar)
 ```
 
 **Detalhes:**
+
 - 🎨 Imagem: `./generated_images/casa_familia.png`
 - 📝 Título: "Casa dos Sonhos para sua Familia"
 - 💰 Orçamento: R$ 50,00/dia
 - 🎯 Target: 30-50 anos, Brasil
 
 #### ⏳ Anúncio 3: Studio Moderno (Pendente)
+
 - Token expirou durante criação
 - Imagem já gerada: `./generated_images/studio_urbano.png`
 - Execute `python create_third_ad.py` após renovar token
@@ -81,20 +86,25 @@ Status: PAUSADO (pronto para ativar)
 ## 🛠️ CORREÇÕES APLICADAS
 
 ### 1. Page ID Incorreto ✅
+
 **Problema:** Page ID 61557902163872 não acessível
 **Solução:** Atualizado para 268630006333803 (Treinamento de I.A. Para Corretores de Imóveis)
 
 ### 2. App em Development Mode ✅
+
 **Problema:** App não permitia criar anúncios públicos
 **Solução:** Ativado Live Mode no Meta Developer Console
 
 ### 3. Permissões e Configurações ✅
+
 **Ajustes realizados:**
+
 - `special_ad_categories: ['HOUSING']` - Obrigatório para imóveis
 - `is_adset_budget_sharing_enabled: False` - Requisito Meta API v24.0
 - `bid_amount` - Cálculo automático (10% do orçamento diário)
 
 ### 4. Token de Curta Duração ⚠️
+
 **Observação:** Token expirou após ~30 minutos
 **Recomendação:** Gerar tokens estendidos (60 dias)
 
@@ -154,14 +164,17 @@ image = image_gen.generate_image(
 ## 🌐 LINKS ÚTEIS
 
 ### Meta Ads Manager
+
 https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=834934475636055
 
 ### Meta Developer Console
+
 - App Dashboard: https://developers.facebook.com/apps/3175000345993024/dashboard/
 - Settings: https://developers.facebook.com/apps/3175000345993024/settings/basic/
 - Access Token Tool: https://developers.facebook.com/tools/explorer/3175000345993024/
 
 ### Business Manager
+
 https://business.facebook.com/settings/
 
 ---
@@ -235,6 +248,7 @@ Todas salvas em `./generated_images/`:
 **A automação está OPERACIONAL e pode ser usada para criar anúncios ilimitados!**
 
 Cada execução:
+
 1. Gera imagens únicas com DALL-E 3
 2. Faz upload para Meta
 3. Cria campanha otimizada

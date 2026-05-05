@@ -13,6 +13,7 @@ Usage:
 Note: only files directly in `migrations/` are applied. Subdirectories (e.g.
 `_sql_pending_decision/`, `mongo/`) are ignored.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -25,7 +26,6 @@ MIGRATIONS_DIR = ROOT / "migrations"
 
 sys.path.insert(0, str(ROOT))
 from campaigner.lib.db import get_connection  # noqa: E402
-
 
 TRACKING_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS schema_migrations (

@@ -1,9 +1,10 @@
 """
 Example: Batch ad creation for Aiweon — agency + SaaS campaigns.
 """
-import json
-from automation_main import AdAutomation
+
 from dotenv import load_dotenv
+
+from automation_main import AdAutomation
 
 load_dotenv()
 
@@ -33,19 +34,19 @@ agency_ad = automation.create_ad_with_ai_image(
     link_url="https://aiweon.com",
     daily_budget=7000,  # 70 ILS/day
     targeting={
-        'geo_locations': {'countries': ['IL']},
-        'age_min': 28,
-        'age_max': 55,
-        'interests': [
-            {'id': 6003384953570, 'name': 'Digital marketing'},
-            {'id': 6003171473721, 'name': 'Entrepreneurship'},
+        "geo_locations": {"countries": ["IL"]},
+        "age_min": 28,
+        "age_max": 55,
+        "interests": [
+            {"id": 6003384953570, "name": "Digital marketing"},
+            {"id": 6003171473721, "name": "Entrepreneurship"},
         ],
     },
     objective="OUTCOME_TRAFFIC",
     call_to_action="LEARN_MORE",
 )
 
-if agency_ad['success']:
+if agency_ad["success"]:
     print(f"Ad created! ID: {agency_ad['meta_ad']['ad_id']}")
 else:
     print(f"Error: {agency_ad.get('error')}")
@@ -70,19 +71,19 @@ saas_ad = automation.create_ad_with_ai_image(
     link_url="https://aiweon.com",
     daily_budget=10000,  # 100 ILS/day
     targeting={
-        'geo_locations': {'countries': ['IL']},
-        'age_min': 25,
-        'age_max': 50,
-        'interests': [
-            {'id': 6003384953570, 'name': 'Digital marketing'},
-            {'id': 6003020834693, 'name': 'Marketing automation'},
+        "geo_locations": {"countries": ["IL"]},
+        "age_min": 25,
+        "age_max": 50,
+        "interests": [
+            {"id": 6003384953570, "name": "Digital marketing"},
+            {"id": 6003020834693, "name": "Marketing automation"},
         ],
     },
     objective="OUTCOME_LEADS",
     call_to_action="SIGN_UP",
 )
 
-if saas_ad['success']:
+if saas_ad["success"]:
     print(f"Ad created! ID: {saas_ad['meta_ad']['ad_id']}")
 else:
     print(f"Error: {saas_ad.get('error')}")
@@ -94,10 +95,10 @@ print("BATCH SUMMARY")
 print("=" * 60)
 
 results = [agency_ad, saas_ad]
-successful = sum(1 for r in results if r.get('success'))
+successful = sum(1 for r in results if r.get("success"))
 print(f"Created: {successful}/{len(results)} ads")
-print(f"Logs: ./logs/")
-print(f"Images: ./generated_images/")
+print("Logs: ./logs/")
+print("Images: ./generated_images/")
 
 if successful == len(results):
     print("\nAll ads created. Review and activate in Meta Ads Manager.")

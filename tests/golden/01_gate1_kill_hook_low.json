@@ -30,8 +30,13 @@
       "conversions": 0
     },
     "baselines": [
-      {"scope": "account", "metric": "hook_rate", "value": 0.33, "window_days": 30},
-      {"scope": "account", "metric": "ctr", "value": 0.019, "window_days": 30}
+      {
+        "scope": "account",
+        "metric": "hook_rate",
+        "value": 0.33,
+        "window_days": 30
+      },
+      { "scope": "account", "metric": "ctr", "value": 0.019, "window_days": 30 }
     ]
   },
   "expected": {

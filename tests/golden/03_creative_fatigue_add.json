@@ -29,8 +29,20 @@
       "cpa_ils": 92.2
     },
     "baselines": [
-      {"scope": "campaign", "scope_id": "120220000000000003", "metric": "cpr", "value": 40, "window_days": 30},
-      {"scope": "campaign", "scope_id": "120220000000000003", "metric": "cpa", "value": 85, "window_days": 30}
+      {
+        "scope": "campaign",
+        "scope_id": "120220000000000003",
+        "metric": "cpr",
+        "value": 40,
+        "window_days": 30
+      },
+      {
+        "scope": "campaign",
+        "scope_id": "120220000000000003",
+        "metric": "cpa",
+        "value": 85,
+        "window_days": 30
+      }
     ]
   },
   "expected": {

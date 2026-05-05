@@ -26,7 +26,13 @@
       "cpa_ils": 19.9
     },
     "baselines": [
-      {"scope": "campaign", "scope_id": "120220000000000009", "metric": "cpa", "value": 48, "window_days": 30}
+      {
+        "scope": "campaign",
+        "scope_id": "120220000000000009",
+        "metric": "cpa",
+        "value": 48,
+        "window_days": 30
+      }
     ],
     "targets": {
       "cpa_ils": 45
@@ -44,7 +50,11 @@
       "target_kind": "campaign",
       "target_id": "120220000000000009",
       "urgency": "medium",
-      "payload_keys": ["new_daily_budget_ils", "increase_pct", "requires_human_review"],
+      "payload_keys": [
+        "new_daily_budget_ils",
+        "increase_pct",
+        "requires_human_review"
+      ],
       "rationale_must_contain": ["30%", "cap", "baseline"],
       "rationale_must_not_contain": ["bypass", "override"],
       "requires_human_review": true

@@ -22,7 +22,8 @@ declare global {
 
 function getPool(): Pool {
   const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is required for WEB_DB_MODE=local-postgres");
+  if (!url)
+    throw new Error("DATABASE_URL is required for WEB_DB_MODE=local-postgres");
   if (!globalThis.__campaignerPgPool) {
     globalThis.__campaignerPgPool = new Pool({ connectionString: url, max: 5 });
   }
@@ -78,7 +79,10 @@ export const localPostgresClient: DataClient = {
   mode: "local-postgres",
 
   async getBusinessById(id: string): Promise<Business | null> {
-    const { rows } = await getPool().query<Business>(`${SELECT_BUSINESS} WHERE id = $1 LIMIT 1`, [id]);
+    const { rows } = await getPool().query<Business>(
+      `${SELECT_BUSINESS} WHERE id = $1 LIMIT 1`,
+      [id],
+    );
     return rows[0] ?? null;
   },
 
@@ -89,7 +93,10 @@ export const localPostgresClient: DataClient = {
     return rows[0] ?? null;
   },
 
-  async updateBusinessSettings(id: string, patch: BusinessSettingsUpdate): Promise<Business | null> {
+  async updateBusinessSettings(
+    id: string,
+    patch: BusinessSettingsUpdate,
+  ): Promise<Business | null> {
     const { rows } = await getPool().query<Business>(
       `UPDATE businesses
           SET name = $2,
@@ -115,7 +122,10 @@ export const localPostgresClient: DataClient = {
     return rows[0] ?? null;
   },
 
-  async updateSeasonalHints(id: string, hints: SeasonalHints): Promise<Business | null> {
+  async updateSeasonalHints(
+    id: string,
+    hints: SeasonalHints,
+  ): Promise<Business | null> {
     const { rows } = await getPool().query<Business>(
       `UPDATE businesses
           SET seasonal_hints = $2::jsonb
@@ -132,7 +142,9 @@ export const localPostgresClient: DataClient = {
     return rows[0] ?? null;
   },
 
-  async getLatestBudgetHealthDecision(businessId: string): Promise<AgentDecision | null> {
+  async getLatestBudgetHealthDecision(
+    businessId: string,
+  ): Promise<AgentDecision | null> {
     const { rows } = await getPool().query<AgentDecision>(
       `${SELECT_DECISION}
         WHERE business_id = $1
@@ -145,7 +157,9 @@ export const localPostgresClient: DataClient = {
     return rows[0] ?? null;
   },
 
-  async getBusinessKnowledge(businessId: string): Promise<BusinessKnowledge | null> {
+  async getBusinessKnowledge(
+    businessId: string,
+  ): Promise<BusinessKnowledge | null> {
     const { rows } = await getPool().query<BusinessKnowledge>(
       `${SELECT_KNOWLEDGE} WHERE business_id = $1 LIMIT 1`,
       [businessId],
@@ -153,7 +167,9 @@ export const localPostgresClient: DataClient = {
     return rows[0] ?? null;
   },
 
-  async upsertBusinessKnowledge(data: BusinessKnowledgeUpsert): Promise<BusinessKnowledge> {
+  async upsertBusinessKnowledge(
+    data: BusinessKnowledgeUpsert,
+  ): Promise<BusinessKnowledge> {
     const { rows } = await getPool().query<BusinessKnowledge>(
       `INSERT INTO business_knowledge
          (business_id, vertical, website_url, service_regions,
@@ -191,7 +207,9 @@ export const localPostgresClient: DataClient = {
         data.delivery_time_days,
         data.strong_seasons,
         data.weak_seasons,
-        data.questionnaire_answers ? JSON.stringify(data.questionnaire_answers) : null,
+        data.questionnaire_answers
+          ? JSON.stringify(data.questionnaire_answers)
+          : null,
         data.brand_voice ? JSON.stringify(data.brand_voice) : null,
         data.competitors,
       ],
@@ -199,7 +217,10 @@ export const localPostgresClient: DataClient = {
     return rows[0];
   },
 
-  async setPrimaryKpi(businessId: string, kpi: PrimaryKpi | null): Promise<void> {
+  async setPrimaryKpi(
+    businessId: string,
+    kpi: PrimaryKpi | null,
+  ): Promise<void> {
     await getPool().query(
       `UPDATE businesses SET primary_kpi = $2 WHERE id = $1`,
       [businessId, kpi],
@@ -245,6 +266,44 @@ export const localPostgresClient: DataClient = {
     return rows[0] ?? null;
   },
 
+  async createPromotionApproval(input: {
+    business_id: string;
+    asset_id: string;
+    score: number;
+    reasons: string[];
+    rationale: string;
+    created_by_run_id: string;
+  }): Promise<{ id: string; created_at: string }> {
+    // 48h expiry mirrors propose_task.py default.
+    const payload = {
+      asset_id: input.asset_id,
+      source: "user_promote_from_gallery",
+      score: input.score,
+      reasons: input.reasons,
+    };
+    const { rows } = await getPool().query<{ id: string; created_at: string }>(
+      `INSERT INTO approvals (
+         business_id, created_by_run_id, task_type,
+         target_kind, target_id,
+         payload, rationale, expected_impact,
+         urgency, expires_at
+       ) VALUES (
+         $1, $2, 'new_creative',
+         NULL, NULL,
+         $3::jsonb, $4, NULL,
+         'medium', now() + interval '48 hours'
+       )
+       RETURNING id::text, created_at::text`,
+      [
+        input.business_id,
+        input.created_by_run_id,
+        JSON.stringify(payload),
+        input.rationale,
+      ],
+    );
+    return rows[0];
+  },
+
   async listDecisionsForApproval(approvalId: string): Promise<AgentDecision[]> {
     const { rows } = await getPool().query<AgentDecision>(
       `${SELECT_DECISION}
@@ -255,7 +314,10 @@ export const localPostgresClient: DataClient = {
     return rows;
   },
 
-  async listDecisionsForRun(businessId: string, runId: string): Promise<AgentDecision[]> {
+  async listDecisionsForRun(
+    businessId: string,
+    runId: string,
+  ): Promise<AgentDecision[]> {
     const { rows } = await getPool().query<AgentDecision>(
       `${SELECT_DECISION}
         WHERE business_id = $1 AND run_id = $2
@@ -336,15 +398,27 @@ export const localPostgresClient: DataClient = {
          mime_type, size_bytes, original_filename, duration_seconds,
          meta_creative_id, performance_snapshot, created_at::text, deleted_at::text`,
       [
-        data.business_id, data.kind, data.storage_url, data.aspect_ratio, data.dimensions,
-        data.generated_by, data.marketing_angle, data.service_tag,
-        data.mime_type, data.size_bytes, data.original_filename, data.duration_seconds,
+        data.business_id,
+        data.kind,
+        data.storage_url,
+        data.aspect_ratio,
+        data.dimensions,
+        data.generated_by,
+        data.marketing_angle,
+        data.service_tag,
+        data.mime_type,
+        data.size_bytes,
+        data.original_filename,
+        data.duration_seconds,
       ],
     );
     return rows[0];
   },
 
-  async softDeleteGalleryAsset(id: string, businessId: string): Promise<{ deleted: boolean }> {
+  async softDeleteGalleryAsset(
+    id: string,
+    businessId: string,
+  ): Promise<{ deleted: boolean }> {
     const { rowCount } = await getPool().query(
       `UPDATE creative_gallery
           SET deleted_at = now()

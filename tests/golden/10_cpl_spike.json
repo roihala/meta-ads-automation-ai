@@ -31,7 +31,13 @@
       "cpl_ils": 46
     },
     "baselines": [
-      {"scope": "campaign", "scope_id": "120220000000000010", "metric": "cpl", "value": 46, "window_days": 30}
+      {
+        "scope": "campaign",
+        "scope_id": "120220000000000010",
+        "metric": "cpl",
+        "value": 46,
+        "window_days": 30
+      }
     ],
     "account_wide_context": {
       "other_campaigns_similar_drop": false,
@@ -46,7 +52,11 @@
       "target_kind": "campaign",
       "target_id": "120220000000000010",
       "urgency": "high",
-      "payload_keys": ["reason", "pause_confirmation_required", "requires_human_review"],
+      "payload_keys": [
+        "reason",
+        "pause_confirmation_required",
+        "requires_human_review"
+      ],
       "rationale_must_contain": ["CPL", "2.5", "Pixel", "ספייק"],
       "rationale_must_not_contain": ["Frequency", "fatigue"],
       "requires_human_review": true

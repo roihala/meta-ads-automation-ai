@@ -11,6 +11,7 @@ pip install -r requirements.txt
 ### 2️⃣ Configurar Credenciais (5 minutos)
 
 Copie o arquivo de exemplo:
+
 ```bash
 copy .env.example .env
 ```
@@ -44,6 +45,7 @@ print(f"✅ Imagem gerada: {result['url']}")
 ```
 
 Execute:
+
 ```bash
 python -c "from image_generator import ImageGenerator; from dotenv import load_dotenv; load_dotenv(); g=ImageGenerator(); r=g.generate_image('Modern apartment', save_path='test.png'); print('OK')"
 ```
@@ -61,6 +63,7 @@ print("✅ Conectado à Meta Ads API!")
 ```
 
 Execute:
+
 ```bash
 python -c "from meta_ads_manager import MetaAdsManager; from dotenv import load_dotenv; load_dotenv(); MetaAdsManager(); print('OK')"
 ```
@@ -103,21 +106,25 @@ print(f"🎉 Anúncio criado! ID: {result['meta_ad']['ad_id']}")
 ## ⚡ Comandos Úteis
 
 ### Executar Exemplo Completo
+
 ```bash
 python automation_main.py
 ```
 
 ### Testar Apenas Imagens
+
 ```bash
 python image_generator.py
 ```
 
 ### Testar Apenas Meta Ads
+
 ```bash
 python meta_ads_manager.py
 ```
 
 ### Instalar em Ambiente Virtual
+
 ```bash
 python -m venv venv
 venv\Scripts\activate  # Windows
@@ -130,13 +137,17 @@ pip install -r requirements.txt
 ## 🆘 Problemas Comuns
 
 ### "ModuleNotFoundError: No module named 'openai'"
+
 **Solução:** Execute `pip install -r requirements.txt`
 
 ### "OPENAI_API_KEY não encontrada"
+
 **Solução:** Verifique se o arquivo `.env` existe e está preenchido corretamente
 
 ### "Invalid OAuth access token"
+
 **Solução:**
+
 1. Gere novo token em: https://developers.facebook.com/tools/explorer/
 2. Adicione permissões: `ads_management`, `business_management`
 3. Atualize o `.env`

@@ -57,13 +57,16 @@ export function relativeHe(iso: string | null): string {
   return new Date(iso).toLocaleDateString("he-IL");
 }
 
-export function formatExpectedImpact(impact: Record<string, unknown> | null): string | null {
+export function formatExpectedImpact(
+  impact: Record<string, unknown> | null,
+): string | null {
   if (!impact) return null;
   const parts: string[] = [];
   for (const [k, v] of Object.entries(impact)) {
     if (typeof v === "number") {
       const sign = v > 0 ? "+" : "";
-      const pct = k.toLowerCase().includes("pct") || k.toLowerCase().includes("percent");
+      const pct =
+        k.toLowerCase().includes("pct") || k.toLowerCase().includes("percent");
       parts.push(`${k.toUpperCase()} ${sign}${v}${pct ? "%" : ""}`);
     } else if (typeof v === "string") {
       parts.push(`${k}: ${v}`);
@@ -72,10 +75,17 @@ export function formatExpectedImpact(impact: Record<string, unknown> | null): st
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-
 export function requiresHumanReview(a: Approval): string | null {
-  const rhr = (a.payload as { requires_human_review?: unknown; human_review_reason?: unknown })?.requires_human_review;
+  const rhr = (
+    a.payload as {
+      requires_human_review?: unknown;
+      human_review_reason?: unknown;
+    }
+  )?.requires_human_review;
   if (!rhr) return null;
-  const reason = (a.payload as { human_review_reason?: unknown })?.human_review_reason;
-  return typeof reason === "string" && reason.length > 0 ? reason : "דורש בדיקה אנושית";
+  const reason = (a.payload as { human_review_reason?: unknown })
+    ?.human_review_reason;
+  return typeof reason === "string" && reason.length > 0
+    ? reason
+    : "דורש בדיקה אנושית";
 }

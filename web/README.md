@@ -10,12 +10,13 @@ rationale viewer, business knowledge form.
 
 ## Dual-mode infrastructure
 
-| Mode | DB | Auth | When to use |
-|---|---|---|---|
-| `local-postgres` + `dev-cookie` | `pg` → local Postgres | email cookie (no verification) | **active** today; matches local backend stack |
-| `supabase` + `supabase` | `@supabase/ssr` + RLS | Supabase Auth magic link | stub today; lights up after [decisions-log §1.4](../docs/plans/decisions-log.md) resolves on Supabase |
+| Mode                            | DB                    | Auth                           | When to use                                                                                           |
+| ------------------------------- | --------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `local-postgres` + `dev-cookie` | `pg` → local Postgres | email cookie (no verification) | **active** today; matches local backend stack                                                         |
+| `supabase` + `supabase`         | `@supabase/ssr` + RLS | Supabase Auth magic link       | stub today; lights up after [decisions-log §1.4](../docs/plans/decisions-log.md) resolves on Supabase |
 
 Toggle via env:
+
 ```
 WEB_DB_MODE=local-postgres | supabase
 WEB_AUTH_MODE=dev-cookie  | supabase

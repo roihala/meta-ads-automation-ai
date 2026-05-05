@@ -10,6 +10,7 @@ When the agent's dry-run mode exists, add a test parametrized over all
 fixtures that feeds `input` to the agent and asserts `expected.decision_class`
 + `expected.tagged_gate` match. The fixtures are already shaped for that.
 """
+
 from __future__ import annotations
 
 import json
@@ -18,21 +19,37 @@ from pathlib import Path
 
 import pytest
 
-
 FIXTURES_DIR = Path(__file__).resolve().parent
 PROMPTS_DIR = Path(__file__).resolve().parents[2] / "campaigner" / "prompts"
 GUARDRAILS_FILE = PROMPTS_DIR / "guardrails.md"
 
 VALID_DECISION_CLASSES = {
-    "observation", "diagnosis", "proposal", "rejection", "skip", "execution", "error",
+    "observation",
+    "diagnosis",
+    "proposal",
+    "rejection",
+    "skip",
+    "execution",
+    "error",
 }
 VALID_TAGGED_GATES = {
-    "gate_1_creative", "gate_2_campaign", "data_sufficiency",
-    "guardrail", "human_review", "canary",
+    "gate_1_creative",
+    "gate_2_campaign",
+    "data_sufficiency",
+    "guardrail",
+    "human_review",
+    "canary",
 }
 VALID_TASK_TYPES = {
-    "budget_change", "pause_campaign", "resume_campaign", "pause_adset",
-    "new_creative", "new_campaign", "scale_up", "scale_down", "expand_audience",
+    "budget_change",
+    "pause_campaign",
+    "resume_campaign",
+    "pause_adset",
+    "new_creative",
+    "new_campaign",
+    "scale_up",
+    "scale_down",
+    "expand_audience",
 }
 VALID_TARGET_KINDS = {"campaign", "adset", "ad", "creative", "account"}
 VALID_URGENCIES = {"low", "medium", "high", "urgent"}
@@ -54,14 +71,31 @@ DEPRECATED_ACTIVE_PATTERNS = [
 # Markers that mean "what follows is a deprecated / forbidden thing, not an instruction."
 # If any appear in the ~150 chars BEFORE a pattern match, the match is negated.
 _NEGATION_MARKERS = (
-    "deprecated", "don't", "do not", "never", "must not", "forbidden", "prohibited",
-    "not used", "no longer", "הופקע", "אל תציע", " אל ", "אסור", "לא נשתמש",
-    "לא trigger", "deprecated rules", "pre-andromeda", "חוקים מופקעים",
-    "| deprecated", "deprecation",
+    "deprecated",
+    "don't",
+    "do not",
+    "never",
+    "must not",
+    "forbidden",
+    "prohibited",
+    "not used",
+    "no longer",
+    "הופקע",
+    "אל תציע",
+    " אל ",
+    "אסור",
+    "לא נשתמש",
+    "לא trigger",
+    "deprecated rules",
+    "pre-andromeda",
+    "חוקים מופקעים",
+    "| deprecated",
+    "deprecation",
 )
 
 
 # ----------------------------------------------------------------- fixtures
+
 
 def _fixture_paths() -> list[Path]:
     return sorted(p for p in FIXTURES_DIR.glob("[0-9][0-9]_*.json") if p.is_file())
@@ -82,7 +116,9 @@ def _guardrail_names_from_md() -> set[str]:
 
 def test_exactly_13_fixtures_present():
     fixtures = _fixture_paths()
-    assert len(fixtures) == 13, f"expected 13 fixtures, got {len(fixtures)}: {[p.name for p in fixtures]}"
+    assert (
+        len(fixtures) == 13
+    ), f"expected 13 fixtures, got {len(fixtures)}: {[p.name for p in fixtures]}"
 
 
 @pytest.mark.parametrize("path", _fixture_paths(), ids=lambda p: p.stem)
@@ -96,9 +132,9 @@ def test_fixture_parses_and_has_required_keys(path: Path):
 @pytest.mark.parametrize("path", _fixture_paths(), ids=lambda p: p.stem)
 def test_tagged_gate_is_valid(path: Path):
     data = _load(path)
-    assert data["tagged_gate"] in VALID_TAGGED_GATES, (
-        f"{path.name}: tagged_gate '{data['tagged_gate']}' not in {VALID_TAGGED_GATES}"
-    )
+    assert (
+        data["tagged_gate"] in VALID_TAGGED_GATES
+    ), f"{path.name}: tagged_gate '{data['tagged_gate']}' not in {VALID_TAGGED_GATES}"
 
 
 @pytest.mark.parametrize("path", _fixture_paths(), ids=lambda p: p.stem)
@@ -106,9 +142,9 @@ def test_expected_decision_class_is_valid(path: Path):
     data = _load(path)
     cls = data["expected"]["decision_class"]
     # canaries use "skip" as the expected class — the "canary" quality is in tagged_gate.
-    assert cls in VALID_DECISION_CLASSES, (
-        f"{path.name}: decision_class '{cls}' not in {VALID_DECISION_CLASSES}"
-    )
+    assert (
+        cls in VALID_DECISION_CLASSES
+    ), f"{path.name}: decision_class '{cls}' not in {VALID_DECISION_CLASSES}"
 
 
 # --------------------------------------------------------- proposal integrity
@@ -122,14 +158,14 @@ def test_proposal_structure_when_class_is_proposal(path: Path):
         pytest.skip("decision_class is not 'proposal'")
     prop = exp.get("proposal")
     assert prop is not None, f"{path.name}: class=proposal but proposal is null"
-    assert prop["task_type"] in VALID_TASK_TYPES, (
-        f"{path.name}: task_type '{prop['task_type']}' not in {VALID_TASK_TYPES}"
-    )
+    assert (
+        prop["task_type"] in VALID_TASK_TYPES
+    ), f"{path.name}: task_type '{prop['task_type']}' not in {VALID_TASK_TYPES}"
     assert prop["target_kind"] in VALID_TARGET_KINDS
     assert prop["urgency"] in VALID_URGENCIES
-    assert "rationale_must_contain" in prop and prop["rationale_must_contain"], (
-        f"{path.name}: rationale_must_contain must be non-empty — 'what good looks like' can't be empty"
-    )
+    assert (
+        "rationale_must_contain" in prop and prop["rationale_must_contain"]
+    ), f"{path.name}: rationale_must_contain must be non-empty — 'what good looks like' can't be empty"
 
 
 @pytest.mark.parametrize("path", _fixture_paths(), ids=lambda p: p.stem)
@@ -210,11 +246,11 @@ def test_prompts_do_not_contain_active_deprecated_rules(prompt_file: Path):
     hits = []
     for pattern in DEPRECATED_ACTIVE_PATTERNS:
         for m in re.finditer(pattern, text, flags=re.IGNORECASE | re.MULTILINE):
-            preceding = text[max(0, m.start() - 150):m.start()]
+            preceding = text[max(0, m.start() - 150) : m.start()]
             if any(marker in preceding for marker in _NEGATION_MARKERS):
                 continue
             # Also skip if the nearest preceding `## ` heading indicates deprecation.
-            heading_iter = list(re.finditer(r"^##[^#\n]+", text[:m.start()], flags=re.MULTILINE))
+            heading_iter = list(re.finditer(r"^##[^#\n]+", text[: m.start()], flags=re.MULTILINE))
             if heading_iter:
                 nearest_heading = heading_iter[-1].group(0)
                 if any(marker in nearest_heading for marker in _NEGATION_MARKERS):

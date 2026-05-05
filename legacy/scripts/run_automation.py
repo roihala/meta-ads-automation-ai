@@ -2,10 +2,12 @@
 Run Aiweon ad automation — generates images and creates Meta ads.
 All ads are created PAUSED. Activate manually in Meta Ads Manager.
 """
-import sys
+
 import os
+import sys
 
 from dotenv import load_dotenv
+
 from image_generator import ImageGenerator
 from meta_ads_manager import MetaAdsManager
 
@@ -52,13 +54,13 @@ try:
         link_url="https://aiweon.com",
         daily_budget_usd=14,  # ~50 ILS/day
         targeting={
-            'geo_locations': {'countries': ['IL']},
-            'age_min': 28,
-            'age_max': 55,
+            "geo_locations": {"countries": ["IL"]},
+            "age_min": 28,
+            "age_max": 55,
         },
     )
 
-    print(f"      [OK] Ad 1 created!")
+    print("      [OK] Ad 1 created!")
     print(f"      Campaign ID: {ad1['campaign_id']}")
     print(f"      Ad ID: {ad1['ad_id']}")
 
@@ -90,13 +92,13 @@ try:
         link_url="https://aiweon.com",
         daily_budget_usd=14,  # ~50 ILS/day
         targeting={
-            'geo_locations': {'countries': ['IL']},
-            'age_min': 25,
-            'age_max': 50,
+            "geo_locations": {"countries": ["IL"]},
+            "age_min": 25,
+            "age_max": 50,
         },
     )
 
-    print(f"      [OK] Ad 2 created!")
+    print("      [OK] Ad 2 created!")
     print(f"      Campaign ID: {ad2['campaign_id']}")
     print(f"      Ad ID: {ad2['ad_id']}")
 
@@ -105,16 +107,17 @@ try:
     print("=" * 60)
     print("All ads created successfully!")
     print("=" * 60)
-    print(f"\nAds created: 2")
-    print(f"Images generated: 2")
-    print(f"Campaigns created: 2")
-    print(f"\nImages: ./generated_images/")
-    print(f"\nStatus: PAUSED (activate manually in Ads Manager)")
-    print(f"\nMeta Ads Manager: https://business.facebook.com/adsmanager")
+    print("\nAds created: 2")
+    print("Images generated: 2")
+    print("Campaigns created: 2")
+    print("\nImages: ./generated_images/")
+    print("\nStatus: PAUSED (activate manually in Ads Manager)")
+    print("\nMeta Ads Manager: https://business.facebook.com/adsmanager")
     print("\n" + "=" * 60)
 
 except Exception as e:
     print(f"\n[ERROR] Automation failed: {str(e)}")
     import traceback
+
     traceback.print_exc()
     sys.exit(1)

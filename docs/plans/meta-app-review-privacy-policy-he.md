@@ -11,7 +11,7 @@
 
 ## 1. מי אנחנו
 
-מדיניות פרטיות זו מתארת כיצד **Aiweon** (*"Aiweon", "אנחנו", "אנו"*) מטפלת במידע בקשר עם **Campaigner**, כלי פנימי שבו Aiweon משתמשת לניהול פעילות הפרסום שלה עצמה ב-Facebook וב-Instagram.
+מדיניות פרטיות זו מתארת כיצד **Aiweon** (_"Aiweon", "אנחנו", "אנו"_) מטפלת במידע בקשר עם **Campaigner**, כלי פנימי שבו Aiweon משתמשת לניהול פעילות הפרסום שלה עצמה ב-Facebook וב-Instagram.
 
 Aiweon היא סוכנות שיווק דיגיטלי ופלטפורמת SaaS שבסיסה בישראל.
 
@@ -32,13 +32,13 @@ Campaigner הוא **כלי פנימי, first-party**. הוא משמש את Aiweo
 
 Campaigner קורא את קטגוריות המידע הבאות מממשקי Meta, רק בשם ובגבולות של Meta Business Manager של Aiweon:
 
-| קטגוריה | דוגמאות | הרשאת מקור |
-|---|---|---|
-| ביצועי מודעות | חשיפות, הקלקות, הוצאה, עלות לתוצאה, שימור וידאו, hook rate | `ads_read` |
-| Metadata של מודעות | שמות Campaign / Ad Set / Ad, סטטוס, תקציב, targeting | `ads_read`, `ads_management` |
-| הקשר Business Manager | Ad accounts, Pages, Pixels, ו-Business IDs של Aiweon | `business_management`, `pages_show_list` |
-| Engagement של דפים | תגובות, תגובות מילוליות, שיתופים, שימור וידאו על פוסטים שמקודמים כמודעות | `pages_read_engagement` |
-| חיבור Instagram | Instagram Professional account ID ושם משתמש המחובר לדף Facebook של Aiweon | `instagram_basic` |
+| קטגוריה               | דוגמאות                                                                   | הרשאת מקור                               |
+| --------------------- | ------------------------------------------------------------------------- | ---------------------------------------- |
+| ביצועי מודעות         | חשיפות, הקלקות, הוצאה, עלות לתוצאה, שימור וידאו, hook rate                | `ads_read`                               |
+| Metadata של מודעות    | שמות Campaign / Ad Set / Ad, סטטוס, תקציב, targeting                      | `ads_read`, `ads_management`             |
+| הקשר Business Manager | Ad accounts, Pages, Pixels, ו-Business IDs של Aiweon                      | `business_management`, `pages_show_list` |
+| Engagement של דפים    | תגובות, תגובות מילוליות, שיתופים, שימור וידאו על פוסטים שמקודמים כמודעות  | `pages_read_engagement`                  |
+| חיבור Instagram       | Instagram Professional account ID ושם משתמש המחובר לדף Facebook של Aiweon | `instagram_basic`                        |
 
 Campaigner **לא** אוסף:
 
@@ -62,11 +62,11 @@ Campaigner **לא** אוסף:
 
 ## 6. תקופות שמירה
 
-| סוג מידע | תקופת שמירה |
-|---|---|
-| Insights יומיים של ביצועי מודעות | 90 ימים |
+| סוג מידע                               | תקופת שמירה                                      |
+| -------------------------------------- | ------------------------------------------------ |
+| Insights יומיים של ביצועי מודעות       | 90 ימים                                          |
 | לוג audit של החלטות סוכן ואישורי מפעיל | אינסופי (נדרש ל-traceability פנימי ו-compliance) |
-| נכסי creative שנוצרו (תמונות, טקסטים) | אינסופי כל עוד קמפיינים פעילים, או עד בקשת מחיקה |
+| נכסי creative שנוצרו (תמונות, טקסטים)  | אינסופי כל עוד קמפיינים פעילים, או עד בקשת מחיקה |
 
 שמירת מידע שמקורו ב-Meta לא תחרוג מהתקופות לעיל. Aiweon בודקת את מדיניות השמירה אחת לשנה.
 

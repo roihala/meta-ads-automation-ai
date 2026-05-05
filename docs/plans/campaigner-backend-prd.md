@@ -5,11 +5,13 @@
 > **Audience:** The developer picking this up as a handoff. Implement against this PRD; reference the spec for depth.
 > **Companion:** [`campaigner-frontend-prd.md`](./campaigner-frontend-prd.md) — web UI over the same Supabase, built **after** backend Phase 5.
 > **Ground truth (read before starting):**
+>
 > 1. [`docs/plans/campaigner-spec.md`](./campaigner-spec.md) — full technical spec (this PRD pulls up to the "what ships" level; the spec is the "how").
 > 2. [`docs/CAMPAIGN_EVALUATION.md`](../CAMPAIGN_EVALUATION.md) — the evaluation philosophy the agent must encode.
 > 3. [`docs/CAMPAIGN_BUILDING_RECOMMENDATIONS.md`](../CAMPAIGN_BUILDING_RECOMMENDATIONS.md) — 2026 practices; anything you build must not regress these.
 >
 > **Roles:**
+>
 > - **Operator** = Roi (product owner, daily approver, prompt author alongside the developer, stakeholder interface).
 > - **Developer** = you (reader of this doc, implementer).
 
@@ -30,6 +32,7 @@ A stateless agent that runs on `cron` → `claude -p "..."` (Claude Code headles
 Three tiers. Must hit all to declare MVP done.
 
 **Tier 1 — Pipeline complete (engineering gate):**
+
 - Daily `observe-propose` cron runs for 14 consecutive days without manual intervention.
 - Every approved action that passes guardrail recheck executes against Meta API successfully (≥95% execution success rate).
 - Every run produces ≥1 `agent_decisions` row per logical phase (observe / diagnose / propose / apply_guardrails / execute).
@@ -38,12 +41,14 @@ Three tiers. Must hit all to declare MVP done.
 - CLI commands `list`, `approve`, `reject`, `inspect`, `run --dry-run`, `onboard` all functional and documented via `--help`.
 
 **Tier 2 — Signal quality (operational gate):**
+
 - 30 consecutive days of autonomous operation after go-live (cron + HITL, no code changes).
 - Operator approval rate ≥ **50%** on surfaced proposals. Below **40% for 2 consecutive weeks** → investigate (prompt drift, guardrail miscalibration, or noise in diagnoses).
 - p95 time-to-approval-visible (cron run start → approval row readable) ≤ 5 minutes.
-- **No proposal volume floor.** Proposals are surfaced when the agent has something real to say. The agent is *not* judged on how busy it is — a quiet day means no action was warranted. Volume is tracked for visibility, not as a gate.
+- **No proposal volume floor.** Proposals are surfaced when the agent has something real to say. The agent is _not_ judged on how busy it is — a quiet day means no action was warranted. Volume is tracked for visibility, not as a gate.
 
 **Tier 3 — Quality (regression gate):**
+
 - Zero `decision_type='error'` rows from guardrail or execution tools for 7 consecutive days (pipeline hygiene).
 - **No regression to any pre-Andromeda rule** across prompts, guardrails, or decision tree. Three canonical lists must all be clean — audited pre-release and before every prompt edit:
   - spec §6.7
@@ -58,110 +63,115 @@ Three tiers. Must hit all to declare MVP done.
 
 ### Personas
 
-| Persona | Role | How they touch the backend |
-|---|---|---|
-| **Operator (Roi)** | Owner, daily approver. **Prompt author starting Phase 5+** (not before). | Terminal-first: approves/rejects via `campaigner` CLI from any shell (local, VPS, phone SSH). |
-| **Developer (you, the reader)** | Builder + maintainer. **Sole prompt author through Phase 4.** | Implements the backend per this PRD. Authors `CAMPAIGNER.md` + `prompts/*.md` (Hebrew, grounded in CAMPAIGN_EVALUATION + CAMPAIGN_BUILDING) in Phase 2-3; continues to own prompt iteration until operator is comfortable with the format (Phase 5 handoff). Runs Python tools standalone for debugging; reads `agent_decisions` to diagnose agent behavior. |
+| Persona                         | Role                                                                     | How they touch the backend                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Operator (Roi)**              | Owner, daily approver. **Prompt author starting Phase 5+** (not before). | Terminal-first: approves/rejects via `campaigner` CLI from any shell (local, VPS, phone SSH).                                                                                                                                                                                                                                                                |
+| **Developer (you, the reader)** | Builder + maintainer. **Sole prompt author through Phase 4.**            | Implements the backend per this PRD. Authors `CAMPAIGNER.md` + `prompts/*.md` (Hebrew, grounded in CAMPAIGN_EVALUATION + CAMPAIGN_BUILDING) in Phase 2-3; continues to own prompt iteration until operator is comfortable with the format (Phase 5 handoff). Runs Python tools standalone for debugging; reads `agent_decisions` to diagnose agent behavior. |
 
 ### User Stories (backend surface = CLI + the agent itself)
 
 **US-B1 — List pending approvals**
-*As operator, I want `campaigner list --pending` to see today's proposals with urgency, rationale, and expected impact, so I can triage from terminal without a browser.*
+_As operator, I want `campaigner list --pending` to see today's proposals with urgency, rationale, and expected impact, so I can triage from terminal without a browser._
 
 **US-B2 — Approve / reject from terminal**
-*As operator, I want `campaigner approve <id>` and `campaigner reject <id> --reason "..."` to move a queue item without context-switching, so I can clear the queue in batches.*
+_As operator, I want `campaigner approve <id>` and `campaigner reject <id> --reason "..."` to move a queue item without context-switching, so I can clear the queue in batches._
 
 **US-B3 — Inspect agent reasoning**
-*As operator, I want `campaigner inspect <run-id|approval-id>` to print the full `agent_decisions` chain (observation → diagnosis → proposal → guardrails), so I can audit "why did it propose this?"*
+_As operator, I want `campaigner inspect <run-id|approval-id>` to print the full `agent_decisions` chain (observation → diagnosis → proposal → guardrails), so I can audit "why did it propose this?"_
 
 **US-B4 — Manual trigger with dry-run**
-*As operator, I want `campaigner run daily --dry-run` to simulate a cron flow end-to-end with **reads + `agent_decisions` writes + simulated `approvals` (inserted with `status='dry_run'`)** but **zero Meta writes and zero real `status='pending'` rows**, so I can inspect the full proposed queue via CLI or web UI (filtered to `dry_run`) without the operator ever being able to approve them into production. Tests prompt changes safely while still producing the exact same `agent_decisions` audit trail a real run would.*
+_As operator, I want `campaigner run daily --dry-run` to simulate a cron flow end-to-end with **reads + `agent_decisions` writes + simulated `approvals` (inserted with `status='dry_run'`)** but **zero Meta writes and zero real `status='pending'` rows**, so I can inspect the full proposed queue via CLI or web UI (filtered to `dry_run`) without the operator ever being able to approve them into production. Tests prompt changes safely while still producing the exact same `agent_decisions` audit trail a real run would._
 
 **US-B5 — Onboard a business**
-*As operator, I want `campaigner onboard --config onboarding/aiweon.yaml` to seed `businesses`, `business_knowledge`, and `baselines` in one command, so I don't hand-write SQL.*
+_As operator, I want `campaigner onboard --config onboarding/aiweon.yaml` to seed `businesses`, `business_knowledge`, and `baselines` in one command, so I don't hand-write SQL._
 
 **US-B6 — Headless agent runs unattended**
-*As operator, I want cron to invoke `claude -p` with the right env vars and capture structured logs per run, so I can grep historical behavior by date without reading DB directly.*
+_As operator, I want cron to invoke `claude -p` with the right env vars and capture structured logs per run, so I can grep historical behavior by date without reading DB directly._
 
 **US-B7 — Tools are standalone**
-*As engineer, I want every file under `campaigner/tools/*.py` to expose `--help`, take only CLI args, emit JSON on stdout, and return clean exit codes, so I can debug each tool in isolation.*
+_As engineer, I want every file under `campaigner/tools/_.py`to expose`--help`, take only CLI args, emit JSON on stdout, and return clean exit codes, so I can debug each tool in isolation.\*
 
 **US-B8 — Weekly creative firehose**
-*As operator, I want a `weekly-creative-firehose` cron slot that generates 3-5 new creatives per active campaign (continuous additions, not replacement), so the ad account stays in Andromeda's 10-50+ diversity sweet spot (CAMPAIGN_BUILDING §5) without me thinking about it.*
+_As operator, I want a `weekly-creative-firehose` cron slot that generates 3-5 new creatives per active campaign (continuous additions, not replacement), so the ad account stays in Andromeda's 10-50+ diversity sweet spot (CAMPAIGN_BUILDING §5) without me thinking about it._
 
 **US-B9 — Two-gate reasoning is visible**
-*As operator, I want the agent to separate Gate 1 (creative-level, leading signals at 48h-7d) from Gate 2 (campaign-level, lagging signals post-learning) in its reasoning, and to write them as distinct phases in `agent_decisions`, so when I inspect a proposal I can see which gate drove it — and I can audit whether the agent is honoring CAMPAIGN_EVALUATION §2 without reading every rationale.*
+_As operator, I want the agent to separate Gate 1 (creative-level, leading signals at 48h-7d) from Gate 2 (campaign-level, lagging signals post-learning) in its reasoning, and to write them as distinct phases in `agent_decisions`, so when I inspect a proposal I can see which gate drove it — and I can audit whether the agent is honoring CAMPAIGN_EVALUATION §2 without reading every rationale._
 
 **US-B10 — Ask a human when confidence is low**
-*As operator, I want the agent to flag a proposal for explicit human review (urgency='high', `requires_human_review=true` in payload, rationale names the trigger) when any of the six scenarios in CAMPAIGN_EVALUATION §9 fires:*
-1. *Account age < 30 days (no reliable baseline yet)*
-2. *No primary benchmark data available for the vertical*
-3. *Leading signals (Gate 1) and lagging signals (Gate 2) conflict — e.g. hook 45% but CPA × 2*
-4. *Multiple winners in the same ad set (no consensus playbook)*
-5. *Proposed budget jump > 30%*
-6. *Sudden CPL spike ≥ 2× baseline with no obvious cause (potential Israel wartime context — Operation Modes deferred to v2)*
+_As operator, I want the agent to flag a proposal for explicit human review (urgency='high', `requires_human_review=true` in payload, rationale names the trigger) when any of the six scenarios in CAMPAIGN_EVALUATION §9 fires:_
 
-*In these cases the agent does not suppress the proposal and does not auto-approve it; it escalates to the operator with the reason named.*
+1. _Account age < 30 days (no reliable baseline yet)_
+2. _No primary benchmark data available for the vertical_
+3. _Leading signals (Gate 1) and lagging signals (Gate 2) conflict — e.g. hook 45% but CPA × 2_
+4. _Multiple winners in the same ad set (no consensus playbook)_
+5. _Proposed budget jump > 30%_
+6. _Sudden CPL spike ≥ 2× baseline with no obvious cause (potential Israel wartime context — Operation Modes deferred to v2)_
+
+_In these cases the agent does not suppress the proposal and does not auto-approve it; it escalates to the operator with the reason named._
 
 **US-B11 — Day Zero pre-flight for new-campaign proposals**
-*As operator, I want the agent to run a pre-flight check (CAMPAIGN_BUILDING Day-Zero Launch Checklist) before proposing any `task_type='new_campaign'`, and to refuse to propose if any of these fail:*
-- *Tracking infrastructure verified (Pixel + CAPI deduplicated, AEM priority events configured, domain verified) — pulled from `business_knowledge` or tool call*
-- *Proposed daily budget ≥ `(target_cpa × 50) / 7` (learning-phase viability)*
-- *Naming follows `[Funnel]_[Objective]_[Audience]_[Creative]_[Date]`*
-- *≥3 diverse creatives queued (CAMPAIGN_BUILDING §5 launch minimum)*
-- *Advantage+ Placements on; broad audience + Advantage+ Audience on*
+_As operator, I want the agent to run a pre-flight check (CAMPAIGN_BUILDING Day-Zero Launch Checklist) before proposing any `task_type='new_campaign'`, and to refuse to propose if any of these fail:_
 
-*Each failure surfaces as a rejection row in `agent_decisions` with the specific guardrail name, so I can fix the gap (usually a business-knowledge field) before re-running.*
+- _Tracking infrastructure verified (Pixel + CAPI deduplicated, AEM priority events configured, domain verified) — pulled from `business_knowledge` or tool call_
+- _Proposed daily budget ≥ `(target_cpa × 50) / 7` (learning-phase viability)_
+- _Naming follows `[Funnel]_[Objective]_[Audience]_[Creative]_[Date]`_
+- _≥3 diverse creatives queued (CAMPAIGN_BUILDING §5 launch minimum)_
+- _Advantage+ Placements on; broad audience + Advantage+ Audience on_
+
+_Each failure surfaces as a rejection row in `agent_decisions` with the specific guardrail name, so I can fix the gap (usually a business-knowledge field) before re-running._
 
 **US-B12 — Manual asset upload to the creative gallery**
-*As operator, I want to upload my own images and videos (client footage, brand assets, product shots) to a gallery that the agent can pull from when proposing creatives or new campaigns — so the agent isn't limited to Imagen-generated output and can use content I've already produced.*
+_As operator, I want to upload my own images and videos (client footage, brand assets, product shots) to a gallery that the agent can pull from when proposing creatives or new campaigns — so the agent isn't limited to Imagen-generated output and can use content I've already produced._
 
-*Scope:*
-- *Images: PNG/JPG, ≤ 30MB, aspect ratios 1:1 / 4:5 / 9:16 / 16:9.*
-- *Videos: MP4/MOV, ≤ 4GB, aspect ratios 1:1 / 4:5 / 9:16 / 16:9, duration 1-241 seconds (Meta Feed/Reels/Stories constraints).*
-- *Each upload tagged with `service_tag` (which of the business's services it promotes), `marketing_angle` (emotion/urgency/benefit/...), and `aspect_ratio` (auto-detected, editable).*
-- *Server-side validation is authoritative; client-side is a UX nicety. A file that fails server validation is rejected with a specific error (e.g. "video duration 312s exceeds Meta max 241s").*
-- *`creative_gallery.generated_by='manual_upload'`. `storage_url` points to Supabase Storage bucket `creative-gallery`. No Imagen `generation_prompt` / `seed` — these remain NULL for manual uploads.*
+_Scope:_
 
-*Rationale: see [decisions-log §1.9](./decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure). The existing `creative_gallery.generated_by` field already permits `'manual_upload'`, but no user flow writes that value until this story lands.*
+- _Images: PNG/JPG, ≤ 30MB, aspect ratios 1:1 / 4:5 / 9:16 / 16:9._
+- _Videos: MP4/MOV, ≤ 4GB, aspect ratios 1:1 / 4:5 / 9:16 / 16:9, duration 1-241 seconds (Meta Feed/Reels/Stories constraints)._
+- _Each upload tagged with `service_tag` (which of the business's services it promotes), `marketing_angle` (emotion/urgency/benefit/...), and `aspect_ratio` (auto-detected, editable)._
+- _Server-side validation is authoritative; client-side is a UX nicety. A file that fails server validation is rejected with a specific error (e.g. "video duration 312s exceeds Meta max 241s")._
+- _`creative_gallery.generated_by='manual_upload'`. `storage_url` points to Supabase Storage bucket `creative-gallery`. No Imagen `generation_prompt` / `seed` — these remain NULL for manual uploads._
+
+_Rationale: see [decisions-log §1.9](./decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure). The existing `creative_gallery.generated_by` field already permits `'manual_upload'`, but no user flow writes that value until this story lands._
 
 **US-B13 — Budget-aware `new_campaign` proposals**
-*As operator, I've set `businesses.monthly_budget_ils` and I expect the agent to respect it. Before proposing any `task_type='new_campaign'`, the agent must:*
+_As operator, I've set `businesses.monthly_budget_ils` and I expect the agent to respect it. Before proposing any `task_type='new_campaign'`, the agent must:_
 
-1. *Compute `current_monthly_spend = sum(active campaigns' daily_budget × 30) + spend_this_month_so_far` (from Meta insights).*
-2. *Compute `headroom = monthly_budget_ils - current_monthly_spend`.*
-3. *Compute `min_campaign_monthly = (target_cpa × 50 / 7) × 30` — the viable-learning floor per [CAMPAIGN_BUILDING §7](../CAMPAIGN_BUILDING_RECOMMENDATIONS.md) Day-Zero checklist.*
-4. *Branch:*
-   - *`headroom >= min_campaign_monthly` → proceed with the `new_campaign` proposal, with the rationale naming the headroom figure.*
-   - *`headroom < min_campaign_monthly` + an existing campaign meets the winner criterion (CPA < target × 0.8 for ≥ 5 days) → do not propose `new_campaign`; propose `scale_up` on the winner instead.*
-   - *`headroom < min_campaign_monthly` + no winner + a service without an active campaign exists in `business_knowledge.services` → propose an `alert` (task_type='alert', new — see below) with a budget-increase recommendation: "לפתוח קמפיין ל-<service> בעלות יעד ₪X נדרשים ₪Y לחודש נוספים. צפי לידים נוספים: Z (לפי baseline של <reference campaign>)."*
+1. _Compute `current_monthly_spend = sum(active campaigns' daily_budget × 30) + spend_this_month_so_far` (from Meta insights)._
+2. _Compute `headroom = monthly_budget_ils - current_monthly_spend`._
+3. _Compute `min_campaign_monthly = (target_cpa × 50 / 7) × 30` — the viable-learning floor per [CAMPAIGN_BUILDING §7](../CAMPAIGN_BUILDING_RECOMMENDATIONS.md) Day-Zero checklist._
+4. _Branch:_
+   - _`headroom >= min_campaign_monthly` → proceed with the `new_campaign` proposal, with the rationale naming the headroom figure._
+   - _`headroom < min_campaign_monthly` + an existing campaign meets the winner criterion (CPA < target × 0.8 for ≥ 5 days) → do not propose `new_campaign`; propose `scale_up` on the winner instead._
+   - _`headroom < min_campaign_monthly` + no winner + a service without an active campaign exists in `business_knowledge.services` → propose an `alert` (task_type='alert', new — see below) with a budget-increase recommendation: "לפתוח קמפיין ל-<service> בעלות יעד ₪X נדרשים ₪Y לחודש נוספים. צפי לידים נוספים: Z (לפי baseline של <reference campaign>)."_
 
-*New `task_type='alert'`: informational proposal that requires no Meta action. Operator can "acknowledge" (no execution) or "reject" (no-op). Distinct from other task_types because `execute_task.py` is a no-op for it.*
+_New `task_type='alert'`: informational proposal that requires no Meta action. Operator can "acknowledge" (no execution) or "reject" (no-op). Distinct from other task_types because `execute_task.py` is a no-op for it._
 
 **US-B14 — Multi-service business onboarding + portfolio structure caps**
-*As operator, when I onboard a business that sells multiple services (e.g. an agency with SEO / PPC / content / web-dev / branding), I want the agent to structure campaigns according to the 2026 Andromeda-era rules in [decisions-log §1.9](./decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure), not to naively run one campaign per service.*
+_As operator, when I onboard a business that sells multiple services (e.g. an agency with SEO / PPC / content / web-dev / branding), I want the agent to structure campaigns according to the 2026 Andromeda-era rules in [decisions-log §1.9](./decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure), not to naively run one campaign per service._
 
-*Onboarding questions added to `business_knowledge.questionnaire_answers`:*
-1. *`services[]` — list of distinct services, each with `{name, target_cpl_ils, landing_page_url, sales_team_capacity_leads_per_week}`.*
-2. *`persona_groups[]` — clusters of services that share a buyer persona (e.g. `[["seo", "ppc", "content"], ["branding"], ["web-dev"]]`). For pairs where the operator is unsure, the onboarding form defaults them to the same cluster and surfaces the list for confirmation.*
-3. *`flagship_service` (optional) — a single service that gets directional priority if CBO redistribution under-spends it.*
+_Onboarding questions added to `business_knowledge.questionnaire_answers`:_
 
-*Hard caps the agent enforces (guardrails, not soft suggestions):*
-- *`max_ad_sets_per_campaign = 3`* — violation rejects the proposal.
-- *`max_parallel_campaigns_per_business = 2`* — a third `new_campaign` proposal requires a `requires_human_review=true` flag.
-- *`cbo_only_across_services = true`* — ABO across services is rejected with rule `deprecated_abo_service_split`.
-- *`cannibalization_flag`* — when two active campaigns target the same broad audience (same gender/age/region), the next observe-propose run surfaces a `merge_campaigns` proposal (new task_type, v2) or a warning in the affected campaigns' approvals.
+1. _`services[]` — list of distinct services, each with `{name, target_cpl_ils, landing_page_url, sales_team_capacity_leads_per_week}`._
+2. _`persona_groups[]` — clusters of services that share a buyer persona (e.g. `[["seo", "ppc", "content"], ["branding"], ["web-dev"]]`). For pairs where the operator is unsure, the onboarding form defaults them to the same cluster and surfaces the list for confirmation._
+3. _`flagship_service` (optional) — a single service that gets directional priority if CBO redistribution under-spends it._
 
-*Structure decision at campaign-creation time:*
+_Hard caps the agent enforces (guardrails, not soft suggestions):_
 
-| Condition | Structure |
-|---|---|
-| `G == 1` + target CPL uniform (±30%) across services | 1 campaign, 1 ad set, `service_tag` differentiates creatives |
-| `G == 1` + target CPL differs > 30% | 1 campaign, up to `min(services, 3)` ad sets, CBO on |
-| `G >= 2` + monthly budget ≥ `G × min_campaign_monthly` | `G` campaigns |
-| Otherwise | Force `G = 1`; surface a `requires_human_review` note explaining the budget shortfall |
+- _`max_ad_sets_per_campaign = 3`_ — violation rejects the proposal.
+- _`max_parallel_campaigns_per_business = 2`_ — a third `new_campaign` proposal requires a `requires_human_review=true` flag.
+- _`cbo_only_across_services = true`_ — ABO across services is rejected with rule `deprecated_abo_service_split`.
+- _`cannibalization_flag`_ — when two active campaigns target the same broad audience (same gender/age/region), the next observe-propose run surfaces a `merge_campaigns` proposal (new task_type, v2) or a warning in the affected campaigns' approvals.
 
-*Creative volume is per ad set, not per service: 10-12 initial, 3-5/week.*
+_Structure decision at campaign-creation time:_
+
+| Condition                                              | Structure                                                                             |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `G == 1` + target CPL uniform (±30%) across services   | 1 campaign, 1 ad set, `service_tag` differentiates creatives                          |
+| `G == 1` + target CPL differs > 30%                    | 1 campaign, up to `min(services, 3)` ad sets, CBO on                                  |
+| `G >= 2` + monthly budget ≥ `G × min_campaign_monthly` | `G` campaigns                                                                         |
+| Otherwise                                              | Force `G = 1`; surface a `requires_human_review` note explaining the budget shortfall |
+
+_Creative volume is per ad set, not per service: 10-12 initial, 3-5/week._
 
 ### Acceptance Criteria (rolled up)
 
@@ -172,19 +182,20 @@ Three tiers. Must hit all to declare MVP done.
 
   **Behavior per subcommand:**
 
-  | Subcommand | Behavior |
-  |---|---|
-  | `list` | Defaults to `--pending`. Flags narrow: `--approved`, `--rejected`, `--executed`, `--failed`, `--dry-run`, `--all`. `--campaign <name>` filters. Output: compact table (id, urgency, task_type, target, age). |
-  | `approve <id> [<id>...]` | Accepts one or more explicit IDs. **No glob, no `--all-pending`** — the friction of typing IDs is the safety mechanism. No confirmation prompt; if you typed it, you meant it. |
-  | `reject <id> [<id>...] --reason "<text>"` | Reason required (≥10 chars). Same multi-ID semantics as approve. |
-  | `approve <id> --override-guardrail <rule> --reason "<text>"` | Soft-guardrail override path (see §2 AC). Reason ≥10 chars. The long `--reason` string is the friction; no additional confirmation prompt. Hard guardrails error out. |
-  | `inspect <id>` | Pretty-printed `agent_decisions` chain by default (human-readable, grouped by gate per CAMPAIGN_EVALUATION §2). `--json` for machine consumption / piping. No built-in pager — pipe to `less` manually when needed. |
-  | `run <flow>` | Flows: `daily`, `execute`, `creative-firehose` (maps to the three cron slots). `--dry-run` on any flow activates the dry-run mode from Group 3.4. |
-  | `run <tool-name>` | Also dispatches to any `tools/*.py` by filename (minus extension), e.g. `campaigner run fetch-insights --days 7`. Same args + JSON output as the tool itself. Invaluable for debugging + prompt iteration; zero extra code (it's `exec`-style dispatch). |
-  | `onboard --config <yaml>` | One-shot business onboarding per spec §11.5. |
-  | `rotate-token` | Interactive: takes a fresh Meta long-lived user token (pasted in), validates it via Meta's `debug_token` + one read call against the ad account, and publishes it as a new version of the `meta-token-aiweon` secret via `gcloud secrets versions add meta-token-aiweon --data-file=-`. No Cloud Run Job redeploy required — the next cron tick's `gcloud secrets versions access latest` picks up the new version automatically. Writes the new expiry to `businesses.meta_access_token_expires_at` (structured — this is the field the frontend status panel reads) and an `agent_decisions` row (`decision_type='observation'`, summary names old vs new expiry). Operator runs it manually on the 50-day reminder. |
+  | Subcommand                                                   | Behavior                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+  | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `list`                                                       | Defaults to `--pending`. Flags narrow: `--approved`, `--rejected`, `--executed`, `--failed`, `--dry-run`, `--all`. `--campaign <name>` filters. Output: compact table (id, urgency, task_type, target, age).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+  | `approve <id> [<id>...]`                                     | Accepts one or more explicit IDs. **No glob, no `--all-pending`** — the friction of typing IDs is the safety mechanism. No confirmation prompt; if you typed it, you meant it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+  | `reject <id> [<id>...] --reason "<text>"`                    | Reason required (≥10 chars). Same multi-ID semantics as approve.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+  | `approve <id> --override-guardrail <rule> --reason "<text>"` | Soft-guardrail override path (see §2 AC). Reason ≥10 chars. The long `--reason` string is the friction; no additional confirmation prompt. Hard guardrails error out.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+  | `inspect <id>`                                               | Pretty-printed `agent_decisions` chain by default (human-readable, grouped by gate per CAMPAIGN_EVALUATION §2). `--json` for machine consumption / piping. No built-in pager — pipe to `less` manually when needed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+  | `run <flow>`                                                 | Flows: `daily`, `execute`, `creative-firehose` (maps to the three cron slots). `--dry-run` on any flow activates the dry-run mode from Group 3.4.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+  | `run <tool-name>`                                            | Also dispatches to any `tools/*.py` by filename (minus extension), e.g. `campaigner run fetch-insights --days 7`. Same args + JSON output as the tool itself. Invaluable for debugging + prompt iteration; zero extra code (it's `exec`-style dispatch).                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+  | `onboard --config <yaml>`                                    | One-shot business onboarding per spec §11.5.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+  | `rotate-token`                                               | Interactive: takes a fresh Meta long-lived user token (pasted in), validates it via Meta's `debug_token` + one read call against the ad account, and publishes it as a new version of the `meta-token-aiweon` secret via `gcloud secrets versions add meta-token-aiweon --data-file=-`. No Cloud Run Job redeploy required — the next cron tick's `gcloud secrets versions access latest` picks up the new version automatically. Writes the new expiry to `businesses.meta_access_token_expires_at` (structured — this is the field the frontend status panel reads) and an `agent_decisions` row (`decision_type='observation'`, summary names old vs new expiry). Operator runs it manually on the 50-day reminder. |
 
   **Explicit non-goals for MVP CLI:** shell completion scripts (bash/zsh), interactive TUI, glob/filter-based approve, batch confirmation prompts, multi-business selector. Each of these is a legitimate v2 addition; none blocks MVP.
+
 - [ ] **Agent invocation** uses `claude -p --output-format json --max-turns 30` with env-injected secrets. Logs stream to stdout → **Google Cloud Logging** (Cloud Run Jobs' native path). Filter by `resource.labels.job_name` and `labels.flow` to slice by cron slot. No separate `/var/log/campaigner/` on disk — Cloud Run containers are ephemeral.
 
 - [ ] **`expected_duration` per flow — constant, not column.** Defined in `campaigner/lib/flow_config.py` as `FLOW_EXPECTED_DURATION_MS`: `daily_observe_propose=300_000` (5min), `execute_approvals=60_000` (1min), `weekly_creative_firehose=480_000` (8min), `monthly-baseline-refresh=120_000` (2min). Frontend fetches via `/api/flow-config` Route Handler (returns the constant as JSON). Changing a value is a PR to this file — simpler than a new table for four numbers.
@@ -192,6 +203,7 @@ Three tiers. Must hit all to declare MVP done.
 - [ ] **`monthly-baseline-refresh` runtime (cron `0 3 1 * *`).** Runs as a **separate Cloud Run Job** (`campaigner-baseline-refresh`) with the same Docker image but a **different entrypoint** (`python -m campaigner.scripts.refresh_baselines`, not `bash runners/*.sh`). Same service account (`campaigner-runner@...`), but only fetches `meta-token-aiweon` + `supabase-sr` from Secret Manager — no `anthropic-api-key` because no Claude. Writes `heartbeats` rows like every other flow. Pure-Python path keeps monthly-baseline cost at ~$0.
 
 - [ ] **Cron liveness — `heartbeats` table.** Each `runners/*.sh` writes a row at start and at end (or on error). Schema:
+
   ```sql
   create table heartbeats (
     id uuid primary key default gen_random_uuid(),
@@ -207,6 +219,7 @@ Three tiers. Must hit all to declare MVP done.
   );
   create index on heartbeats (business_id, flow, ran_at desc);
   ```
+
   Add as `migrations/007_heartbeats.sql`. Frontend reads this to display last-seen age per flow and to compute the "3 consecutive failures" alert.
 
 - [ ] **3-consecutive-failures alert.** No separate alerts table — computed from `heartbeats` by a frontend query: if the last 3 rows for a given `(business_id, flow)` all have `phase='error'` (or missing `phase='end'` after `ran_at + expected_duration × 2`), surface an alert banner on the web dashboard. Backend does not push notifications; alerting is visibility-based, not interruptive.
@@ -230,11 +243,11 @@ Three tiers. Must hit all to declare MVP done.
   1. **Propose-time** (Flow 1) — `check_guardrails.py` runs after the agent drafts a proposal. Failures log `decision_type='rejection'` to `agent_decisions` and either surface the block (soft guardrail) or silently drop (hard guardrail) — see below.
   2. **Execute-time recheck** (Flow 2) — `recheck_guardrails.py` runs immediately before the Meta API call. Rationale: state can change between propose and execute (campaign exits learning, conversion lands in the last 24h, budget depleted). A guardrail that passed at propose-time can fail at execute-time; when it does, the approval transitions to `status='failed'` with the violated rule in `execution_result`.
 
-  Approve-time recheck (in the CLI/UI path) is deliberately *not* added — it's redundant with execute-time recheck and couples the frontend to guardrails Python.
+  Approve-time recheck (in the CLI/UI path) is deliberately _not_ added — it's redundant with execute-time recheck and couples the frontend to guardrails Python.
 
 - [ ] **`approved_by` values (per [`decisions-log §1.7`](./decisions-log.md#17-גישת-משתמשים-שניים--single-user-mvp--c-hook-לעתיד)):** single-operator MVP, so the allowed values are `admin@aiweon.co.il` (web — `auth.jwt() ->> 'email'`) or `terminal` (CLI — hard-coded, no OS-user capture). `auto` reserved for v2 auto-approval. CLI does not read `$USER` or prompt for identity; `terminal` is the audit signal that "a human at a shell did this." Multi-operator attribution is a v2 item tied to the `user_business_access` table deferral in §1.7.
 
-- [ ] **Guardrails split: hard (non-overridable) vs soft (overridable with operator reason).** A silent drop on every guardrail hides operator-correctable situations (e.g. "I know this campaign *looks* like it's in learning, but we just pushed a tracking fix — override and scale"). Policy:
+- [ ] **Guardrails split: hard (non-overridable) vs soft (overridable with operator reason).** A silent drop on every guardrail hides operator-correctable situations (e.g. "I know this campaign _looks_ like it's in learning, but we just pushed a tracking fix — override and scale"). Policy:
 
   **Hard guardrails — silent drop; no override path. Violating these is never correct.**
   - `no_delete_campaigns` (system safety — deletion is irreversible)
@@ -255,6 +268,7 @@ Three tiers. Must hit all to declare MVP done.
   - Hard guardrails reject `--override-guardrail` attempts with an error naming the rule and pointing at this section.
 
   **Where `payload.guardrail_override_required=true` comes from:** `propose_task.py` is the single writer. When `check_guardrails.py` returns only soft violations (no hard), propose_task sets the flag in `payload`, lists the rules in `payload.violated_rules`, and includes the rule names in `rationale`. The `approvals.guardrail_override_required` generated column (migration 008) mirrors the flag for indexed queries and Supabase Realtime filters — the frontend and `list` CLI do not dig into JSONB. When a hard violation is present, propose_task writes no approval at all (silent drop per the "hard guardrails" block above).
+
 - [ ] **Data sufficiency gate (§6.4) enforced before any Gate 2 decision:** `check_data_sufficiency.py` returns `{sufficient: bool, reason: str}`; agent is instructed to log `decision_type='skip'` and move on when insufficient.
 - [ ] **Business knowledge loader** loads the entire `business_knowledge` row into Claude's context in a single tool call (no RAG, no chunking) and caches it across turns.
 
@@ -289,18 +303,18 @@ Three tiers. Must hit all to declare MVP done.
 
 ### Tools Required
 
-**Knowledge surface (read by Claude each run):** each prompt file is a translation of a specific section of the two authoritative knowledge docs. The prompt is the *operational* version; the knowledge docs are the *reference*. When they diverge, the knowledge docs win — update prompts to match.
+**Knowledge surface (read by Claude each run):** each prompt file is a translation of a specific section of the two authoritative knowledge docs. The prompt is the _operational_ version; the knowledge docs are the _reference_. When they diverge, the knowledge docs win — update prompts to match.
 
-| File | Purpose | Authored from |
-|---|---|---|
-| `CAMPAIGNER.md` | Agent protocol — Flow 1/2/3 steps | spec §11.3-§11.5 |
-| `prompts/performance-brain.md` | Two-Gates evaluation logic + baseline-first rule + Israel warning | EVALUATION §2, §3, §4; spec §6 |
-| `prompts/decision-tree.md` | Scenario branches — Gate 1 creative, Gate 2 campaign, account-wide | EVALUATION §7 (scenarios A-D); spec §17 |
-| `prompts/guardrails.md` | Human-readable catalog of enforced rules + deprecated-rules audit | spec §14.1 + EVALUATION §8 + CAMPAIGN_BUILDING §10 (deprecated-rule lists must be cited verbatim, not paraphrased — prevents drift) |
-| `prompts/creative-guide.md` | Firehose model, hook-rate bands, angles, placement adaptation, aspect ratios | CAMPAIGN_BUILDING §5, §7; EVALUATION §4 |
-| `prompts/day-zero-checklist.md` | Pre-flight for new-campaign proposals (US-B11 rules) | CAMPAIGN_BUILDING Day-Zero Launch Checklist |
-| `prompts/ask-a-human.md` | The 6 scenarios where the agent escalates rather than decides | EVALUATION §9 |
-| `prompts/hebrew-copy-style.md` | Brand voice, forbidden words, register | Business knowledge (per-business) |
+| File                            | Purpose                                                                      | Authored from                                                                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `CAMPAIGNER.md`                 | Agent protocol — Flow 1/2/3 steps                                            | spec §11.3-§11.5                                                                                                                    |
+| `prompts/performance-brain.md`  | Two-Gates evaluation logic + baseline-first rule + Israel warning            | EVALUATION §2, §3, §4; spec §6                                                                                                      |
+| `prompts/decision-tree.md`      | Scenario branches — Gate 1 creative, Gate 2 campaign, account-wide           | EVALUATION §7 (scenarios A-D); spec §17                                                                                             |
+| `prompts/guardrails.md`         | Human-readable catalog of enforced rules + deprecated-rules audit            | spec §14.1 + EVALUATION §8 + CAMPAIGN_BUILDING §10 (deprecated-rule lists must be cited verbatim, not paraphrased — prevents drift) |
+| `prompts/creative-guide.md`     | Firehose model, hook-rate bands, angles, placement adaptation, aspect ratios | CAMPAIGN_BUILDING §5, §7; EVALUATION §4                                                                                             |
+| `prompts/day-zero-checklist.md` | Pre-flight for new-campaign proposals (US-B11 rules)                         | CAMPAIGN_BUILDING Day-Zero Launch Checklist                                                                                         |
+| `prompts/ask-a-human.md`        | The 6 scenarios where the agent escalates rather than decides                | EVALUATION §9                                                                                                                       |
+| `prompts/hebrew-copy-style.md`  | Brand voice, forbidden words, register                                       | Business knowledge (per-business)                                                                                                   |
 
 **Python tools (invoked by Claude via Bash):**
 15 scripts under `campaigner/tools/` per spec §19. Organized by flow:
@@ -311,6 +325,7 @@ Three tiers. Must hit all to declare MVP done.
 - Creative: `generate_creative` (wraps existing `image_generator.py` + Claude copy gen).
 
 **External APIs:**
+
 - **Anthropic API** via `@anthropic-ai/claude-code` CLI (Node 20+). **Model: Claude Sonnet 4.6 across all flows** — the default `claude -p` model; no per-flow override. Opus 4.6 stays available for ad-hoc operator debugging but is not wired into any cron path. Rationale: Sonnet 4.6 plus prompt caching (spec §21) produces the right reasoning/cost balance; upgrading to Opus without evidence of Sonnet insufficiency is premature.
 - **Meta Marketing API** via existing `facebook-business` SDK (wrapped in `campaigner/lib/meta_client.py`).
 - **Supabase REST** via `supabase-py` (service_role key only, backend context).
@@ -332,21 +347,21 @@ After Phase 4, E1 regression tests run against the real-captured set; the develo
 
 Required coverage:
 
-| # | Scenario | Source | Expected outcome |
-|---|---|---|---|
-| 1 | Creative fails Gate 1 (hook < 25%, CTR < 1%) at 48h+1000 impr | EVALUATION §7 scenario A | `gate_1_creative` → `kill` proposal |
-| 2 | Winner campaign post-learning, CPA ≤ target, hook > 35% | EVALUATION §7 scenario B | `gate_2_campaign` → `scale_up` proposal |
-| 3 | Creative Fatigue flag triggered (CPR ≥ 2× historical) | EVALUATION §7 scenario C | `gate_2_campaign` → `add_creatives` proposal (never pause) |
-| 4 | Insufficient time (< 48h since edit) or insufficient volume | EVALUATION §7 scenario D | `skip_insufficient_data` decision, no proposal |
-| 5 | Account age < 30d, low-baseline low-confidence | EVALUATION §9 #1 | Proposal with `requires_human_review=true` |
-| 6 | No primary benchmark for the vertical | EVALUATION §9 #2 | Same as above |
-| 7 | Leading + lagging signals conflict (hook 45%, CPA × 2) | EVALUATION §9 #3 | Same as above |
-| 8 | Multiple winners in same ad set | EVALUATION §9 #4 | Proposal with 2-3 options presented to operator |
-| 9 | Proposed budget jump > 30% | EVALUATION §9 #5 | Same as #5 |
-| 10 | CPL spike ≥ 2× baseline, no obvious cause | EVALUATION §9 #6 | Escalation + pause-confirmation request |
-| 11 | New-campaign proposal with tracking unverified | CAMPAIGN_BUILDING Day-Zero + US-B11 | Blocked by `verify_tracking_infrastructure` guardrail |
-| 12 | New-campaign proposal with budget under `(CPA × 50) / 7` | CAMPAIGN_BUILDING §4 | Blocked by `enforce_budget_formula` guardrail |
-| 13 | Proposal matching any deprecated rule (e.g. "Frequency > 3 → pause") | EVALUATION §8 / CAMPAIGN_BUILDING §10 | Reasoning path produces this → test fails; prompt has regressed |
+| #   | Scenario                                                             | Source                                | Expected outcome                                                |
+| --- | -------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------- |
+| 1   | Creative fails Gate 1 (hook < 25%, CTR < 1%) at 48h+1000 impr        | EVALUATION §7 scenario A              | `gate_1_creative` → `kill` proposal                             |
+| 2   | Winner campaign post-learning, CPA ≤ target, hook > 35%              | EVALUATION §7 scenario B              | `gate_2_campaign` → `scale_up` proposal                         |
+| 3   | Creative Fatigue flag triggered (CPR ≥ 2× historical)                | EVALUATION §7 scenario C              | `gate_2_campaign` → `add_creatives` proposal (never pause)      |
+| 4   | Insufficient time (< 48h since edit) or insufficient volume          | EVALUATION §7 scenario D              | `skip_insufficient_data` decision, no proposal                  |
+| 5   | Account age < 30d, low-baseline low-confidence                       | EVALUATION §9 #1                      | Proposal with `requires_human_review=true`                      |
+| 6   | No primary benchmark for the vertical                                | EVALUATION §9 #2                      | Same as above                                                   |
+| 7   | Leading + lagging signals conflict (hook 45%, CPA × 2)               | EVALUATION §9 #3                      | Same as above                                                   |
+| 8   | Multiple winners in same ad set                                      | EVALUATION §9 #4                      | Proposal with 2-3 options presented to operator                 |
+| 9   | Proposed budget jump > 30%                                           | EVALUATION §9 #5                      | Same as #5                                                      |
+| 10  | CPL spike ≥ 2× baseline, no obvious cause                            | EVALUATION §9 #6                      | Escalation + pause-confirmation request                         |
+| 11  | New-campaign proposal with tracking unverified                       | CAMPAIGN_BUILDING Day-Zero + US-B11   | Blocked by `verify_tracking_infrastructure` guardrail           |
+| 12  | New-campaign proposal with budget under `(CPA × 50) / 7`             | CAMPAIGN_BUILDING §4                  | Blocked by `enforce_budget_formula` guardrail                   |
+| 13  | Proposal matching any deprecated rule (e.g. "Frequency > 3 → pause") | EVALUATION §8 / CAMPAIGN_BUILDING §10 | Reasoning path produces this → test fails; prompt has regressed |
 
 The #13 row is a regression canary — it should never produce the old behavior; if it does, a deprecated rule has leaked back into a prompt.
 
@@ -385,6 +400,7 @@ Cloud Scheduler (cron)
 ```
 
 **3 cron slots (spec §18.1):**
+
 - `0 9 * * *` Asia/Jerusalem → `daily_observe_propose.sh` (~2-5 min)
 - `*/15 * * * *` → `execute_approvals.sh` (~10-60 sec, mostly no-op)
 - `0 10 * * 1` → `weekly_creative_firehose.sh` (~3-8 min)
@@ -392,18 +408,19 @@ Cloud Scheduler (cron)
 
 ### Integration Points
 
-| System | Auth | Access pattern | Failure mode |
-|---|---|---|---|
-| Anthropic API | `ANTHROPIC_API_KEY` from Google Secret Manager (secret `anthropic-api-key`), fetched by `runners/*.sh` at invocation start via `gcloud secrets versions access latest` | Synchronous CLI invocation per cron tick | Exit code 1 → `heartbeats` row with `phase='error'`; 3 consecutive failures → frontend alert banner |
-| Meta Marketing API | Meta token from Secret Manager (secret `meta-token-aiweon`), fetched at invocation start. **Two auth modes supported** via `businesses.meta_auth_mode`: `user_token` (~60-day expiry; manual rotation) or `system_user_token` (no expiry; requires Business Verification). Both are first-class — dual-mode is required for v2 (clients can choose fast-start vs. stable path). | facebook-business SDK, read + write | **Rotation path** (User Token): `campaigner rotate-token` CLI; operator calendar reminder at 50d. **Stable path** (System User Token): no rotation needed. Bemtech operates on User Token during MVP; flips `meta_auth_mode` to `system_user_token` once its BV — **in flight from Phase 0** — completes (~5-6 weeks). The rotation mechanism stays load-bearing indefinitely for v2 clients on the fast-start path. See [`decisions-log.md §1.2`](./decisions-log.md#12-meta-business-verification--timing). |
-| Supabase Postgres | `SUPABASE_SERVICE_ROLE_KEY` (bypasses RLS) from Secret Manager (secret `supabase-sr`), fetched at invocation start | supabase-py client | Connection error → `heartbeats` row with `phase='error'`; agent aborts run |
-| Vertex AI Imagen | GCP ADC (Workload Identity on Cloud Run) | google-genai SDK | Quota exceeded → tool exits 1; firehose skips that creative, continues |
+| System             | Auth                                                                                                                                                                                                                                                                                                                                                                            | Access pattern                           | Failure mode                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Anthropic API      | `ANTHROPIC_API_KEY` from Google Secret Manager (secret `anthropic-api-key`), fetched by `runners/*.sh` at invocation start via `gcloud secrets versions access latest`                                                                                                                                                                                                          | Synchronous CLI invocation per cron tick | Exit code 1 → `heartbeats` row with `phase='error'`; 3 consecutive failures → frontend alert banner                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Meta Marketing API | Meta token from Secret Manager (secret `meta-token-aiweon`), fetched at invocation start. **Two auth modes supported** via `businesses.meta_auth_mode`: `user_token` (~60-day expiry; manual rotation) or `system_user_token` (no expiry; requires Business Verification). Both are first-class — dual-mode is required for v2 (clients can choose fast-start vs. stable path). | facebook-business SDK, read + write      | **Rotation path** (User Token): `campaigner rotate-token` CLI; operator calendar reminder at 50d. **Stable path** (System User Token): no rotation needed. Bemtech operates on User Token during MVP; flips `meta_auth_mode` to `system_user_token` once its BV — **in flight from Phase 0** — completes (~5-6 weeks). The rotation mechanism stays load-bearing indefinitely for v2 clients on the fast-start path. See [`decisions-log.md §1.2`](./decisions-log.md#12-meta-business-verification--timing). |
+| Supabase Postgres  | `SUPABASE_SERVICE_ROLE_KEY` (bypasses RLS) from Secret Manager (secret `supabase-sr`), fetched at invocation start                                                                                                                                                                                                                                                              | supabase-py client                       | Connection error → `heartbeats` row with `phase='error'`; agent aborts run                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Vertex AI Imagen   | GCP ADC (Workload Identity on Cloud Run)                                                                                                                                                                                                                                                                                                                                        | google-genai SDK                         | Quota exceeded → tool exits 1; firehose skips that creative, continues                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 **Advisory locking:** `pg_try_advisory_lock(hashtext('execute_' || business_id))` at start of `execute_approvals.sh`. Prevents overlapping executions.
 
 ### Data Model
 
 See spec §10 for full DDL. Six tables:
+
 - `businesses` (1 row for MVP: Aiweon)
 - `business_knowledge` (1-to-1 with business; JSONB for flexibility)
 - `baselines` (metrics per scope × window: 7/14/30-day rolling per spec §6.2)
@@ -415,7 +432,7 @@ All tables have RLS enabled (for v2 multi-tenant readiness); MVP backend uses se
 
 ### Security & Privacy
 
-- **Secrets (production):** All three tokens (`ANTHROPIC_API_KEY`, `META_ACCESS_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`) live in **Google Secret Manager** in GCP project `bemtech-478413` as three secrets: `anthropic-api-key`, `meta-token-aiweon`, `supabase-sr`. Each new token value is added as a new *version* (not a replacement); `latest` alias advances automatically. Never in code, never in Git, never in stdout (Cloud Logging ingests stdout), never in `agent_decisions`. `BUSINESS_ID` is non-sensitive and remains a plain environment variable on the Cloud Run Job.
+- **Secrets (production):** All three tokens (`ANTHROPIC_API_KEY`, `META_ACCESS_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`) live in **Google Secret Manager** in GCP project `bemtech-478413` as three secrets: `anthropic-api-key`, `meta-token-aiweon`, `supabase-sr`. Each new token value is added as a new _version_ (not a replacement); `latest` alias advances automatically. Never in code, never in Git, never in stdout (Cloud Logging ingests stdout), never in `agent_decisions`. `BUSINESS_ID` is non-sensitive and remains a plain environment variable on the Cloud Run Job.
 - **Runtime access pattern:** `runners/*.sh` opens each invocation with three `gcloud secrets versions access latest --secret=...` calls that export the values into the process environment. The Python tools read `os.getenv(...)` unchanged — the tool layer is identical in prod and dev. Per-invocation fetch (vs. image-bake) means rotation takes effect on the next cron tick without a redeploy.
 - **IAM:** The Cloud Run Job runs under a dedicated service account `campaigner-runner@bemtech-478413.iam.gserviceaccount.com`. That SA is granted `roles/secretmanager.secretAccessor` **on the three specific secrets only**, not project-wide. No `roles/secretmanager.admin`. No default compute SA. Scope creep into other secrets requires an explicit IAM change, logged in Cloud Audit Logs.
 - **Audit trail:** Every `gcloud secrets versions access` call writes an entry in Cloud Audit Logs (`data_access` tier enabled for Secret Manager). Baseline pattern: three accesses per cron tick (daily flow = 3, execute flow every 15 min = 3, weekly firehose = 3). Anything outside that pattern — in particular off-hours access or access from a principal other than `campaigner-runner` — is investigable. MVP doesn't build automated alerting on this; the log exists and is queryable if suspicion arises.
@@ -435,7 +452,8 @@ All tables have RLS enabled (for v2 multi-tenant readiness); MVP backend uses se
 Phases are ordered, not date-bound. Advance a phase only when its exit criteria hold.
 
 **Phase 0 — Pre-dev (blockers; must clear before Phase 1)**
-- [ ] **Supabase project** created (EU-West or EU-Central, low-latency to Israel). *Currently the known blocker — not done yet.*
+
+- [ ] **Supabase project** created (EU-West or EU-Central, low-latency to Israel). _Currently the known blocker — not done yet._
 - [ ] **Meta app access verified.** Local `.env` credentials already allow read + edit of campaigns on dev/test account. Audit whether the app has **Advanced Access** for `ads_management` (required for production spend). If not, submit Meta App Review — **2-4 week bottleneck.** Use personal token + test account `act_202495959` for dev until Advanced Access lands. Business Verification is a separate track (v2/Phase 6) and not required to start.
 - [ ] **Anthropic API key** provisioned (console.anthropic.com) and published as the first version of the `anthropic-api-key` secret in Google Secret Manager.
 - [ ] **Secret Manager + service account setup** (one-time, ~30 min):
@@ -452,6 +470,7 @@ Phases are ordered, not date-bound. Advance a phase only when its exit criteria 
 Supabase migrations (001-007) applied to both `public` (prod) and `staging` schemas, `campaigner/lib/` wrappers around existing `meta_ads_manager.py` + `image_generator.py`, `campaigner/tools/` core tools (`fetch_insights`, `load_baselines`, `log_decision`, `propose_task`).
 
 **Aiweon seeding during this phase:**
+
 - Operator fills the **structured** portion of `business_knowledge` via `campaigner onboard --config onboarding/aiweon.yaml` (factual fields: vertical, website, regions, products, budgets, delivery time, seasons, primary KPI, tracking-verification checkboxes). The questionnaire/judgmental portion (brand voice, ideal customer, past wins/fails) is deliberately deferred to Phase 4 — operator refines it after seeing what the dry-run agent writes.
 - `scripts/refresh_baselines.py` pulls **30 days** of Meta history (matches EVALUATION §3 rolling windows) and seeds `baselines`. If <30 days available, each baseline row gets `low_confidence=true` and the agent enters EVALUATION §9 #1 mode (low-baseline escalation) until the window fills.
 
@@ -467,7 +486,7 @@ Supabase migrations (001-007) applied to both `public` (prod) and `staging` sche
 7 consecutive days of `observe-propose` in `--dry-run`: agent reasons and logs `agent_decisions`, writes `status='dry_run'` approvals for inspection, no Meta writes. **Operator completes the `business_knowledge` questionnaire during this phase** — the dry-run rationales reveal which judgmental answers (brand voice, ideal customer, past wins/fails, forbidden words) most affect output quality, so the questionnaire is filled against real examples rather than in the abstract. **Exit criterion:** operator audits reasoning; ≥90% of dry-run diagnoses judged sound; questionnaire complete.
 
 **Phase 5 — Observe-only live**
-Full `observe-propose` writes real `approvals`; `execute_approvals` flow *disabled*. Operator reviews proposals via CLI; no auto-execution. Proves decision quality without risking spend. **Frontend work unblocks after this phase starts** — a read-only UI over real data accelerates operator auditing. **Prompt-iteration ownership hands off from developer to operator** during this phase: operator submits PRs against `prompts/*.md` with the deprecated-rules checklist; developer reviews for technical correctness. **Exit criterion:** 7 consecutive days + Tier 2 approval-rate target met; operator has shipped ≥1 prompt iteration on their own.
+Full `observe-propose` writes real `approvals`; `execute_approvals` flow _disabled_. Operator reviews proposals via CLI; no auto-execution. Proves decision quality without risking spend. **Frontend work unblocks after this phase starts** — a read-only UI over real data accelerates operator auditing. **Prompt-iteration ownership hands off from developer to operator** during this phase: operator submits PRs against `prompts/*.md` with the deprecated-rules checklist; developer reviews for technical correctness. **Exit criterion:** 7 consecutive days + Tier 2 approval-rate target met; operator has shipped ≥1 prompt iteration on their own.
 
 **Phase 6 — Full HITL**
 `execute_approvals` enabled. Operator approves via CLI or web. Monitor Tier 2 metrics for 30 days. **Exit criterion:** 30 consecutive days clean; Tier 2 and Tier 3 gates satisfied.
@@ -477,16 +496,16 @@ When a **second ad account** joins the system, trigger `docs/plans/langgraph-v2-
 
 ### Technical Risks
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| Meta `ads_management` App Review rejection or delay | Medium | Blocks go-live | Submit Phase 0; have manual-use fallback (personal token + test account `act_202495959`) for dev |
-| `META_ACCESS_TOKEN` expires mid-operation (~60d cycle) | High during MVP bridge period; drops to Low for Bemtech after BV approves | Full agent outage until refresh | Operator calendar reminder at 50d; rotate via `campaigner rotate-token` CLI. **Bemtech BV in flight from Phase 0** (~5-6 weeks end-to-end); post-approval, Bemtech flips `businesses.meta_auth_mode='system_user_token'` and the expiry category disappears for Bemtech. Rotation mechanism remains first-class — v2 clients who choose the fast-start path without their own BV rely on it. Decision trail: [`decisions-log.md §1.2`](./decisions-log.md#12-meta-business-verification--timing). |
-| Claude CLI breaking changes (npm package updates) | Medium | Agent invocation fails | Pin `@anthropic-ai/claude-code` version in Dockerfile; rebuild image on intentional upgrade only |
-| Hebrew prompt quality drift | Medium | Bad proposals, low approval rate | E1 golden-set replay before every prompt merge; E3 weekly sampling |
-| Andromeda threshold miscalibration (hook-rate <25%, CPA×1.3) | Medium | Kills good creatives or keeps bad ones | Tier 2 approval-rate signal; spec §23.4 notes vertical-specific thresholds are open — plan 30-day calibration window before relying on Gate 1 auto-proposals |
-| Pre-Andromeda rule regresses into prompts | Medium | Silently bad decisions | Spec §6.7 + §14.1 guardrails; prompt PR template includes explicit §6.7 checklist |
-| Supabase region latency (EU-West to IL operator) | Low | Slow CLI | Acceptable at p95 < 1s; alternative eu-central if needed |
-| Claude reasoning exceeds `--max-turns 30` | Low | Partial work loss | Log and retry next cron tick; decisions from prior partial run remain in `agent_decisions` for audit |
+| Risk                                                         | Likelihood                                                                | Impact                                 | Mitigation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Meta `ads_management` App Review rejection or delay          | Medium                                                                    | Blocks go-live                         | Submit Phase 0; have manual-use fallback (personal token + test account `act_202495959`) for dev                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `META_ACCESS_TOKEN` expires mid-operation (~60d cycle)       | High during MVP bridge period; drops to Low for Bemtech after BV approves | Full agent outage until refresh        | Operator calendar reminder at 50d; rotate via `campaigner rotate-token` CLI. **Bemtech BV in flight from Phase 0** (~5-6 weeks end-to-end); post-approval, Bemtech flips `businesses.meta_auth_mode='system_user_token'` and the expiry category disappears for Bemtech. Rotation mechanism remains first-class — v2 clients who choose the fast-start path without their own BV rely on it. Decision trail: [`decisions-log.md §1.2`](./decisions-log.md#12-meta-business-verification--timing). |
+| Claude CLI breaking changes (npm package updates)            | Medium                                                                    | Agent invocation fails                 | Pin `@anthropic-ai/claude-code` version in Dockerfile; rebuild image on intentional upgrade only                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Hebrew prompt quality drift                                  | Medium                                                                    | Bad proposals, low approval rate       | E1 golden-set replay before every prompt merge; E3 weekly sampling                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Andromeda threshold miscalibration (hook-rate <25%, CPA×1.3) | Medium                                                                    | Kills good creatives or keeps bad ones | Tier 2 approval-rate signal; spec §23.4 notes vertical-specific thresholds are open — plan 30-day calibration window before relying on Gate 1 auto-proposals                                                                                                                                                                                                                                                                                                                                      |
+| Pre-Andromeda rule regresses into prompts                    | Medium                                                                    | Silently bad decisions                 | Spec §6.7 + §14.1 guardrails; prompt PR template includes explicit §6.7 checklist                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Supabase region latency (EU-West to IL operator)             | Low                                                                       | Slow CLI                               | Acceptable at p95 < 1s; alternative eu-central if needed                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Claude reasoning exceeds `--max-turns 30`                    | Low                                                                       | Partial work loss                      | Log and retry next cron tick; decisions from prior partial run remain in `agent_decisions` for audit                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ### Open Questions (require operator input or A/B testing)
 
@@ -504,6 +523,7 @@ These were not resolved in PRD drafting and should surface early so they don't b
 ### Documentation deliverables
 
 Ships alongside code at MVP:
+
 - `README.md` with the Runbook section (Group 4.6)
 - `campaigner/CAMPAIGNER.md` — the agent protocol Claude loads at every invocation (spec §19)
 - `docs/onboarding-new-business.md` — short checklist for when v2 adds the second ad account; maps the Aiweon onboarding flow to generic steps so future businesses don't require rediscovery

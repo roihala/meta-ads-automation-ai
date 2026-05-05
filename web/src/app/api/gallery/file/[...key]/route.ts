@@ -48,7 +48,10 @@ export async function GET(
     if (!m) {
       return new NextResponse(null, {
         status: 416,
-        headers: { "content-range": `bytes */${total}`, "accept-ranges": "bytes" },
+        headers: {
+          "content-range": `bytes */${total}`,
+          "accept-ranges": "bytes",
+        },
       });
     }
     const start = Number(m[1]);
@@ -62,7 +65,10 @@ export async function GET(
     ) {
       return new NextResponse(null, {
         status: 416,
-        headers: { "content-range": `bytes */${total}`, "accept-ranges": "bytes" },
+        headers: {
+          "content-range": `bytes */${total}`,
+          "accept-ranges": "bytes",
+        },
       });
     }
     const length = end - start + 1;

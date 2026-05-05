@@ -1,21 +1,20 @@
 """
 Main automation: AI image generation + Meta ad publishing for Aiweon.
 """
-import os
+
 import json
+import os
 from datetime import datetime
-from typing import Optional
 
 from dotenv import load_dotenv
 
 from image_generator import ImageGenerator
 from meta_ads_manager import MetaAdsManager
 
-
 DEFAULT_TARGETING = {
-    'geo_locations': {'countries': ['IL']},
-    'age_min': 25,
-    'age_max': 55,
+    "geo_locations": {"countries": ["IL"]},
+    "age_min": 25,
+    "age_max": 55,
 }
 
 
@@ -39,21 +38,18 @@ class AdAutomation:
         # Image params
         image_prompt: str,
         image_aspect_ratio: str = "1:1",
-
         # Ad params
-        campaign_name: Optional[str] = None,
-        ad_title: Optional[str] = None,
-        ad_body: Optional[str] = None,
-        link_url: Optional[str] = None,
+        campaign_name: str | None = None,
+        ad_title: str | None = None,
+        ad_body: str | None = None,
+        link_url: str | None = None,
         daily_budget_usd: float = 14,
-
         # Targeting
-        targeting: Optional[dict] = None,
-
+        targeting: dict | None = None,
         # Additional
         objective: str = "OUTCOME_TRAFFIC",
         call_to_action: str = "LEARN_MORE",
-        special_ad_categories: Optional[list] = None,
+        special_ad_categories: list | None = None,
     ) -> dict:
         """
         Create a complete ad: generate image with AI then publish to Meta.
@@ -121,30 +117,30 @@ class AdAutomation:
 
         # 3. Compile results
         final_result = {
-            'success': True,
-            'timestamp': timestamp,
-            'image': {
-                'local_path': image_path,
-                'model': image_result['model'],
-                'aspect_ratio': image_result['aspect_ratio'],
+            "success": True,
+            "timestamp": timestamp,
+            "image": {
+                "local_path": image_path,
+                "model": image_result["model"],
+                "aspect_ratio": image_result["aspect_ratio"],
             },
-            'meta_ad': {
-                'campaign_id': meta_result['campaign_id'],
-                'ad_set_id': meta_result['ad_set_id'],
-                'creative_id': meta_result['creative_id'],
-                'ad_id': meta_result['ad_id'],
-                'campaign_name': campaign_name,
-                'title': ad_title,
-                'body': ad_body,
-                'link': link_url,
-                'daily_budget_usd': daily_budget_usd,
+            "meta_ad": {
+                "campaign_id": meta_result["campaign_id"],
+                "ad_set_id": meta_result["ad_set_id"],
+                "creative_id": meta_result["creative_id"],
+                "ad_id": meta_result["ad_id"],
+                "campaign_name": campaign_name,
+                "title": ad_title,
+                "body": ad_body,
+                "link": link_url,
+                "daily_budget_usd": daily_budget_usd,
             },
         }
 
         # Save log
         os.makedirs("./logs", exist_ok=True)
         log_path = f"./logs/automation_log_{timestamp}.json"
-        with open(log_path, 'w', encoding='utf-8') as f:
+        with open(log_path, "w", encoding="utf-8") as f:
             json.dump(final_result, f, indent=2, ensure_ascii=False)
 
         print("\n" + "=" * 60)
@@ -171,10 +167,10 @@ class AdAutomation:
             try:
                 result = self.create_ad_with_ai_image(**config)
             except Exception as e:
-                result = {'success': False, 'error': str(e)}
+                result = {"success": False, "error": str(e)}
             results.append(result)
 
-        successful = sum(1 for r in results if r.get('success'))
+        successful = sum(1 for r in results if r.get("success"))
         print(f"\nDone: {successful}/{len(ads_config)} ads created successfully.")
 
         return results
@@ -198,9 +194,9 @@ if __name__ == "__main__":
         link_url="https://aiweon.com",
         daily_budget_usd=14,  # ~50 ILS/day
         targeting={
-            'geo_locations': {'countries': ['IL']},
-            'age_min': 25,
-            'age_max': 55,
+            "geo_locations": {"countries": ["IL"]},
+            "age_min": 25,
+            "age_max": 55,
         },
     )
 
