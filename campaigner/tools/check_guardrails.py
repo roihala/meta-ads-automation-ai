@@ -1906,6 +1906,87 @@ def _operator_questions_well_formed(prop: dict, state: dict, ctx: dict) -> dict:
     return _pass("operator_questions_well_formed", questions_count=len(questions))
 
 
+def _scale_up_requires_graded_sample(prop: dict, state: dict, ctx: dict) -> dict:
+    """§42. Mastery v2 Phase C. Hard-blocks scale_up / budget_change-increase
+    on a campaign whose graded_sample_size_14d < 20. Replaces §40's warn-only
+    behavior — the 16.4 trap (cheap-Meta CPL with garbage leads) happens
+    exactly when the agent scales on raw CPL without enough quality grades
+    to know the leads are actually good.
+
+    State fields:
+      graded_sample_size_14d : int — count of distinct leads graded in last 14d
+                                     for the target campaign
+    """
+    task = prop.get("task_type")
+    payload = prop.get("payload") or {}
+    is_scale_up = task == "scale_up"
+    is_increase = task == "budget_change" and _is_budget_increase(payload)
+    if not (is_scale_up or is_increase):
+        return _skip(
+            "scale_up_requires_graded_sample",
+            "rule applies only to scale_up / budget_change-increase tasks",
+        )
+    graded = state.get("graded_sample_size_14d")
+    if graded is None:
+        # Could be a brand-new campaign with no leads yet — different gate.
+        return _skip(
+            "scale_up_requires_graded_sample",
+            "graded_sample_size_14d not in state (Flow A Step 1.5 didn't run?)",
+        )
+    if graded >= 20:
+        return _pass(
+            "scale_up_requires_graded_sample", graded_sample_size_14d=graded
+        )
+    return _fail(
+        "scale_up_requires_graded_sample",
+        f"need ≥20 graded leads in last 14 days before scaling (have {graded}). "
+        f"The 16.4 trap: raw Meta CPL looks great, lead quality is garbage. "
+        f"Grade pending leads in /leads first, then re-propose.",
+        graded_sample_size_14d=graded,
+        required=20,
+    )
+
+
+def _is_budget_increase(payload: dict) -> bool:
+    """Helper: does this budget_change payload represent an increase?"""
+    new_b = payload.get("new_daily_budget_cents") or payload.get(
+        "new_daily_budget_ils"
+    )
+    old_b = payload.get("old_daily_budget_cents") or payload.get(
+        "old_daily_budget_ils"
+    )
+    if isinstance(new_b, int | float) and isinstance(old_b, int | float):
+        return new_b > old_b
+    return False
+
+
+def _lead_grading_coverage_minimum(prop: dict, state: dict, ctx: dict) -> dict:
+    """§45. Mastery v2 Phase C. Surface an alert when grading coverage drops
+    below 60% over 30d — the operator needs a nudge to keep grading pending
+    leads, otherwise §42 starts blocking everything.
+
+    State fields:
+      lead_grading_coverage_30d : float 0..1
+    """
+    coverage = state.get("lead_grading_coverage_30d")
+    if coverage is None:
+        return _skip(
+            "lead_grading_coverage_minimum", "lead_grading_coverage_30d not in state"
+        )
+    if coverage >= 0.6:
+        return _pass(
+            "lead_grading_coverage_minimum", coverage_30d=round(coverage, 3)
+        )
+    # Don't fail — surface as a soft warning. The agent's job is to notice
+    # and emit an alert task; this rule just records the observation.
+    return _pass(
+        "lead_grading_coverage_minimum",
+        warning="coverage_below_60pct",
+        coverage_30d=round(coverage, 3),
+        suggested_action="emit alert nudging operator to grade pending leads in /leads",
+    )
+
+
 def _eom_no_panic_spend(prop: dict, state: dict, ctx: dict) -> dict:
     """§49. Mastery v2 Phase B. In the last 5 days of the month with severe
     underrun (pace <0.85), refuse scale_up >+15% and refuse new_campaign.
@@ -1996,6 +2077,11 @@ JUDGMENT_ONLY_RULES = [
     # (`recommended_lane`) becomes the prior on task_type selection. Can't
     # enforce here because we only see the proposal, not the run trace.
     "pacing_router_must_run_first",
+    # §44 — Mastery v2 Phase C. When raw Meta CPL diverges from quality-
+    # adjusted CPL by ≥20%, the rationale paragraph 1 must lead with the
+    # quality-adjusted figure (not raw). Judgment-only because it requires
+    # reading the rationale narrative + computing divergence in context.
+    "quality_adjusted_cpl_leads_report",
 ]
 
 CHECKS: list[Callable[[dict, dict, dict], dict]] = [
@@ -2101,6 +2187,13 @@ CHECKS: list[Callable[[dict, dict, dict], dict]] = [
     # guardrails don't false-positive on aggressive day-1 spend.
     _eom_no_panic_spend,
     _cold_start_front_load_window,
+    # Mastery v2 Phase C (Lead Quality wire-in, 2026-05-17) — §42 + §45.
+    # §42 hard-blocks scale_up on campaigns with <20 graded leads in last 14d
+    # (the structural fix to the 16.4 trap — previous §40 only warned).
+    # §45 surfaces an alert when grading coverage falls below 60% over 30d
+    # so the operator gets nudged to grade pending leads.
+    _scale_up_requires_graded_sample,
+    _lead_grading_coverage_minimum,
 ]
 
 
