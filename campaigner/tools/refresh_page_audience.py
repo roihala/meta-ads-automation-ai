@@ -106,6 +106,25 @@ def main() -> None:
             )
             continue
 
+        # Grid can be all-zeros (page_publishing's empty-fallback path when
+        # all 3 metric variants returned #100). In that case there's no
+        # time-of-day signal to UPSERT — record skipped + reason so the
+        # operator sees the silent degradation in the runner log.
+        if not any(grid.values()):
+            results.append(
+                {
+                    "business_id": business_id,
+                    "page_id": page_id,
+                    "status": "skipped_no_metric",
+                    "reason": (
+                        "Meta removed all audience-online metrics for this Page "
+                        "(or token lacks pages_read_engagement). "
+                        "§T9 cadence will fall back to default scheduling hours."
+                    ),
+                }
+            )
+            continue
+
         try:
             inserted = with_db_retry(lambda pid=page_id, g=grid: _upsert_grid(pid, g))
         except Exception as e:

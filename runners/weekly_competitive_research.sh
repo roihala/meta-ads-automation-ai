@@ -43,8 +43,15 @@ on_error() {
 }
 trap on_error ERR
 
+# --allowedTools surfaces WebSearch + WebFetch into the headless session.
+# Bug found during 2026-05-17 scan: without these the flow no-op's every
+# Monday with "web_search_permission_missing" because the default headless
+# tool surface doesn't include web tools. Bash is included because Claude
+# needs it to call python -m campaigner.tools.{log_decision, propose_task,
+# heartbeat}.
 claude -p \
   --output-format json \
+  --allowedTools "WebSearch,WebFetch,Bash" \
   "BUSINESS_ID=$BUSINESS_ID. Run the weekly competitive research per campaigner/CAMPAIGNER.md."
 
 DURATION=$(($(date +%s%3N) - START_TS))

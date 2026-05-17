@@ -124,10 +124,14 @@ def main() -> None:
         emit_runtime_error(f"propose_task returned invalid JSON: {e}")
         return
 
+    # propose_task uses emit_success(data) which writes `data` directly to
+    # stdout (no {ok,data} wrapper). approval_id sits at the top level.
+    # Bug found 2026-05-17 — previous version returned approval_id=null
+    # because it looked under result["data"], which doesn't exist.
     emit_success(
         {
             "step": "fill_business_brief",
-            "approval_id": result.get("data", {}).get("approval_id"),
+            "approval_id": result.get("approval_id"),
             "business_id": args.business_id,
             "business_name": business_name,
         }

@@ -406,11 +406,54 @@ def get_page_audience_online(
 
     Requires `pages_read_engagement` scope on the Page.
     """
-    body = _get(
-        f"{GRAPH_BASE}/{page_id}/insights/page_fans_online_per_day",
-        {"period": "day", "access_token": page_access_token},
-    )
-    rows = body.get("data", [])
+    # Bug found during 2026-05-17 scan: Meta removed `page_fans_online_per_day`
+    # from the public Insights API at some point during 2025. The deprecation
+    # surfaces as error #100 "The value must be a valid insights metric." Try
+    # in fallback order: page_fans_online_per_day (legacy) →
+    # page_fans_online (singular, current at time of writing) →
+    # page_impressions_unique (always available, weaker signal — used as
+    # last-resort floor). Return empty grid + log warning rather than crash.
+    rows: list[dict[str, Any]] = []
+    last_err: PagePublishError | None = None
+    for metric in (
+        "page_fans_online_per_day",
+        "page_fans_online",
+        "page_impressions_unique",
+    ):
+        try:
+            body = _get(
+                f"{GRAPH_BASE}/{page_id}/insights/{metric}",
+                {"period": "day", "access_token": page_access_token},
+            )
+            rows = body.get("data", []) or []
+            if rows:
+                if metric != "page_fans_online_per_day":
+                    import sys as _sys
+
+                    print(
+                        f"[page_publishing] using fallback metric {metric!r} for page {page_id} "
+                        f"(legacy page_fans_online_per_day deprecated by Meta)",
+                        file=_sys.stderr,
+                    )
+                break
+        except PagePublishError as e:
+            last_err = e
+            # Only fall through on the specific "invalid metric" error (#100).
+            # Other errors (auth, rate limit) should bubble.
+            if e.code != 100:
+                raise
+            continue
+    if not rows and last_err is not None:
+        import sys as _sys
+
+        print(
+            f"[page_publishing] all audience-online metrics returned #100 for page {page_id} — "
+            f"Meta removed the time-of-day signal. Returning empty grid; §T9 cadence picks the agent's default hour.",
+            file=_sys.stderr,
+        )
+        # Empty grid — caller treats this as "no time-of-day signal available"
+        # and falls back to default scheduling hours (already implemented).
+        return dict.fromkeys(range(168), 0)
     # The data shape per row: {"name": "...", "values": [{"end_time": "...",
     # "value": {"0": 12, "1": 8, ...}}, ...]}
     grid: dict[int, int] = dict.fromkeys(range(168), 0)

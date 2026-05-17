@@ -69,9 +69,17 @@ def main() -> None:
                 fields=fields,
             )
         else:
+            # Meta Graph v25 rejected `date_preset=last_1d` — only valid presets
+            # for "1 day" are `today` and `yesterday`. Map --days=1 → today so
+            # Flow H's intra-day CPL spike check actually works (Bug found
+            # during 2026-05-17 scan; midday_health_check Step 1 crashed here).
+            if args.days == 1:
+                preset = "today"
+            else:
+                preset = f"last_{args.days}d"
             rows = client.fetch_insights(
                 level=args.level,
-                date_preset=f"last_{args.days}d",
+                date_preset=preset,
                 fields=fields,
             )
     except Exception as e:

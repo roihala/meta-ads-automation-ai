@@ -265,10 +265,12 @@ def main() -> None:
         emit_runtime_error(f"propose_task returned invalid JSON: {e}")
         return
 
+    # See propose_business_brief.py — emit_success writes data directly to
+    # stdout; approval_id is top-level, not nested under "data".
     emit_success(
         {
             "step": "first_campaign",
-            "approval_id": result.get("data", {}).get("approval_id"),
+            "approval_id": result.get("approval_id"),
             "business_id": args.business_id,
             "service_tag": service_tag,
             "daily_budget_ils": round(daily_budget, 2),
