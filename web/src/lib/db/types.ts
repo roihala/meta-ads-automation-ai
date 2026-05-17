@@ -45,6 +45,14 @@ export interface MonthlyBrief {
   notes?: string | null;
 }
 
+export type OnboardingStatus =
+  | "not_started"
+  | "brief_pending"
+  | "audience_brief_pending"
+  | "scanning"
+  | "first_proposal_pending"
+  | "completed";
+
 export interface Business {
   id: string;
   name: string;
@@ -58,6 +66,10 @@ export interface Business {
   daily_budget_ils: number | null;
   seasonal_hints: SeasonalHints;
   primary_kpi: string | null;
+  /** Phase A (Mastery v2, Migration 028, 2026-05-17). Pre-v2 businesses default to 'completed'. */
+  onboarding_status: OnboardingStatus;
+  /** When the onboarding chain began. NULL = pre-v2 business. Drives cold-start front-load math (Phase F). */
+  onboarding_started_at: string | null;
   /** Target value for the business's primary KPI. Added migration 019. NULL = not set; agent emits alert + skips kpi_vs_target branches in decision-tree §T0r. */
   target_cpa_ils: number | null;
   target_cpl_ils: number | null;
@@ -688,6 +700,21 @@ export interface DataClient {
     id: string,
     response: Record<string, string | string[]>,
   ): Promise<{ recorded: boolean }>;
+  /**
+   * Phase A (Migration 028, 2026-05-17) — get the current onboarding step
+   * snapshot for the /onboarding UI. Returns the business's status plus the
+   * pending approval (if any) that the operator should act on next.
+   */
+  getOnboardingSnapshot(businessId: string): Promise<{
+    status: OnboardingStatus;
+    started_at: string | null;
+    pending_approval: {
+      id: string;
+      task_type: string;
+      rationale: string;
+      created_at: string;
+    } | null;
+  }>;
   listHistory(businessId: string, days: number): Promise<Approval[]>;
   /**
    * Surface the agent's "transparent activity" — skip / rejection / route

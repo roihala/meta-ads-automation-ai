@@ -1755,6 +1755,71 @@ def _copy_must_match_brief_voice(prop: dict, state: dict, ctx: dict) -> dict:
 
 _VALID_QUESTION_ID_RX = re.compile(r"^[a-z0-9_]{1,40}$")
 
+_FIRST_CAMPAIGN_OBJECTIVES = {
+    "OUTCOME_LEADS",
+    "OUTCOME_ENGAGEMENT",
+    "OUTCOME_TRAFFIC",
+    "OUTCOME_SALES",
+    "OUTCOME_AWARENESS",
+    "OUTCOME_APP_PROMOTION",
+}
+
+
+def _first_campaign_payload_completeness(prop: dict, state: dict, ctx: dict) -> dict:
+    """§47. Mastery v2 Phase A. The first_campaign proposal must include the
+    fields the onboarding chain depends on. This is a lighter check than §38
+    (`new_campaign_payload_completeness`) because the actual Meta-side payload
+    is built by /campaigns/new prefill, not stored on the approval directly —
+    the first_campaign approval is an *invitation* to open the wizard, not a
+    full Meta object spec.
+
+    Required fields in payload:
+      * step == "first_campaign"
+      * target_url starts with "/campaigns/new"
+      * recommended_daily_budget_ils: number > 0
+      * objective_recommendation: one of the OUTCOME_* enum
+      * audience_summary_he: non-empty string
+      * acknowledgment_only: True (the operator clicks through to /campaigns/new
+        to actually create the Meta object; the approval itself doesn't fire
+        a Meta call)
+    """
+    if prop.get("task_type") != "first_campaign":
+        return _skip("first_campaign_payload_completeness", "not a first_campaign task")
+    payload = prop.get("payload")
+    if not isinstance(payload, dict):
+        return _fail(
+            "first_campaign_payload_completeness", "payload must be a dict"
+        )
+    missing: list[str] = []
+    if payload.get("step") != "first_campaign":
+        missing.append("step (must equal 'first_campaign')")
+    target_url = payload.get("target_url")
+    if not isinstance(target_url, str) or not target_url.startswith("/campaigns/new"):
+        missing.append("target_url (must start with /campaigns/new)")
+    daily_budget = payload.get("recommended_daily_budget_ils")
+    if not isinstance(daily_budget, int | float) or daily_budget <= 0:
+        missing.append("recommended_daily_budget_ils (must be > 0)")
+    objective = payload.get("objective_recommendation")
+    if objective not in _FIRST_CAMPAIGN_OBJECTIVES:
+        missing.append(
+            f"objective_recommendation (must be one of {sorted(_FIRST_CAMPAIGN_OBJECTIVES)})"
+        )
+    audience_summary = payload.get("audience_summary_he")
+    if not isinstance(audience_summary, str) or len(audience_summary.strip()) == 0:
+        missing.append("audience_summary_he (Hebrew one-line summary)")
+    if payload.get("acknowledgment_only") is not True:
+        missing.append(
+            "acknowledgment_only=True (first_campaign is invitation to /campaigns/new, "
+            "not a direct Meta-call execution)"
+        )
+    if missing:
+        return _fail(
+            "first_campaign_payload_completeness",
+            f"first_campaign payload missing/invalid fields: {missing}",
+            missing=missing,
+        )
+    return _pass("first_campaign_payload_completeness")
+
 
 def _operator_questions_well_formed(prop: dict, state: dict, ctx: dict) -> dict:
     """§46. Phase 0 of Mastery v2 (2026-05-17). If a proposal carries
@@ -1944,6 +2009,14 @@ CHECKS: list[Callable[[dict, dict, dict], dict]] = [
     # judgment-only rule §46.5 `respect_operator_response` binds the agent to
     # read prior answers when re-proposing from an `answered` approval.
     _operator_questions_well_formed,
+    # Mastery v2 Phase A (Onboarding Flow F, 2026-05-17) — §47
+    # first_campaign_payload_completeness. The first_campaign proposal lands at
+    # step 4 of the onboarding chain and is the operator's "wow" moment. It
+    # MUST include: service_tag (or null if business has only one service),
+    # recommended_daily_budget_ils > 0, objective_recommendation in the valid
+    # enum, audience_summary_he non-empty, and acknowledgment_only=True (the
+    # actual Meta campaign is created via /campaigns/new, not via execute_task).
+    _first_campaign_payload_completeness,
 ]
 
 

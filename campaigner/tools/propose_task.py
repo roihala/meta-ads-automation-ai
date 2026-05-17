@@ -316,6 +316,22 @@ VALID_TASK_TYPES = (
     "create_custom_audience",
     "create_saved_audience",
     "create_lookalike",
+    # Mastery v2 Phase A (Onboarding Flow F, 2026-05-17). Three task_types used
+    # only by the onboarding_chain runner; UI renders them as first-time-flow
+    # cards with a "next step" CTA instead of standard approve/reject.
+    #
+    # fill_business_brief: {step, target_url='/business-knowledge', acknowledgment_only: True}
+    #   The agent invites the operator to fill the business brief. No Meta call.
+    # audience_brief: {step, target_url='/audiences', prefill_geo, prefill_regions, acknowledgment_only: True}
+    #   Confirms geo + asks for exclusions via operator_questions MCQ.
+    # first_campaign: {step, target_url='/campaigns/new', service_tag,
+    #                  recommended_daily_budget_ils, objective_recommendation,
+    #                  audience_summary_he, cold_start_front_load, acknowledgment_only: True}
+    #   Complete first-campaign proposal with cold-start front-load math,
+    #   benchmark-grounded expectations, and an MCQ asking go/edit-brief/wait.
+    "fill_business_brief",
+    "audience_brief",
+    "first_campaign",
 )
 
 VALID_TARGET_KINDS = ("campaign", "adset", "ad", "creative", "account")
@@ -349,8 +365,12 @@ def main() -> None:
     p.add_argument(
         "--expires-in-hours",
         type=float,
-        default=48.0,
-        help="How long this proposal stays 'pending' before auto-expire (default 48h)",
+        default=336.0,
+        help=(
+            "How long this proposal stays 'pending' before auto-expire (default 336h = 14 days). "
+            "Was 48h until 2026-05-17, but operators who check the inbox 2-3 times/week were "
+            "losing proposals to expiry before they read them."
+        ),
     )
     p.add_argument(
         "--scheduled-for",

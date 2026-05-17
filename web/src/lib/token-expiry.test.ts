@@ -25,6 +25,8 @@ function mkBusiness(overrides: Partial<Business>): Business {
     monthly_brief: null,
     active: true,
     agent_mode: "draft",
+    onboarding_status: "completed",
+    onboarding_started_at: null,
     created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };

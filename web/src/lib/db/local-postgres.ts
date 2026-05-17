@@ -124,6 +124,8 @@ const SELECT_BUSINESS = `
          monthly_brief,
          active,
          COALESCE(agent_mode, 'draft') AS agent_mode,
+         COALESCE(onboarding_status, 'completed') AS onboarding_status,
+         onboarding_started_at::text,
          created_at::text
     FROM businesses
 `;
@@ -739,6 +741,71 @@ export const localPostgresClient: DataClient = {
       [id],
     );
     return { reverted: (rowCount ?? 0) > 0 };
+  },
+
+  async getOnboardingSnapshot(businessId: string) {
+    // One round-trip — fetch status + the task_type that's open for the
+    // current step. Map: not_started → no approval (chain hasn't run);
+    // brief_pending → fill_business_brief; audience_brief_pending →
+    // audience_brief; scanning → no approval (background); first_proposal_pending →
+    // first_campaign; completed → no approval.
+    const { rows: bizRows } = await getPool().query<{
+      onboarding_status: string;
+      onboarding_started_at: string | null;
+    }>(
+      `SELECT COALESCE(onboarding_status, 'completed') AS onboarding_status,
+              onboarding_started_at::text
+         FROM businesses WHERE id = $1`,
+      [businessId],
+    );
+    if (bizRows.length === 0) {
+      throw new Error(`business ${businessId} not found`);
+    }
+    const status = bizRows[0].onboarding_status as
+      | "not_started"
+      | "brief_pending"
+      | "audience_brief_pending"
+      | "scanning"
+      | "first_proposal_pending"
+      | "completed";
+    const stepToTaskType: Record<string, string | null> = {
+      not_started: null,
+      brief_pending: "fill_business_brief",
+      audience_brief_pending: "audience_brief",
+      scanning: null,
+      first_proposal_pending: "first_campaign",
+      completed: null,
+    };
+    const taskType = stepToTaskType[status];
+    let pending: {
+      id: string;
+      task_type: string;
+      rationale: string;
+      created_at: string;
+    } | null = null;
+    if (taskType) {
+      const { rows } = await getPool().query<{
+        id: string;
+        task_type: string;
+        rationale: string;
+        created_at: string;
+      }>(
+        `SELECT id::text, task_type, rationale, created_at::text
+           FROM approvals
+          WHERE business_id = $1
+            AND task_type = $2
+            AND status IN ('pending', 'answered')
+          ORDER BY created_at DESC
+          LIMIT 1`,
+        [businessId, taskType],
+      );
+      pending = rows[0] ?? null;
+    }
+    return {
+      status,
+      started_at: bizRows[0].onboarding_started_at,
+      pending_approval: pending,
+    };
   },
 
   async answerApproval(
