@@ -245,6 +245,24 @@ export interface Approval {
   external_post_id: string | null;
   /** When the publish actually went live. NULL until Meta confirms. */
   published_at: string | null;
+  /**
+   * Phase 0 (Migration 027, 2026-05-17) — inline MCQ questions the agent posed
+   * to the operator. Array of {id, prompt_he, options, multi?, required?}.
+   * NULL/empty = no questions, normal approve/reject flow.
+   */
+  operator_questions:
+    | Array<{
+        id: string;
+        prompt_he: string;
+        options: Array<{ value: string; label_he: string }>;
+        multi?: boolean;
+        required?: boolean;
+      }>
+    | null;
+  /** Operator answers to operator_questions. {<id>: value | [value, ...]}. */
+  operator_response: Record<string, string | string[]> | null;
+  /** When operator submitted MCQ answers. NULL until response is recorded. */
+  answered_at: string | null;
 }
 
 export type HeartbeatFlow =
@@ -658,6 +676,18 @@ export interface DataClient {
   approveApproval(id: string, approvedBy: string): Promise<void>;
   rejectApproval(id: string, reason: string): Promise<void>;
   unapproveApproval(id: string): Promise<{ reverted: boolean }>;
+  /**
+   * Phase 0 (Migration 027, 2026-05-17) — record operator's MCQ answers.
+   * Flips status pending → answered + persists operator_response + answered_at.
+   * Caller is responsible for validating the response shape against the
+   * approval's operator_questions via `buildAnswerRequestSchema` BEFORE calling.
+   * Returns `{ recorded: false }` if the row wasn't in 'pending' (concurrent
+   * approve/reject/answer raced us); UI shows a stale-state notice.
+   */
+  answerApproval(
+    id: string,
+    response: Record<string, string | string[]>,
+  ): Promise<{ recorded: boolean }>;
   listHistory(businessId: string, days: number): Promise<Approval[]>;
   /**
    * Surface the agent's "transparent activity" — skip / rejection / route

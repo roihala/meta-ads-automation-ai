@@ -167,7 +167,8 @@ const SELECT_APPROVAL = `
          task_type, target_kind, target_id, payload, rationale, expected_impact,
          urgency, status, approved_at::text, approved_by, rejection_reason,
          executed_at::text, execution_result, expires_at::text,
-         scheduled_for::text, external_post_id, published_at::text
+         scheduled_for::text, external_post_id, published_at::text,
+         operator_questions, operator_response, answered_at::text
     FROM approvals
 `;
 
@@ -738,6 +739,25 @@ export const localPostgresClient: DataClient = {
       [id],
     );
     return { reverted: (rowCount ?? 0) > 0 };
+  },
+
+  async answerApproval(
+    id: string,
+    response: Record<string, string | string[]>,
+  ): Promise<{ recorded: boolean }> {
+    // Only valid transition: pending → answered. Don't allow re-answering an
+    // already-answered row from the UI — the agent must re-propose first (which
+    // creates a fresh row with cleared operator_questions). This keeps the
+    // audit trail clean: one approval = one answer cycle.
+    const { rowCount } = await getPool().query(
+      `UPDATE approvals
+          SET status = 'answered',
+              operator_response = $2::jsonb,
+              answered_at = now()
+        WHERE id = $1 AND status = 'pending'`,
+      [id, JSON.stringify(response)],
+    );
+    return { recorded: (rowCount ?? 0) > 0 };
   },
 
   async listHistory(businessId: string, days: number): Promise<Approval[]> {

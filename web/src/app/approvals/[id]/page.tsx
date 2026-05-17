@@ -38,6 +38,11 @@ import {
   KpiTargetProposalView,
   isSetKpiTargetTask,
 } from "@/components/kpi-target-proposal";
+import {
+  ApprovalMcqBlock,
+  parseMcqFormData,
+} from "@/components/approval-mcq-block";
+import { buildAnswerRequestSchema } from "@/lib/schemas/approval";
 
 export const dynamic = "force-dynamic";
 
@@ -105,6 +110,45 @@ async function rejectAction(formData: FormData) {
   redirect("/approvals?action=rejected");
 }
 
+async function answerAction(formData: FormData) {
+  "use server";
+  const session = await getAuth().getSession();
+  if (!session) redirect("/login");
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect("/approvals");
+  const db = getDataClient();
+  const approval = await db.getApprovalById(id);
+  if (!approval) redirect("/approvals");
+  const questions = approval.operator_questions;
+  if (!questions || questions.length === 0) {
+    redirect(
+      `/approvals/${id}?error=${encodeURIComponent("אין שאלות פתוחות להצעה זו")}`,
+    );
+  }
+  if (approval.status !== "pending") {
+    redirect(
+      `/approvals/${id}?error=${encodeURIComponent("ההצעה כבר אינה במצב 'ממתין' — אי אפשר לענות שוב")}`,
+    );
+  }
+  const raw = parseMcqFormData(formData, questions);
+  const parsed = buildAnswerRequestSchema(questions).safeParse(raw);
+  if (!parsed.success) {
+    const first = parsed.error.errors[0];
+    redirect(
+      `/approvals/${id}?error=${encodeURIComponent(
+        `תשובה לא תקפה: ${first?.path?.join(".") ?? ""} — ${first?.message ?? "פרטים חסרים"}`,
+      )}`,
+    );
+  }
+  const { recorded } = await db.answerApproval(id, parsed.data);
+  if (!recorded) {
+    redirect(
+      `/approvals/${id}?error=${encodeURIComponent("מצב ההצעה השתנה בינתיים — רענן ונסה שוב")}`,
+    );
+  }
+  redirect(`/approvals/${id}?answered=1`);
+}
+
 async function unapproveAction(formData: FormData) {
   "use server";
   const session = await getAuth().getSession();
@@ -125,10 +169,10 @@ export default async function ApprovalDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; undone?: string }>;
+  searchParams: Promise<{ error?: string; undone?: string; answered?: string }>;
 }) {
   const { id } = await params;
-  const { error, undone } = await searchParams;
+  const { error, undone, answered } = await searchParams;
 
   const auth = getAuth();
   const session = await auth.getSession();
@@ -197,6 +241,11 @@ export default async function ApprovalDetailPage({
             האישור בוטל, חזר ל"ממתין"
           </Badge>
         ) : null}
+        {answered ? (
+          <Badge className="bg-emerald-600 text-white">
+            התשובה נשמרה — הסוכן יקרא אותה בריצה הבאה
+          </Badge>
+        ) : null}
 
         {hrReason ? (
           <Card className="border-2 border-amber-500 bg-amber-50">
@@ -218,6 +267,8 @@ export default async function ApprovalDetailPage({
         {isSetKpiTargetTask(approval.task_type) ? (
           <KpiTargetProposalView approval={approval} />
         ) : null}
+
+        <ApprovalMcqBlock approval={approval} action={answerAction} />
 
         <Card>
           <CardHeader>

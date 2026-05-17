@@ -93,6 +93,7 @@ function mkDb(
     approveApproval: unused as DataClient["approveApproval"],
     rejectApproval: unused as DataClient["rejectApproval"],
     unapproveApproval: unused as DataClient["unapproveApproval"],
+    answerApproval: unused as DataClient["answerApproval"],
     listHistory: unused as DataClient["listHistory"],
     listAgentActivity: unused as DataClient["listAgentActivity"],
     listGalleryAssets: unused as DataClient["listGalleryAssets"],

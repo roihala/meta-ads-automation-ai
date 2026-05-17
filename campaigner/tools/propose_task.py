@@ -374,6 +374,19 @@ def main() -> None:
             "Per guardrail §39 the rationale must also acknowledge the prior plan."
         ),
     )
+    p.add_argument(
+        "--operator-questions",
+        default=None,
+        help=(
+            "JSON list of MCQ questions to surface inline with the approval — "
+            'shape [{id, prompt_he, options:[{value,label_he}], multi?, required?}]. '
+            "Max 2 questions per proposal. Hands the operator an answer UI in "
+            "the approvals dashboard instead of forcing reject-with-rationale. "
+            "Status pending → answered when the operator submits; agent reads "
+            "the response on next run via approvals.operator_response. "
+            "Validated by guardrail §46 operator_questions_well_formed."
+        ),
+    )
 
     args = p.parse_args()
 
@@ -408,6 +421,15 @@ def main() -> None:
     if expected_impact is not None and not isinstance(expected_impact, dict | list):
         emit_validation_error("--expected-impact must be a JSON object or array")
 
+    operator_questions = parse_json_arg(args.operator_questions, "operator-questions")
+    if operator_questions is not None:
+        if not isinstance(operator_questions, list):
+            emit_validation_error("--operator-questions must be a JSON list")
+        if len(operator_questions) > 2:
+            emit_validation_error(
+                f"--operator-questions max 2 entries (got {len(operator_questions)})"
+            )
+
     expires_at = datetime.now(UTC) + timedelta(hours=args.expires_in_hours)
 
     try:
@@ -424,13 +446,13 @@ def main() -> None:
                     business_id, created_by_run_id, task_type,
                     target_kind, target_id,
                     payload, rationale, expected_impact,
-                    urgency, expires_at, scheduled_for
+                    urgency, expires_at, scheduled_for, operator_questions
                 )
                 VALUES (
                     %s, %s, %s,
                     %s, %s,
                     %s::jsonb, %s, %s::jsonb,
-                    %s, %s, %s
+                    %s, %s, %s, %s::jsonb
                 )
                 RETURNING id, status, created_at, expires_at, scheduled_for
                 """,
@@ -446,6 +468,7 @@ def main() -> None:
                     args.urgency,
                     expires_at,
                     scheduled_for_dt,
+                    json.dumps(operator_questions) if operator_questions is not None else None,
                 ),
             )
             return cur.fetchone()

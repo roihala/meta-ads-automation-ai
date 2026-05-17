@@ -1753,6 +1753,94 @@ def _copy_must_match_brief_voice(prop: dict, state: dict, ctx: dict) -> dict:
     )
 
 
+_VALID_QUESTION_ID_RX = re.compile(r"^[a-z0-9_]{1,40}$")
+
+
+def _operator_questions_well_formed(prop: dict, state: dict, ctx: dict) -> dict:
+    """§46. Phase 0 of Mastery v2 (2026-05-17). If a proposal carries
+    `operator_questions`, validate the structure inline so the operator never
+    sees a malformed MCQ block in the web UI.
+
+    Rules per question:
+      * id: snake_case ASCII, 1-40 chars
+      * prompt_he: 1-200 chars
+      * options: 2-4 entries, each {value: str (1-64 chars), label_he: str (1-80 chars)}
+      * multi / required: optional booleans
+    Max 2 questions per proposal (operator fatigue).
+    """
+    questions = prop.get("operator_questions")
+    if questions is None or questions == []:
+        return _skip("operator_questions_well_formed", "no operator_questions on proposal")
+    if not isinstance(questions, list):
+        return _fail(
+            "operator_questions_well_formed",
+            f"operator_questions must be a list, got {type(questions).__name__}",
+        )
+    if len(questions) > 2:
+        return _fail(
+            "operator_questions_well_formed",
+            f"max 2 questions per proposal (got {len(questions)}) — operator fatigue rule",
+        )
+    seen_ids: set[str] = set()
+    for i, q in enumerate(questions):
+        prefix = f"operator_questions[{i}]"
+        if not isinstance(q, dict):
+            return _fail("operator_questions_well_formed", f"{prefix} must be a dict")
+        qid = q.get("id")
+        if not isinstance(qid, str) or not _VALID_QUESTION_ID_RX.match(qid):
+            return _fail(
+                "operator_questions_well_formed",
+                f"{prefix}.id must be snake_case ASCII (1-40 chars), got {qid!r}",
+            )
+        if qid in seen_ids:
+            return _fail(
+                "operator_questions_well_formed", f"{prefix}.id={qid!r} duplicated"
+            )
+        seen_ids.add(qid)
+        prompt = q.get("prompt_he")
+        if not isinstance(prompt, str) or not (1 <= len(prompt) <= 200):
+            return _fail(
+                "operator_questions_well_formed",
+                f"{prefix}.prompt_he must be 1-200 chars",
+            )
+        options = q.get("options")
+        if not isinstance(options, list) or not (2 <= len(options) <= 4):
+            return _fail(
+                "operator_questions_well_formed",
+                f"{prefix}.options must be 2-4 entries (got {len(options) if isinstance(options, list) else 'non-list'})",
+            )
+        seen_values: set[str] = set()
+        for j, opt in enumerate(options):
+            opt_prefix = f"{prefix}.options[{j}]"
+            if not isinstance(opt, dict):
+                return _fail("operator_questions_well_formed", f"{opt_prefix} must be a dict")
+            value = opt.get("value")
+            label = opt.get("label_he")
+            if not isinstance(value, str) or not (1 <= len(value) <= 64):
+                return _fail(
+                    "operator_questions_well_formed",
+                    f"{opt_prefix}.value must be 1-64 chars",
+                )
+            if value in seen_values:
+                return _fail(
+                    "operator_questions_well_formed",
+                    f"{opt_prefix}.value={value!r} duplicated within question {qid!r}",
+                )
+            seen_values.add(value)
+            if not isinstance(label, str) or not (1 <= len(label) <= 80):
+                return _fail(
+                    "operator_questions_well_formed",
+                    f"{opt_prefix}.label_he must be 1-80 chars",
+                )
+        for k in ("multi", "required"):
+            if k in q and not isinstance(q[k], bool):
+                return _fail(
+                    "operator_questions_well_formed",
+                    f"{prefix}.{k} must be boolean if present",
+                )
+    return _pass("operator_questions_well_formed", questions_count=len(questions))
+
+
 # Judgment-only: enforced by prompts, not by this tool
 JUDGMENT_ONLY_RULES = [
     "meta_api_rate_limit",
@@ -1760,6 +1848,11 @@ JUDGMENT_ONLY_RULES = [
     "require_95pct_significance_for_ab",
     "no_manual_creative_pruning_before_48h",
     "video_preferred_on_equal_cpa",
+    # §46.5 — companion to §46. When a proposal descends from an answered
+    # approval (inputs.prior_response_ref), the rationale must reference the
+    # operator's chosen answer. Can't enforce deterministically (would require
+    # cross-DB join + free-text NLP); the agent prompt binds this behavior.
+    "respect_operator_response",
 ]
 
 CHECKS: list[Callable[[dict, dict, dict], dict]] = [
@@ -1845,6 +1938,12 @@ CHECKS: list[Callable[[dict, dict, dict], dict]] = [
     # so the operator notices the campaign will inherit "all of Israel" by
     # default — exactly the spend-spread Roi flagged on 2026-05-13.
     _geo_targeting_set_for_new_campaign,
+    # Mastery v2 Phase 0 (2026-05-17) — §46 operator_questions_well_formed.
+    # If the proposal carries inline MCQ questions for the operator, validate
+    # them structurally before they land in the approvals UI. Companion
+    # judgment-only rule §46.5 `respect_operator_response` binds the agent to
+    # read prior answers when re-proposing from an `answered` approval.
+    _operator_questions_well_formed,
 ]
 
 
