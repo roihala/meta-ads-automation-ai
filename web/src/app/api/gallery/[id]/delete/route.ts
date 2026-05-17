@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getActiveBusiness } from "@/lib/active-business";
 import { getAuth } from "@/lib/auth";
 import { getDataClient } from "@/lib/db";
 import { deleteAsset } from "@/lib/storage";
@@ -12,13 +13,13 @@ export async function POST(
 ) {
   const { id } = await params;
   const session = await getAuth().getSession();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const db = getDataClient();
-  const business = process.env.BUSINESS_ID
-    ? await db.getBusinessById(process.env.BUSINESS_ID)
-    : await db.getFirstBusiness();
-  if (!business) return NextResponse.json({ error: "business_not_found" }, { status: 404 });
+  const business = await getActiveBusiness();
+  if (!business)
+    return NextResponse.json({ error: "business_not_found" }, { status: 404 });
 
   const existing = await db.getGalleryAssetById(id);
   if (!existing || existing.business_id !== business.id) {
@@ -26,13 +27,17 @@ export async function POST(
   }
   if (existing.meta_creative_id) {
     return NextResponse.json(
-      { error: "asset_live_in_meta", meta_creative_id: existing.meta_creative_id },
+      {
+        error: "asset_live_in_meta",
+        meta_creative_id: existing.meta_creative_id,
+      },
       { status: 409 },
     );
   }
 
   const { deleted } = await db.softDeleteGalleryAsset(id, business.id);
-  if (!deleted) return NextResponse.json({ error: "already_deleted" }, { status: 410 });
+  if (!deleted)
+    return NextResponse.json({ error: "already_deleted" }, { status: 410 });
 
   if (existing.storage_url) {
     try {

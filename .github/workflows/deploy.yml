@@ -66,7 +66,10 @@ jobs:
               - 'meta_ads_manager.py'
               - 'image_generator.py'
               - 'requirements.txt'
+              - 'pyproject.toml'
               - 'dockerfiles/agent.dockerfile'
+              # NOTE: legacy/ is reference-only and intentionally excluded —
+              # changes there do not need an agent rebuild.
             web:
               - 'web/**'
               - 'dockerfiles/web.dockerfile'
@@ -180,6 +183,9 @@ jobs:
 
       - name: Apply namespace
         run: kubectl apply -f kubefiles/namespace.yaml
+
+      - name: Apply Postgres (StatefulSet + Service + credentials)
+        run: kubectl apply -f kubefiles/postgres.yaml
 
       - name: Apply application secrets (envsubst)
         env:

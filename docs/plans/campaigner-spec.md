@@ -17,29 +17,30 @@
 **עיקרון מנחה ב-MVP: "Claude Code Native + Terminal First".**
 הסוכן הוא Claude Code עצמו (headless mode). אין שכבת orchestration חיצונית (אין LangGraph). cron מפעיל `claude -p "..."` עם Anthropic API key. Claude קורא קבצי `.md` עם חוקים וידע, מפעיל כלי Python קטנים דרך ה-Bash tool, וכותב ישירות ל-Supabase. המשתמש שולט בכל דבר מהטרמינל (אישור/דחייה/inspection). הפלטפורמה הוובית היא layer דק מעל ה-DB — לא חלק מה-engine. **המעבר ל-LangGraph נדחה ל-v2** ויופעל כשמוסיפים חשבון מודעות שני (ר' מסמך נפרד שיתועד בעתיד).
 
-| תחום | היה (אפיון ראשוני) | השתנה ל-(MVP) |
-|---|---|---|
-| Orchestration | Multi-agent עם LangGraph + FastAPI + React | **Claude Code Native (headless `claude -p`)** |
-| LLM | Claude Sonnet 4.6 / Opus 4.6 | **Claude (דרך Claude Code + Anthropic API)** |
-| שליטה של המשתמש | Web approval UI | **Terminal-first** — CLI לאישור/דחייה/inspection; ה-web קורא מאותו DB |
-| DB ראשי | PostgreSQL + RLS | **Supabase** (Postgres + Auth מנוהל) |
-| Vector DB | Qdrant / pgvector ל-RAG | **הוסר מ-MVP** — ידע עסקי ב-markdown + structured JSONB |
-| HITL | LangGraph `interrupt()` + checkpointer | **Async-via-DB** — טבלת approvals + cron |
-| Observability | LangSmith / Langfuse | **טבלת `agent_decisions`** — Claude מתעד כל החלטה ישירות |
-| Queue | Redis + Celery | **הוסר מ-MVP** — cron בלבד |
-| Meta API | Facebook Marketing API SDK | **נשאר** — קוד `facebook-business` קיים ברפו |
-| יצירת תמונות | Vertex AI Imagen | **נשאר** — `image_generator.py` קיים ברפו |
-| Multi-tenant | תומך מיום ראשון | **דחוי ל-v2** — MVP עסק אחד (Aiweon) |
-| LangGraph | MVP | **דחוי ל-v2** — מופעל כשמוסיפים עסק שני |
-| Gemini (Vertex AI) | שקלתי ל-MVP | **דחוי ל-v2 ביחד עם LangGraph** |
-| Operation Modes | Storm / Off-Season / Peak / Normal | **דחוי ל-v2** — Normal בלבד ב-MVP |
-| War Chest (תקציב שנתי) | Annual heatmap + Budget Borrowing | **דחוי ל-v2** |
-| RLHF | Vector-based preference learning | **דחוי ל-v2** |
-| Master View | דשבורד רב-עסקי | **דחוי ל-v2** (עסק אחד ב-MVP) |
+| תחום                   | היה (אפיון ראשוני)                         | השתנה ל-(MVP)                                                         |
+| ---------------------- | ------------------------------------------ | --------------------------------------------------------------------- |
+| Orchestration          | Multi-agent עם LangGraph + FastAPI + React | **Claude Code Native (headless `claude -p`)**                         |
+| LLM                    | Claude Sonnet 4.6 / Opus 4.6               | **Claude (דרך Claude Code + Anthropic API)**                          |
+| שליטה של המשתמש        | Web approval UI                            | **Terminal-first** — CLI לאישור/דחייה/inspection; ה-web קורא מאותו DB |
+| DB ראשי                | PostgreSQL + RLS                           | **Supabase** (Postgres + Auth מנוהל)                                  |
+| Vector DB              | Qdrant / pgvector ל-RAG                    | **הוסר מ-MVP** — ידע עסקי ב-markdown + structured JSONB               |
+| HITL                   | LangGraph `interrupt()` + checkpointer     | **Async-via-DB** — טבלת approvals + cron                              |
+| Observability          | LangSmith / Langfuse                       | **טבלת `agent_decisions`** — Claude מתעד כל החלטה ישירות              |
+| Queue                  | Redis + Celery                             | **הוסר מ-MVP** — cron בלבד                                            |
+| Meta API               | Facebook Marketing API SDK                 | **נשאר** — קוד `facebook-business` קיים ברפו                          |
+| יצירת תמונות           | Vertex AI Imagen                           | **נשאר** — `image_generator.py` קיים ברפו                             |
+| Multi-tenant           | תומך מיום ראשון                            | **דחוי ל-v2** — MVP עסק אחד (Aiweon)                                  |
+| LangGraph              | MVP                                        | **דחוי ל-v2** — מופעל כשמוסיפים עסק שני                               |
+| Gemini (Vertex AI)     | שקלתי ל-MVP                                | **דחוי ל-v2 ביחד עם LangGraph**                                       |
+| Operation Modes        | Storm / Off-Season / Peak / Normal         | **דחוי ל-v2** — Normal בלבד ב-MVP                                     |
+| War Chest (תקציב שנתי) | Annual heatmap + Budget Borrowing          | **דחוי ל-v2**                                                         |
+| RLHF                   | Vector-based preference learning           | **דחוי ל-v2**                                                         |
+| Master View            | דשבורד רב-עסקי                             | **דחוי ל-v2** (עסק אחד ב-MVP)                                         |
 
 ### 🔭 מתי עוברים ל-v2 (LangGraph)
 
 ברגע שיש יותר מחשבון מודעות אחד מנוהל על ידי המערכת. הסיבות:
+
 - צורך ב-orchestration מקביל של מספר עסקים + בידוד state
 - Cross-business intelligence דורש node dedicated
 - Auditability של flows מסובכים — LangGraph + LangSmith נותנים visual trace
@@ -83,12 +84,14 @@
 בניית סוכן AI שמחליף **קמפיינר פייסבוק/אינסטגרם אנושי** - ברמה של הקמפיינר הטוב בתחום ואף יותר, בזכות יכולות AI (מחקר אוטונומי, עיבוד דאטה, ייצור קריאייטיב בקנה מידה).
 
 **מאפיינים (חזון מלא):**
+
 - פלטפורמת **SaaS** לבעלי עסקים שמפעילים חשבונות מודעות בפייסבוק
 - **Multi-tenant** - משתמש אחד מנהל כמה עסקים במקביל
 - **Human-in-the-Loop** מלא - הסוכן מציע, המשתמש מאשר. אין פעולות אוטונומיות פרועות
 - **Creative-First** - מותאם לאלגוריתם Andromeda של Meta (ר' סעיף 3)
 
 **Scope MVP (מטרת מסמך זה):**
+
 - **עסק אחד** (Aiweon) - multi-tenant דחוי ל-v2
 - Facebook + Instagram בלבד
 - עברית בלבד
@@ -106,30 +109,30 @@
 
 ### 2.1 יכולות MVP (In Scope)
 
-| # | יכולת | פירוט |
-|---|---|---|
-| 1 | ניהול תקציב חודשי | המשתמש נותן תקציב חודשי, הסוכן מחלק בין קמפיינים |
-| 2 | Human-in-the-Loop | הסוכן מציע דרך טבלת `approvals`, המשתמש מאשר |
-| 3 | יצירה/עצירה של קמפיינים | יצירת קמפיינים חדשים והשהיית קיימים (לא מחיקה) |
-| 6 | דשבורד סקירה | נתוני כל קמפיין + דשבורד כללי |
-| 7 | זמן למידה | מעקב אחר Learning Phase של כל קמפיין |
-| 8 | הגדרת "טוב/רע" | Performance Brain (סעיף 6) |
-| 10 | Business Knowledge File | טופס+שאלון מובנה (סעיף 15) — **לא RAG** |
-| 16 | יצירת קריאייטיב | שימוש ב-`image_generator.py` הקיים (Imagen) + Claude לקופי |
-| 17 | Guardrails | חוקים קשיחים (סעיף 14) |
-| 18 | הגבלת משימות למשתמש | Anti-flood (סעיף 8.3) |
+| #   | יכולת                   | פירוט                                                      |
+| --- | ----------------------- | ---------------------------------------------------------- |
+| 1   | ניהול תקציב חודשי       | המשתמש נותן תקציב חודשי, הסוכן מחלק בין קמפיינים           |
+| 2   | Human-in-the-Loop       | הסוכן מציע דרך טבלת `approvals`, המשתמש מאשר               |
+| 3   | יצירה/עצירה של קמפיינים | יצירת קמפיינים חדשים והשהיית קיימים (לא מחיקה)             |
+| 6   | דשבורד סקירה            | נתוני כל קמפיין + דשבורד כללי                              |
+| 7   | זמן למידה               | מעקב אחר Learning Phase של כל קמפיין                       |
+| 8   | הגדרת "טוב/רע"          | Performance Brain (סעיף 6)                                 |
+| 10  | Business Knowledge File | טופס+שאלון מובנה (סעיף 15) — **לא RAG**                    |
+| 16  | יצירת קריאייטיב         | שימוש ב-`image_generator.py` הקיים (Imagen) + Claude לקופי |
+| 17  | Guardrails              | חוקים קשיחים (סעיף 14)                                     |
+| 18  | הגבלת משימות למשתמש     | Anti-flood (סעיף 8.3)                                      |
 
 ### 2.2 יכולות דחויות ל-v2 (Out of Scope)
 
-| # | יכולת | סיבת הדחייה |
-|---|---|---|
-| 4 | Multi-campaign Testing (Advantage+) | מורכב ל-MVP; עסק יחיד עם פעילות נמוכה לא דורש זאת |
-| 9 | בניית קהלים וטירגוטים אוטומטית | דורש לוגיקה עמוקה; ב-MVP הסוכן מציע — לא בונה אוטומטית |
-| 11 | מודעות הקשר (מלחמה/קורונה/עונה) | דורש Operation Modes + מקורות חיצוניים; ר' §22 |
-| 12 | אופטימיזציה חשבונית כוללת | MVP מתמקד בקמפיין יחיד |
-| 13 | ניהול כמה עסקים | Multi-tenant דחוי |
-| 14 | מעקב המרות WhatsApp | דורש WhatsApp Business API + אינטגרציה עם Pixel |
-| 15 | סקירה תקופתית חכמה | ב-MVP cron קבוע — ללא ANN adaptive scheduling |
+| #   | יכולת                               | סיבת הדחייה                                            |
+| --- | ----------------------------------- | ------------------------------------------------------ |
+| 4   | Multi-campaign Testing (Advantage+) | מורכב ל-MVP; עסק יחיד עם פעילות נמוכה לא דורש זאת      |
+| 9   | בניית קהלים וטירגוטים אוטומטית      | דורש לוגיקה עמוקה; ב-MVP הסוכן מציע — לא בונה אוטומטית |
+| 11  | מודעות הקשר (מלחמה/קורונה/עונה)     | דורש Operation Modes + מקורות חיצוניים; ר' §22         |
+| 12  | אופטימיזציה חשבונית כוללת           | MVP מתמקד בקמפיין יחיד                                 |
+| 13  | ניהול כמה עסקים                     | Multi-tenant דחוי                                      |
+| 14  | מעקב המרות WhatsApp                 | דורש WhatsApp Business API + אינטגרציה עם Pixel        |
+| 15  | סקירה תקופתית חכמה                  | ב-MVP cron קבוע — ללא ANN adaptive scheduling          |
 
 ### 2.3 דרישות טכניות MVP
 
@@ -144,13 +147,14 @@
 
 ## 3. מחקר רקע - Meta Ads 2026
 
-*(סעיף זה נשמר מהאפיון הראשוני ללא שינוי — זהו ידע בסיסי שלא השתנה.)*
+_(סעיף זה נשמר מהאפיון הראשוני ללא שינוי — זהו ידע בסיסי שלא השתנה.)_
 
 ### 3.1 Meta Andromeda - שינוי פרדיגמה
 
 Andromeda הוא מנוע ה-Machine Learning החדש של Meta שמחליף את מערכת המסירה הקיימת. נכון ל-2026, **Andromeda מפעיל את כל המסירה בפייסבוק ובאינסטגרם**.
 
 **השינוי הקריטי:**
+
 - **לפני:** הגדרת קהל → מציאת קריאייטיב שמתאים
 - **אחרי (Andromeda):** הקריאייטיב נכנס ראשון → המערכת מוצאת את הקהל המתאים
 
@@ -158,12 +162,14 @@ Andromeda הוא מנוע ה-Machine Learning החדש של Meta שמחליף א
 הסוכן חייב להיות **Creative-First**. ההשקעה הכי חשובה היא ביצירה של וריאנטים רבים, לא במיקרו-טירגוט.
 
 **תוצאות מדווחות:**
+
 - Creative-based targeting משפר המרות ב-8-17%
 - מפרסמים שהפעילו Advantage+ Creative: +22% ROAS
 
 ### 3.2 Advantage+ ו-"Power of One"
 
 Meta דוחפת לקונסולידציה רדיקלית:
+
 - **במקום:** 10 קמפיינים + 50 ad sets
 - **חדש:** קמפיין אחד + ad set אחד לכל offer/מוצר
 - איחוד cold + warm audiences באותו קמפיין
@@ -184,22 +190,23 @@ Meta דוחפת לקונסולידציה רדיקלית:
 
 **Global medians (Triple Whale 2025):**
 
-| מדד | חציון גלובלי | YoY | טווח ענפי |
-|---|---|---|---|
-| CTR | **2.19%** | +13.5% | Sales 1.38% / Leads 2.59% / Traffic 1.71% (AdAmigo 2026) |
-| CPA | **$38.19** | +1.04% | Electronics $49.48 / Baby $30.04 |
-| ROAS (חציון) | **1.86x** | +1.29% | יעד בריא 2.5x+; AdAmigo Sales ROAS ~2.79 |
-| CPM | **$14.19** | +20.03% | Health/Travel ~$20.70 / Auto ~$10.01 |
-| CVR | ~1.6% | — | Food/Bev 2.02% / Electronics 1.20% |
+| מדד          | חציון גלובלי | YoY     | טווח ענפי                                                |
+| ------------ | ------------ | ------- | -------------------------------------------------------- |
+| CTR          | **2.19%**    | +13.5%  | Sales 1.38% / Leads 2.59% / Traffic 1.71% (AdAmigo 2026) |
+| CPA          | **$38.19**   | +1.04%  | Electronics $49.48 / Baby $30.04                         |
+| ROAS (חציון) | **1.86x**    | +1.29%  | יעד בריא 2.5x+; AdAmigo Sales ROAS ~2.79                 |
+| CPM          | **$14.19**   | +20.03% | Health/Travel ~$20.70 / Auto ~$10.01                     |
+| CVR          | ~1.6%        | —       | Food/Bev 2.02% / Electronics 1.20%                       |
 
 #### 🇮🇱 Benchmarks ישראל 2025 — שונים משמעותית מהגלובל
 
-| מדד | ישראל | גלובל | יחס |
-|---|---|---|---|
-| CPM | **$8.38 avg** | $20.15 | **~40% נמוך** |
+| מדד | ישראל           | גלובל  | יחס                |
+| --- | --------------- | ------ | ------------------ |
+| CPM | **$8.38 avg**   | $20.15 | **~40% נמוך**      |
 | CPL | **$104.72 avg** | $41.53 | **~2.5× יותר יקר** |
 
 **תנודתיות 2025 בישראל:**
+
 - CPM נע בין $4.85 (יוני) ל-$14.90 (נובמבר)
 - CPL קפץ ל-$385 באוגוסט, $309 בנובמבר, $255 באוקטובר (אירועים ביטחוניים)
 
@@ -214,12 +221,12 @@ Meta דוחפת לקונסולידציה רדיקלית:
 
 **מידות לכל פורמט:**
 
-| פורמט | מידות | יחס | הערות |
-|---|---|---|---|
-| Feed Square | 1080×1080 | 1:1 | תומך |
+| פורמט                | מידות         | יחס     | הערות                         |
+| -------------------- | ------------- | ------- | ----------------------------- |
+| Feed Square          | 1080×1080     | 1:1     | תומך                          |
 | **Feed Vertical** ⭐ | **1080×1350** | **4:5** | **מומלץ** - CTR גבוה משמעותית |
-| Stories/Reels | 1080×1920 | 9:16 | חיוני - 78% יותר ביצועים |
-| Right Column | 1200×628 | 1.91:1 | דסקטופ בלבד |
+| Stories/Reels        | 1080×1920     | 9:16    | חיוני - 78% יותר ביצועים      |
+| Right Column         | 1200×628      | 1.91:1  | דסקטופ בלבד                   |
 
 **וידאו:** H.264, AAC, עד 4GB, 30fps או פחות.
 
@@ -274,11 +281,11 @@ Meta דוחפת לקונסולידציה רדיקלית:
 └──────────────────────────────────────────────────────┘
 ```
 
-| שלב | מי מבצע | פלט |
-|---|---|---|
-| **Observe** | כלי Python (`fetch_insights.py`) — Claude קורא לו דרך Bash | JSON snapshot |
-| **Think** | Claude — קריאה בקבצי `.md` + ה-snapshot, reasoning טבעי | Diagnoses בטקסט חופשי |
-| **Propose** | Claude — כותב לטבלה דרך `propose_task.py`, כולל rationale | רשומות `approvals` |
+| שלב         | מי מבצע                                                      | פלט                                      |
+| ----------- | ------------------------------------------------------------ | ---------------------------------------- |
+| **Observe** | כלי Python (`fetch_insights.py`) — Claude קורא לו דרך Bash   | JSON snapshot                            |
+| **Think**   | Claude — קריאה בקבצי `.md` + ה-snapshot, reasoning טבעי      | Diagnoses בטקסט חופשי                    |
+| **Propose** | Claude — כותב לטבלה דרך `propose_task.py`, כולל rationale    | רשומות `approvals`                       |
 | **Execute** | כלי Python (`execute_task.py`), Claude מפעיל לפי `task_type` | עדכון `approvals.status` + Meta response |
 
 **עיקרון Stateless:** כל invocation של `claude -p` מתחיל מאפס. אין threads, אין checkpoints, אין session state. כל הקונטקסט נטען מחדש בכל ריצה דרך קבצי `.md` ושליפות מה-DB. זה בדיוק מתאים ל-cron.
@@ -290,23 +297,27 @@ Meta דוחפת לקונסולידציה רדיקלית:
 הסוכן נסמך על 4 שכבות ידע - כולן נגישות ב-context של כל החלטה:
 
 ### שכבה A: Built-in Knowledge (קבוע — prompt templates)
+
 - חוקי פייסבוק/אינסטגרם, מדיניות פרסום, פורמטים, מידות
 - Best practices של Meta (Advantage+, CBO, ABO, Andromeda)
 - מבני קמפיין (TOF/MOF/BOF)
 - **אחסון:** קבצי markdown ב-`campaigner/prompts/` — נטענים ל-system prompt של ה-LLM
 
 ### שכבה B: Business Context (דינמי לעסק)
+
 - **Business Knowledge** — טופס מובנה + תשובות שאלון (סעיף 15)
 - **אחסון:** טבלת `business_knowledge` ב-Supabase (JSONB column עם שדות מובנים)
 - **שינוי מהאפיון הראשוני:** אין Vector DB / RAG. הידע העסקי קצר מספיק כדי להיטען בשלמותו ל-context של Claude (200K tokens context window — יותר ממספיק)
 - מחקר אוטונומי ברשת - **דחוי ל-v2**
 
 ### שכבה C: Live Context (בזמן אמת)
+
 - תקציב נוכחי / נותר (מחושב מ-Meta API)
 - זמן אספקה של העסק (שדה ב-`business_knowledge`)
 - עונות/חגים/מלחמה — **דחוי ל-v2** (חלק מ-Operation Modes)
 
 ### שכבה D: Measurement (מדידה)
+
 - KPIs מוגדרים (CPL, CPA, ROAS, CTR, CPC)
 - Learning Phase tracking
 - Baselines — טבלת `baselines` ב-Supabase
@@ -315,18 +326,18 @@ Meta דוחפת לקונסולידציה רדיקלית:
 
 ## 6. Performance Brain - מה זה "קמפיין טוב"
 
-*(סעיף זה עודכן ע"פ `docs/deep_research/findings-diff.md` (2026-04-16) — מיזוג של 2 מקורות מחקר עדכניים. שינויים מרכזיים: היררכיה שני-שערים במקום היררכיה יחידה, Creative Fatigue flag במקום Frequency>3, volume-based sufficiency במקום time-based, ו-benchmarks ישראליים שמפרקים את הנחת "ישראל = Global × factor".)*
+_(סעיף זה עודכן ע"פ `docs/deep_research/findings-diff.md` (2026-04-16) — מיזוג של 2 מקורות מחקר עדכניים. שינויים מרכזיים: היררכיה שני-שערים במקום היררכיה יחידה, Creative Fatigue flag במקום Frequency>3, volume-based sufficiency במקום time-based, ו-benchmarks ישראליים שמפרקים את הנחת "ישראל = Global × factor".)_
 
 ### 6.1 Goal Hierarchy - בחירת KPI ראשי
 
 הסוכן בוחר KPI אוטומטית לפי סוג העסק (מוגדר ב-`business_knowledge.vertical`). **הערכים בטבלה הם reference points גלובליים 2026; החלטות אמיתיות מתבססות על rolling baseline של החשבון (§6.2).**
 
-| סוג עסק | KPI ראשי | משני | reference 2026 (global) |
-|---|---|---|---|
-| eCommerce | **ROAS** | CPA, AOV | חציון 1.86 (Triple Whale 2025); Adamigo Sales ROAS ~2.79; יעד בריא 2.5x+ |
-| לידים B2C | **CPL** | CTR, Lead Quality | חציון גלובלי $27.66; **ישראל $104.72** (ר' §6.2) — baseline של החשבון שולט |
-| Awareness | **CPM + CTR** | Reach, Frequency | CTR חציון 2.19% (Triple Whale 2025); סף פעולה > 1.7% (traffic), > 2.1% (sales) |
-| אפליקציות | **CPI + Retention** | CTR | תלוי ורטיקל — אין 2026 primary data מאוחד |
+| סוג עסק   | KPI ראשי            | משני              | reference 2026 (global)                                                        |
+| --------- | ------------------- | ----------------- | ------------------------------------------------------------------------------ |
+| eCommerce | **ROAS**            | CPA, AOV          | חציון 1.86 (Triple Whale 2025); Adamigo Sales ROAS ~2.79; יעד בריא 2.5x+       |
+| לידים B2C | **CPL**             | CTR, Lead Quality | חציון גלובלי $27.66; **ישראל $104.72** (ר' §6.2) — baseline של החשבון שולט     |
+| Awareness | **CPM + CTR**       | Reach, Frequency  | CTR חציון 2.19% (Triple Whale 2025); סף פעולה > 1.7% (traffic), > 2.1% (sales) |
+| אפליקציות | **CPI + Retention** | CTR               | תלוי ורטיקל — אין 2026 primary data מאוחד                                      |
 
 **מקורות:** Triple Whale 2025 medians (Apr 2026 update, ~35k brands); Adamigo 2026 by objective. אין נתוני benchmark פומביים לשוק הישראלי — חובה baseline פר-חשבון.
 
@@ -335,6 +346,7 @@ Meta דוחפת לקונסולידציה רדיקלית:
 **"טוב" זה לא מספר אבסולוטי - זה יחסי.**
 
 הסוכן שומר **baseline לכל חשבון** בטבלת `baselines` ומשווה:
+
 - ביצועים היסטוריים של אותו עסק — **windows: 7 / 14 / 30 ימים** (reactivity מהירה יותר מהאפיון הראשוני שהיה 30/60/90)
 - ממוצע קמפיינים פעילים באותו חשבון
 - benchmarks ענפיים (רק לרמה שנייה, וראו אזהרת ישראל למטה)
@@ -350,6 +362,7 @@ Meta דוחפת לקונסולידציה רדיקלית:
 - **תנודתיות קיצונית:** CPM בטווח $4.85 (יוני) עד $14.90 (נובמבר); CPL קפץ ל-$385 באוגוסט 2025 (אירוע ביטחוני)
 
 **משמעות עבור הסוכן:**
+
 1. אל תקבע סף baseline ראשוני מ-benchmarks גלובליים — השתמש רק ב-30 ימי היסטוריה של החשבון הספציפי.
 2. ערכים שנראים "גבוהים" לפי הגלובל עשויים להיות תקינים לישראל (CPL).
 3. ערכים שנראים "טובים" לפי הגלובל עשויים להיות חשודים לישראל (CPM).
@@ -376,9 +389,11 @@ def classify_learning_status(campaign):
 **שינוי מהאפיון הראשוני:** החלון ל-LEARNING_LIMITED ירד מ-14 ימים ל-7 ימים (פרקטיקה 2026).
 
 **חישוב תקציב מינימלי:**
+
 ```
 budget_daily_min = (expected_CPA × 50) / 7
 ```
+
 דוגמה: CPA צפוי ₪100 → תקציב מינימום ₪715/יום.
 
 ### 6.4 Data Sufficiency Check (לפני כל החלטה)
@@ -422,22 +437,22 @@ CPA > 3× יעד
 
 #### Gate 1 — Leading signals (חלון 48h-7d, החלטות ברמת קריאייטיב)
 
-| עדיפות | מדד | "טוב" | Kill trigger |
-|---|---|---|---|
-| 1 | **Hook Rate (3s)** | > 35% | < 25% אחרי 48h |
-| 2 | **CTR** (מוקדם) | > 2% | < 1% עם ≥1,000 חשיפות |
-| 3 | **Thumb-stop rate** | > 30% | < 20% אחרי 48h |
+| עדיפות | מדד                 | "טוב" | Kill trigger          |
+| ------ | ------------------- | ----- | --------------------- |
+| 1      | **Hook Rate (3s)**  | > 35% | < 25% אחרי 48h        |
+| 2      | **CTR** (מוקדם)     | > 2%  | < 1% עם ≥1,000 חשיפות |
+| 3      | **Thumb-stop rate** | > 30% | < 20% אחרי 48h        |
 
 **מקור הספים:** קונצנזוס פרקטיקה 2026 (Grok + Manus; ר' `docs/deep_research/findings-diff.md`).
 
 #### Gate 2 — Lagging signals (post-learning, החלטות ברמת קמפיין/חשבון)
 
-| עדיפות | מדד | "טוב" | Kill trigger |
-|---|---|---|---|
-| 1 | **CPA** | ≤ יעד | > 1.3× יעד למשך 5+ ימים |
-| 2 | **ROAS** | ≥ Break-even | נמוך מרווחיות מינימלית |
-| 3 | **Meta Creative Fatigue flag** | לא מסומן | CPR ≥ 2× baseline היסטורי |
-| 4 | **Frequency** (monitoring only) | — | **אינו trigger עצמאי** — רק אות לחקירה |
+| עדיפות | מדד                             | "טוב"        | Kill trigger                           |
+| ------ | ------------------------------- | ------------ | -------------------------------------- |
+| 1      | **CPA**                         | ≤ יעד        | > 1.3× יעד למשך 5+ ימים                |
+| 2      | **ROAS**                        | ≥ Break-even | נמוך מרווחיות מינימלית                 |
+| 3      | **Meta Creative Fatigue flag**  | לא מסומן     | CPR ≥ 2× baseline היסטורי              |
+| 4      | **Frequency** (monitoring only) | —            | **אינו trigger עצמאי** — רק אות לחקירה |
 
 **הסבר על Frequency:** בעידן Andromeda, Meta מתאימה קריאייטיבים לקהלים טוב יותר; Frequency גבוה לא תמיד = שחיקה. הטריגר האמיתי הוא **Meta Creative Fatigue flag** (CPR ≥ 2× baseline), שמופיע ב-Ads Manager. Frequency > 3 נשאר כ-signal לחקירה ידנית, לא ל-action אוטומטי.
 
@@ -465,21 +480,21 @@ CPA > 3× יעד
 
 ### 6.7 חוקים Pre-Andromeda שהופקעו (Deprecated Rules)
 
-קריטי לתעד כדי למנוע regression עתידי בפרומפטים / ב-prompts/*.md. **אף אחד מהחוקים הבאים לא יופיע כ-trigger ב-agent_decisions:**
+קריטי לתעד כדי למנוע regression עתידי בפרומפטים / ב-prompts/\*.md. **אף אחד מהחוקים הבאים לא יופיע כ-trigger ב-agent_decisions:**
 
-| חוק מוסדר (pre-2024) | סיבת dep | החליף אותו |
-|---|---|---|
-| "1 ad set = 1 ad" | Andromeda מעדיפה ad sets גדולים עם מגוון קריאייטיבים | ad set אחד עם 10+ ads |
-| הפרדה נוקשה TOFU/MOFU/BOFU לקמפיינים נפרדים | Meta AI מזהה שלב funnel פנימית | Advantage+ campaign אחד; Meta מחליטה |
-| Manual placement optimization (Feed vs Stories vs Reels) | Andromeda מזהה placement אופטימלי אוטומטית | ספק את כל ה-aspect ratios, תן למטא להחליט |
-| Horizontal scaling ע"י duplication | מאפס Learning Phase | Vertical scaling בתוך אותו campaign |
-| Narrow interest-based targeting | Andromeda עובד טוב יותר ב-broad targeting | Broad + creative diversity |
-| **Frequency > 3 as auto-kill** | Andromeda מתאים טוב יותר; high frequency ≠ fatigue | Meta Creative Fatigue flag (CPR ≥ 2×) |
-| Daily edits / pausing ב-1-3 ימי דאטה | מפריע ל-Learning | חלונות 7d / 50-conv "no-touch" |
-| הסתמכות על single winning creative | מביא לשחיקה מהירה | 10-50+ creative diversification |
-| Hook Rate > 30% פולקלור כ-binary signal | מדד חד-מימדי לא מספיק | banded thresholds: >35% strong / 25-35% solid / <25% kill |
-| "אחרי 5-7 ימים — השאר top 3-5 קריאייטיבים" | Andromeda מחלקת תקציב לא-אחיד במכוון | Continuous additions; אל תחתוך ידנית |
-| Time-based sufficiency (72h) כ-primary gate | נפח > זמן | ≥1,000 חשיפות + ≥50 clicks |
+| חוק מוסדר (pre-2024)                                     | סיבת dep                                             | החליף אותו                                                |
+| -------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------- |
+| "1 ad set = 1 ad"                                        | Andromeda מעדיפה ad sets גדולים עם מגוון קריאייטיבים | ad set אחד עם 10+ ads                                     |
+| הפרדה נוקשה TOFU/MOFU/BOFU לקמפיינים נפרדים              | Meta AI מזהה שלב funnel פנימית                       | Advantage+ campaign אחד; Meta מחליטה                      |
+| Manual placement optimization (Feed vs Stories vs Reels) | Andromeda מזהה placement אופטימלי אוטומטית           | ספק את כל ה-aspect ratios, תן למטא להחליט                 |
+| Horizontal scaling ע"י duplication                       | מאפס Learning Phase                                  | Vertical scaling בתוך אותו campaign                       |
+| Narrow interest-based targeting                          | Andromeda עובד טוב יותר ב-broad targeting            | Broad + creative diversity                                |
+| **Frequency > 3 as auto-kill**                           | Andromeda מתאים טוב יותר; high frequency ≠ fatigue   | Meta Creative Fatigue flag (CPR ≥ 2×)                     |
+| Daily edits / pausing ב-1-3 ימי דאטה                     | מפריע ל-Learning                                     | חלונות 7d / 50-conv "no-touch"                            |
+| הסתמכות על single winning creative                       | מביא לשחיקה מהירה                                    | 10-50+ creative diversification                           |
+| Hook Rate > 30% פולקלור כ-binary signal                  | מדד חד-מימדי לא מספיק                                | banded thresholds: >35% strong / 25-35% solid / <25% kill |
+| "אחרי 5-7 ימים — השאר top 3-5 קריאייטיבים"               | Andromeda מחלקת תקציב לא-אחיד במכוון                 | Continuous additions; אל תחתוך ידנית                      |
+| Time-based sufficiency (72h) כ-primary gate              | נפח > זמן                                            | ≥1,000 חשיפות + ≥50 clicks                                |
 
 **כלל זהב:** אם prompt חדש ב-`prompts/*.md` או guardrail ב-`campaigner/guardrails.py` משחזר אחד מהחוקים האלה — עצור וחזור לסעיף זה.
 
@@ -490,31 +505,33 @@ CPA > 3× יעד
 **היעד Andromeda-era:** **10-50+** קריאייטיבים מגוונים פעילים בכל עת. Meta של 2026 מעדיפה מבנה פשוט + הרבה מגוון קריאייטיבי, ומחלקת תקציב באופן לא אחיד בין הקריאייטיבים במכוון. ה-**firehose model**: הסוכן מייצר קריאייטיבים ברצף, לא ב-batches גדולים.
 
 **MVP (Aiweon) — גישה שמרנית:**
+
 - **פתיחה:** 10-12 קריאייטיבים מגוונים (3-4 hooks × 3 aspect ratios)
 - **תוספת שבועית:** 3-5 קריאייטיבים חדשים לשבוע
 - **כלל זהב:** **לא לחתוך ידנית** — תן ל-Andromeda להרעיב קריאייטיבים חלשים. חיתוך רק כש-hook rate < 25% אחרי 48h (§6.5 Gate 1).
 
 ### 7.1 יכולות MVP vs v2
 
-| יכולת | MVP | v2 |
-|---|---|---|
-| Copy (טקסט מודעה) בעברית | ✅ Claude generation, 10-20 וריאנטים | |
-| כותרות/CTA | ✅ Claude generation | |
-| יצירת תמונות | ✅ שימוש ב-`image_generator.py` הקיים (Vertex Imagen) | |
-| Image expansion | ❌ | ✅ |
-| Background swap | ❌ | ✅ |
-| Text overlay אוטומטי | ❌ | ✅ |
-| שליפה מגלריה | ✅ בחירה חכמה לפי הקמפיין | |
-| **העלאת וידאו ידנית ע"י המשתמש** | ✅ MP4/MOV ≤ 4GB, aspect 1:1/4:5/9:16/16:9, משך 1-241s (פר [decisions-log §1.9](decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure)) | |
-| יצירת וידאו AI | ❌ | ✅ |
-| Voice-over AI | ❌ | ✅ |
-| Continuous creative generation | ✅ 3-5/week additions | ✅ 10+/week |
+| יכולת                            | MVP                                                                                                                                                                         | v2          |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Copy (טקסט מודעה) בעברית         | ✅ Claude generation, 10-20 וריאנטים                                                                                                                                        |             |
+| כותרות/CTA                       | ✅ Claude generation                                                                                                                                                        |             |
+| יצירת תמונות                     | ✅ שימוש ב-`image_generator.py` הקיים (Vertex Imagen)                                                                                                                       |             |
+| Image expansion                  | ❌                                                                                                                                                                          | ✅          |
+| Background swap                  | ❌                                                                                                                                                                          | ✅          |
+| Text overlay אוטומטי             | ❌                                                                                                                                                                          | ✅          |
+| שליפה מגלריה                     | ✅ בחירה חכמה לפי הקמפיין                                                                                                                                                   |             |
+| **העלאת וידאו ידנית ע"י המשתמש** | ✅ MP4/MOV ≤ 4GB, aspect 1:1/4:5/9:16/16:9, משך 1-241s (פר [decisions-log §1.9](decisions-log.md#19-creative-gallery-manual-video-upload-multi-service-campaign-structure)) |             |
+| יצירת וידאו AI                   | ❌                                                                                                                                                                          | ✅          |
+| Voice-over AI                    | ❌                                                                                                                                                                          | ✅          |
+| Continuous creative generation   | ✅ 3-5/week additions                                                                                                                                                       | ✅ 10+/week |
 
 ### 7.2 Creative Testing Matrix — Firehose Model
 
 **הגישה המעודכנת (2026 post-Andromeda):**
 
 לכל Offer, הסוכן בונה **batch ראשוני של 10-12**:
+
 - **3-4 Hooks** שונים (כאב, פתרון, הצעה, חברתי, דחיפות)
 - **3 aspect ratios** לכל hook (1:1, 4:5, 9:16)
 - = **~12 קריאייטיבים** פתיחה
@@ -524,6 +541,7 @@ CPA > 3× יעד
 **הסבר הגישה:** Meta ב-Andromeda מעדיפה Advantage+ Shopping / Advantage+ Sales עם variety רחב. חלוקת התקציב הלא-אחידה היא **by design** — הסוכן לא צריך להילחם בה. קריאייטיב שמקבל 5% מהתקציב עם CTR גבוה = Meta בוחנת אותו; לא "לאלץ" יותר תקציב.
 
 **שינוי חד מהאפיון הראשוני:**
+
 - ❌ "9-15 קריאייטיבים, אחרי 5-7 ימים השאר top 3-5" — **deprecated**
 - ✅ "10-12 initial + 3-5/שבוע, אל תחתוך ידנית" — **current**
 
@@ -546,30 +564,31 @@ If rejected → rejection_reason logged; no regeneration in MVP
 
 **חשוב:** מה שעובד בפיד לא עובד בסטוריז.
 
-| מיקום | מאפייני קופי | דוגמה |
-|---|---|---|
-| **Feed** | ארוך יותר (עד 3 שורות לפני "קרא עוד"), כותרת חזקה | "זוכרים את בת המצווה שלכם? הגיע תורם..." |
-| **Stories/Reels** | קצר, ישיר, Overlay Text | "החלק למעלה להזמנה! 👆" |
-| **Right Column** | כותרת בלבד | "קיר צילום לבת מצווה" |
+| מיקום             | מאפייני קופי                                      | דוגמה                                    |
+| ----------------- | ------------------------------------------------- | ---------------------------------------- |
+| **Feed**          | ארוך יותר (עד 3 שורות לפני "קרא עוד"), כותרת חזקה | "זוכרים את בת המצווה שלכם? הגיע תורם..." |
+| **Stories/Reels** | קצר, ישיר, Overlay Text                           | "החלק למעלה להזמנה! 👆"                  |
+| **Right Column**  | כותרת בלבד                                        | "קיר צילום לבת מצווה"                    |
 
 הסוכן מייצר וריאנטים **פר-מיקום** - לא גרסה אחת שמותחים לכל הפורמטים.
 
 ### 7.5 Marketing Angles
 
-| זווית | מתי משתמשים | דוגמה |
-|---|---|---|
-| **רגש/חוויה** | מוצרים רגשיים, הורים, אירועי חיים | "החיוך שלהם שווה הכל" |
-| **תועלת ישירה** | שירותים פרקטיים | "קיר צילום שישדרג כל בת מצווה" |
-| **דחיפות/מבצע** | עונות, סוף-מלאי | "נשארו מקומות אחרונים למאי!" |
-| **רשימת יתרונות** | B2B, טכני | "🌟 עיצוב אישי 🌟 אביזרים 🌟 מזכרת" |
-| **חברתי (Social Proof)** | עסקים חדשים | "אלפי הורים כבר בחרו בנו" |
-| **השוואה** | שווקים תחרותיים | "למה כולם עוברים אלינו?" |
+| זווית                    | מתי משתמשים                       | דוגמה                               |
+| ------------------------ | --------------------------------- | ----------------------------------- |
+| **רגש/חוויה**            | מוצרים רגשיים, הורים, אירועי חיים | "החיוך שלהם שווה הכל"               |
+| **תועלת ישירה**          | שירותים פרקטיים                   | "קיר צילום שישדרג כל בת מצווה"      |
+| **דחיפות/מבצע**          | עונות, סוף-מלאי                   | "נשארו מקומות אחרונים למאי!"        |
+| **רשימת יתרונות**        | B2B, טכני                         | "🌟 עיצוב אישי 🌟 אביזרים 🌟 מזכרת" |
+| **חברתי (Social Proof)** | עסקים חדשים                       | "אלפי הורים כבר בחרו בנו"           |
+| **השוואה**               | שווקים תחרותיים                   | "למה כולם עוברים אלינו?"            |
 
 הסוכן בוחר 3 זוויות שונות לכל קמפיין → Dynamic Creative של Meta בוחר את הזוכה.
 
 ### 7.6 Placement Coverage
 
 לכל קמפיין - הסוכן מייצר בכל הפורמטים:
+
 - 1:1 (1080×1080)
 - 4:5 (1080×1350) - מומלץ ל-Feed
 - 9:16 (1080×1920) - Stories/Reels
@@ -585,6 +604,7 @@ If rejected → rejection_reason logged; no regeneration in MVP
 **פלט:** שורות ב-`approvals` עם `status='pending'`. הפלטפורמה הוובית מציגה אותן.
 
 **דוגמת תצוגה בפלטפורמה:**
+
 ```
 📊 סקירה יומית - 15/04/2026
 עסק: "Aiweon"
@@ -613,22 +633,22 @@ If rejected → rejection_reason logged; no regeneration in MVP
 ### 8.3 Anti-Flood Rules
 
 | תקציב יומי של העסק | מקס' משימות/יום |
-|---|---|
-| < ₪50 | 2 |
-| ₪50-500 | 5 |
-| > ₪500 | 8 |
+| ------------------ | --------------- |
+| < ₪50              | 2               |
+| ₪50-500            | 5               |
+| > ₪500             | 8               |
 
 אם יש יותר הצעות - הסוכן **מתעדף** בעצמו (צומת `prioritize`) לפי impact צפוי ודוחה את הפחות דחופות (נרשם ב-`agent_decisions` כ-`decision_type='rejection'`).
 
 ### 8.4 תדירות סריקה (Heartbeat)
 
-| פעולה | תדירות MVP | סיבה |
-|---|---|---|
-| Graph 1: ObservePropose | 1×/יום ב-09:00 | Daily Digest |
-| Graph 2: Execute | כל 15 דקות | לבלוע הצעות מאושרות מהר |
-| Graph 3: Onboarding | one-shot ידני לכל עסק חדש | |
-| סריקה אסטרטגית שבועית | **דחוי ל-v2** | |
-| מחקר שוק אוטונומי | **דחוי ל-v2** | |
+| פעולה                   | תדירות MVP                | סיבה                    |
+| ----------------------- | ------------------------- | ----------------------- |
+| Graph 1: ObservePropose | 1×/יום ב-09:00            | Daily Digest            |
+| Graph 2: Execute        | כל 15 דקות                | לבלוע הצעות מאושרות מהר |
+| Graph 3: Onboarding     | one-shot ידני לכל עסק חדש |                         |
+| סריקה אסטרטגית שבועית   | **דחוי ל-v2**             |                         |
+| מחקר שוק אוטונומי       | **דחוי ל-v2**             |                         |
 
 ---
 
@@ -704,15 +724,15 @@ If rejected → rejection_reason logged; no regeneration in MVP
 
 ### 9.2 Why Claude Code Native (and not LangGraph) for MVP
 
-| קריטריון | Claude Code Native | LangGraph |
-|---|---|---|
-| זמן פיתוח עד MVP | ימים | שבועות |
-| Orchestration code ב-Python | ~0 (Claude הוא ה-orchestrator) | rich |
-| Prompts | קבצי `.md` שמשתמש עורך | מחרוזות בקוד |
-| Debugging | `claude -p --verbose` + `agent_decisions` | LangSmith |
-| Reasoning flexibility | גבוה — Claude מחליט מתי לקרוא לאילו כלים | נמוך — flow מקודד מראש |
-| Concurrency של עסקים | פחות יעיל (session per invocation) | יעיל |
-| Visual flow diagram | אין | יש |
+| קריטריון                    | Claude Code Native                        | LangGraph              |
+| --------------------------- | ----------------------------------------- | ---------------------- |
+| זמן פיתוח עד MVP            | ימים                                      | שבועות                 |
+| Orchestration code ב-Python | ~0 (Claude הוא ה-orchestrator)            | rich                   |
+| Prompts                     | קבצי `.md` שמשתמש עורך                    | מחרוזות בקוד           |
+| Debugging                   | `claude -p --verbose` + `agent_decisions` | LangSmith              |
+| Reasoning flexibility       | גבוה — Claude מחליט מתי לקרוא לאילו כלים  | נמוך — flow מקודד מראש |
+| Concurrency של עסקים        | פחות יעיל (session per invocation)        | יעיל                   |
+| Visual flow diagram         | אין                                       | יש                     |
 
 **המסקנה:** ל-MVP עם עסק אחד — CC Native הוא הבחירה הנכונה. הוא מייצר iteration speed מהיר יותר, מאפשר לכותב ה-prompts (לא בהכרח מפתח) לעדכן לוגיקה עסקית דרך `.md`, ומסלק שכבת orchestration שלמה. המחיר — פחות יעילות ב-scale — לא רלוונטי לעסק אחד.
 
@@ -721,6 +741,7 @@ If rejected → rejection_reason logged; no regeneration in MVP
 ### 9.3 Stateless Principle
 
 כל הפעלת `claude -p`:
+
 1. **נולדת** — טוענת `CLAUDE.md` + `CAMPAIGNER.md` + `prompts/*.md` לקונטקסט
 2. **רצה** — Claude קורא לכלים, reasoning, כותב ל-DB
 3. **מתה** — `claude -p` יוצא, session נהרס
@@ -728,6 +749,7 @@ If rejected → rejection_reason logged; no regeneration in MVP
 אין checkpointer. אין threads. אין resume across runs. כל run הוא עצמאי.
 
 **יתרונות:**
+
 - פשטות תפעולית — רק cron + Supabase + Anthropic API key
 - Debugging קל — כל run מתועד ב-`agent_decisions`
 - Cost control — רץ רק כשצריך
@@ -1029,13 +1051,13 @@ create index on heartbeats (business_id, flow, ran_at desc);
 
 מוסיף שדות ש-backend/frontend PRDs מפנים אליהם אבל 001-007 לא כללו. ר' [`migrations/008_schema_additions.sql`](../../migrations/008_schema_additions.sql) לקוד המלא.
 
-| שדה | טבלה | מטרה | מקור |
-|---|---|---|---|
-| `meta_access_token_expires_at` | `businesses` | מעקב תוקף טוקן structured (מחליף parsing של טקסט חופשי ב-`agent_decisions.summary`) | frontend PRD "Token-expiry warning" + backend PRD `rotate-token` CLI |
-| `tracking_verified` + 4 שדות tracking_* | `business_knowledge` | Day-Zero pre-flight — guardrail `verify_tracking_infrastructure` קורא את `tracking_verified` | CAMPAIGN_BUILDING §7, backend PRD AC |
-| `low_confidence` | `baselines` | baselines שנבנו מ-<30 ימי היסטוריה (cold-start); agent מוסיף `requires_human_review=true` | backend PRD Phase 1 + EVALUATION §9 #1 |
-| `approved_by_override` | `approvals` | {rule, reason, overridden_by} כש-soft-guardrail הותעלם | backend PRD "Guardrails split: hard vs soft" |
-| `guardrail_override_required` (generated) | `approvals` | משקף `payload.guardrail_override_required`, לשאילתות + Realtime filters ללא חפירה ב-JSONB | backend PRD + frontend "Approve with override" |
+| שדה                                       | טבלה                 | מטרה                                                                                         | מקור                                                                 |
+| ----------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `meta_access_token_expires_at`            | `businesses`         | מעקב תוקף טוקן structured (מחליף parsing של טקסט חופשי ב-`agent_decisions.summary`)          | frontend PRD "Token-expiry warning" + backend PRD `rotate-token` CLI |
+| `tracking_verified` + 4 שדות tracking\_\* | `business_knowledge` | Day-Zero pre-flight — guardrail `verify_tracking_infrastructure` קורא את `tracking_verified` | CAMPAIGN_BUILDING §7, backend PRD AC                                 |
+| `low_confidence`                          | `baselines`          | baselines שנבנו מ-<30 ימי היסטוריה (cold-start); agent מוסיף `requires_human_review=true`    | backend PRD Phase 1 + EVALUATION §9 #1                               |
+| `approved_by_override`                    | `approvals`          | {rule, reason, overridden_by} כש-soft-guardrail הותעלם                                       | backend PRD "Guardrails split: hard vs soft"                         |
+| `guardrail_override_required` (generated) | `approvals`          | משקף `payload.guardrail_override_required`, לשאילתות + Realtime filters ללא חפירה ב-JSONB    | backend PRD + frontend "Approve with override"                       |
 
 **פרוטוקול כתיבת `payload.guardrail_override_required`:** `propose_task.py` מקבל רשימת violations מ-`check_guardrails.py`. אם **כל** ה-violations הן soft (לא hard) — propose_task מכניס `guardrail_override_required=true` ב-payload ושמות ה-rules ב-`payload.violated_rules`, ו-rationale כולל את השורה "חורג מ-<rule> — ר' knowledge-doc". אם יש hard violation — propose_task לא כותב approval בכלל (silent drop). העמודה ה-generated אחראית ל-indexing.
 
@@ -1057,6 +1079,7 @@ claude -p \
 ```
 
 **הסבר דגלים:**
+
 - `-p` — headless / print mode. Claude רץ, עונה, יוצא.
 - `--output-format json` — מחזיר JSON שמכיל את ה-reasoning, tool calls ו-final output. נוח ל-cron ול-debugging.
 - `--cwd` — directory הטעינה של `CLAUDE.md` + `CAMPAIGNER.md` (ר' §19).
@@ -1064,19 +1087,13 @@ claude -p \
 ### 11.2 מה Claude טוען בתחילת כל ריצה
 
 **אוטומטי (ע"י Claude Code):**
+
 1. `CLAUDE.md` הגלובלי של המשתמש + של הרפו + של ה-cwd
 2. `CAMPAIGNER.md` (אם קיים בתוך cwd — מוכלל אוטומטית)
 
-**בתוך CAMPAIGNER.md Claude מקבל הוראה לקרוא:**
-3. `prompts/performance-brain.md` — לוגיקת §6
-4. `prompts/decision-tree.md` — §17
-5. `prompts/guardrails.md` — §14
-6. `prompts/creative-guide.md` — §7
+**בתוך CAMPAIGNER.md Claude מקבל הוראה לקרוא:** 3. `prompts/performance-brain.md` — לוגיקת §6 4. `prompts/decision-tree.md` — §17 5. `prompts/guardrails.md` — §14 6. `prompts/creative-guide.md` — §7
 
-**דרך Bash tool (לפי צורך):**
-7. `tools/load_business_knowledge.py` → JSON מ-Supabase
-8. `tools/fetch_insights.py` → Meta snapshot
-9. `tools/load_baselines.py` → baselines
+**דרך Bash tool (לפי צורך):** 7. `tools/load_business_knowledge.py` → JSON מ-Supabase 8. `tools/fetch_insights.py` → Meta snapshot 9. `tools/load_baselines.py` → baselines
 
 ### 11.3 Flow 1: Observe-Propose — פרוטוקול
 
@@ -1088,49 +1105,60 @@ claude -p \
 You are a Meta Ads campaign optimizer. Every invocation you:
 
 ## Step 1: Load context
+
 Read these files in order:
-  - prompts/performance-brain.md
-  - prompts/decision-tree.md
-  - prompts/guardrails.md
+
+- prompts/performance-brain.md
+- prompts/decision-tree.md
+- prompts/guardrails.md
 
 Run these tools and keep results in context:
-  - python tools/load_business_knowledge.py --business-id $BUSINESS_ID
-  - python tools/fetch_insights.py --business-id $BUSINESS_ID --days 30
-  - python tools/load_baselines.py --business-id $BUSINESS_ID
+
+- python tools/load_business_knowledge.py --business-id $BUSINESS_ID
+- python tools/fetch_insights.py --business-id $BUSINESS_ID --days 30
+- python tools/load_baselines.py --business-id $BUSINESS_ID
 
 ## Step 2: For each campaign, diagnose
+
 Apply §6.4 Data Sufficiency. If insufficient → log skip, move on.
 Apply §17 Decision Tree to classify: winner/average/loser/fatigued.
 
 For each diagnosis, call:
-  python tools/log_decision.py --type diagnosis --summary "..." --rationale "..." \
-    --campaign-id <id> --inputs '{...}' --outputs '{...}'
+python tools/log_decision.py --type diagnosis --summary "..." --rationale "..." \
+ --campaign-id <id> --inputs '{...}' --outputs '{...}'
 
 ## Step 3: Propose actions
+
 For each diagnosis that warrants action, draft a proposal:
-  - task_type (budget_change | pause_campaign | new_creative | ...)
-  - payload (exact changes)
-  - rationale (2-4 sentences in Hebrew)
-  - expected_impact
-  - urgency
+
+- task_type (budget_change | pause_campaign | new_creative | ...)
+- payload (exact changes)
+- rationale (2-4 sentences in Hebrew)
+- expected_impact
+- urgency
 
 ## Step 4: Apply guardrails
+
 Before proposing, run: python tools/check_guardrails.py --proposal '<json>'
 If violations → log rejection decision, skip this proposal.
 
 ## Step 5: Prioritize (§8.3 anti-flood)
+
 Count total proposals for today. If over quota, keep only the top-impact ones.
 Log each rejection.
 
 ## Step 6: Write to approvals table
+
 For each surviving proposal:
-  python tools/propose_task.py --payload '<json>'
+python tools/propose_task.py --payload '<json>'
 This returns approval_id. Log a final 'proposal' decision with related_approval_id.
 
 ## Step 7: Exit
+
 Print a one-line summary for the cron log.
 
 ## Rules you MUST follow
+
 - Every action produces an agent_decisions row. No exceptions.
 - If a guardrail fails, you DO NOT bypass it.
 - You NEVER call Meta API directly — only propose. Execution is a different flow.
@@ -1147,19 +1175,22 @@ CAMPAIGNER.md ממשיך:
 When invoked with "execute approved tasks":
 
 ## Step 1: Load pending
-python tools/list_approved.py --business-id $BUSINESS_ID  → JSON list
+
+python tools/list_approved.py --business-id $BUSINESS_ID → JSON list
 
 ## Step 2: For each approved row, sequentially
-  a. python tools/recheck_guardrails.py --approval-id <id>
-     If fails: log rejection, mark approval status='failed' with reason, continue.
-  b. python tools/execute_task.py --approval-id <id>
-     This dispatches to the right Meta API call based on task_type.
-  c. python tools/log_decision.py --type execution --summary "..." \
-       --related-approval-id <id> --outputs '<meta_response>'
-  d. If execute_task returned error:
-     python tools/mark_failed.py --approval-id <id> --error "..."
+
+a. python tools/recheck_guardrails.py --approval-id <id>
+If fails: log rejection, mark approval status='failed' with reason, continue.
+b. python tools/execute_task.py --approval-id <id>
+This dispatches to the right Meta API call based on task_type.
+c. python tools/log_decision.py --type execution --summary "..." \
+ --related-approval-id <id> --outputs '<meta_response>'
+d. If execute_task returned error:
+python tools/mark_failed.py --approval-id <id> --error "..."
 
 ## Step 3: Exit
+
 Print a summary of executed/failed counts.
 ```
 
@@ -1170,6 +1201,7 @@ campaigner onboard --config onboarding/aiweon.yaml
 ```
 
 סקריפט עצמאי (לא Claude) שמטפל ב:
+
 1. כתיבה ל-`businesses`
 2. questionnaire אינטראקטיבי (או טעינה מ-YAML)
 3. כתיבה ל-`business_knowledge`
@@ -1184,47 +1216,47 @@ business:
   timezone: "Asia/Jerusalem"
   meta_ad_account_id: "act_1390480923117690"
   meta_page_id: "123..."
-  meta_auth_mode: "user_token"            # or "system_user_token" after BV
+  meta_auth_mode: "user_token" # or "system_user_token" after BV
   monthly_budget_ils: 30000
   daily_budget_ils: 1000
-  primary_kpi: "cpl"                       # cpa | cpl | roas | cpm | cpi
+  primary_kpi: "cpl" # cpa | cpl | roas | cpm | cpi
 
 knowledge:
-  vertical: "leads"                        # ecommerce | leads | awareness | app | other
+  vertical: "leads" # ecommerce | leads | awareness | app | other
   website_url: "https://aiweon.co.il"
   service_regions: ["ישראל"]
   customer_age_min: 25
   customer_age_max: 55
   products:
-    - {name: "...", description: "...", price_range: "..."}
+    - { name: "...", description: "...", price_range: "..." }
   delivery_time_days: 7
-  strong_seasons: ["פסח","ראש השנה"]
+  strong_seasons: ["פסח", "ראש השנה"]
   weak_seasons: ["אוגוסט"]
   competitors: ["https://competitor1.com"]
 
 # judgmental fields -> business_knowledge.questionnaire_answers (§15.2)
 # Optional at onboarding; Phase 4 dry-run fills these against real outputs.
 questionnaire:
-  ideal_customer: null                     # null = [TBD] — filled post-dry-run
+  ideal_customer: null # null = [TBD] — filled post-dry-run
   main_pain: null
   usp: null
   what_worked_before: null
   what_failed_before: null
   brand_sensitivities: null
 
-brand_voice:                               # business_knowledge.brand_voice JSONB
-  tone: null                               # filled per decisions-log §1.5 (Hebrew copy style)
+brand_voice: # business_knowledge.brand_voice JSONB
+  tone: null # filled per decisions-log §1.5 (Hebrew copy style)
   forbidden_words: []
   colors: []
 
 # tracking infrastructure (Day-Zero guardrail — CAMPAIGN_BUILDING §7)
 # Must all be true/green before any new_campaign proposal is allowed.
 tracking:
-  verified: false                          # master flag; operator flips when all below are green
+  verified: false # master flag; operator flips when all below are green
   pixel_id: null
   capi_configured: false
-  aem_priority_events: []                  # up to 8, in priority order
-  domain_verified: null                    # domain string when green
+  aem_priority_events: [] # up to 8, in priority order
+  domain_verified: null # domain string when green
 ```
 
 הסקריפט כותב null-values בשדות judgmental — הוא לא חוסם onboarding עליהם. רק `business.*` + `knowledge.vertical` + `knowledge.website_url` חובה. ה-agent מזהה null → escalation per EVALUATION §9 #2 עד שהם מלאים.
@@ -1269,6 +1301,7 @@ Claude reads the stdout JSON and incorporates it into its reasoning. Clean, comp
 ### 11.7 Prompt Storage
 
 קבצי markdown ב-`campaigner/prompts/`:
+
 - `performance-brain.md` — §6
 - `guardrails.md` — §14
 - `decision-tree.md` — §17
@@ -1327,12 +1360,13 @@ exit $?
 ### 12.4 דוגמאות לרישומים
 
 **Observation:**
+
 ```json
 {
   "node_name": "observe",
   "decision_type": "observation",
   "summary": "Loaded 4 active campaigns",
-  "inputs": {"account_id": "act_..."},
+  "inputs": { "account_id": "act_..." },
   "outputs": {
     "campaigns_count": 4,
     "total_spend_7d": 4180,
@@ -1343,6 +1377,7 @@ exit $?
 ```
 
 **Diagnosis (LLM):**
+
 ```json
 {
   "node_name": "diagnose",
@@ -1350,8 +1385,8 @@ exit $?
   "summary": "Campaign 'Kitchens': winner (ROAS 4.2, out of learning)",
   "rationale": "ROAS של 4.2 מעל baseline של 2.8 (50% מעל), CTR 2.1% (>1.5% threshold), Frequency 1.8 (<2.5). יצא מ-Learning לפני 5 ימים. מתאים ל-scale up.",
   "campaign_id": "1234567890",
-  "inputs": {"cpa": 42, "baseline_cpa": 60, "ctr": 2.1, "frequency": 1.8},
-  "outputs": {"label": "winner", "suggested_actions": ["scale_up_20pct"]},
+  "inputs": { "cpa": 42, "baseline_cpa": 60, "ctr": 2.1, "frequency": 1.8 },
+  "outputs": { "label": "winner", "suggested_actions": ["scale_up_20pct"] },
   "llm_model": "claude-sonnet-4-6",
   "llm_tokens_in": 8420,
   "llm_tokens_out": 312,
@@ -1361,6 +1396,7 @@ exit $?
 ```
 
 **Rejection (Guardrail):**
+
 ```json
 {
   "node_name": "apply_guardrails",
@@ -1374,6 +1410,7 @@ exit $?
 ```
 
 **Execution:**
+
 ```json
 {
   "node_name": "execute_on_meta",
@@ -1381,8 +1418,8 @@ exit $?
   "summary": "Updated campaign 456 budget: 50→65 ILS/day",
   "related_approval_id": "...",
   "campaign_id": "456",
-  "inputs": {"old_budget": 5000, "new_budget": 6500},
-  "outputs": {"meta_response": {"success": true, "campaign_id": "456"}}
+  "inputs": { "old_budget": 5000, "new_budget": 6500 },
+  "outputs": { "meta_response": { "success": true, "campaign_id": "456" } }
 }
 ```
 
@@ -1412,20 +1449,21 @@ order by created_at;
 
 ## 13. אישורים מ-Meta
 
-*(סעיף זה נשמר מהאפיון הראשוני ללא שינוי.)*
+_(סעיף זה נשמר מהאפיון הראשוני ללא שינוי.)_
 
 **קריטי: App Review של Meta הוא צוואר בקבוק - עד 4 שבועות. להתחיל מוקדם.**
 
-| # | אישור | זמן | קושי |
-|---|---|---|---|
-| 1 | Meta Developer App | 5 דקות | טריוויאלי |
-| 2 | `ads_management` Advanced Access | 2-4 שבועות | App Review דורש הדגמה |
-| 3 | Business Verification | 1-2 שבועות | ח.פ, מסמכים |
-| 4 | `ads_read` + `business_management` | חלק מה-App Review | |
-| 5 | System User Token | אחרי Business Verification | לחיבורי לקוחות יציבים |
-| 6 | Tech Provider / Solutions Partner | בהמשך | מעמד רשמי ל-SaaS |
+| #   | אישור                              | זמן                        | קושי                  |
+| --- | ---------------------------------- | -------------------------- | --------------------- |
+| 1   | Meta Developer App                 | 5 דקות                     | טריוויאלי             |
+| 2   | `ads_management` Advanced Access   | 2-4 שבועות                 | App Review דורש הדגמה |
+| 3   | Business Verification              | 1-2 שבועות                 | ח.פ, מסמכים           |
+| 4   | `ads_read` + `business_management` | חלק מה-App Review          |                       |
+| 5   | System User Token                  | אחרי Business Verification | לחיבורי לקוחות יציבים |
+| 6   | Tech Provider / Solutions Partner  | בהמשך                      | מעמד רשמי ל-SaaS      |
 
 **הרשאות נדרשות עיקריות:**
+
 - `ads_management` - ניהול קמפיינים
 - `ads_read` - קריאת נתונים
 - `business_management` - גישה ל-Business Manager
@@ -1468,6 +1506,7 @@ GUARDRAILS = [
 ```
 
 **guardrails חדשים (2026) שנוספו מ-findings-diff:**
+
 - `no_horizontal_scaling_by_duplication` — duplication מאפס Learning Phase
 - `require_95pct_significance_for_ab` — A/B winner declarations דורשות 95% CI
 - `prefer_add_creative_over_pause` — כש-Creative Fatigue flag מופעל, הוסף קריאייטיבים חדשים במקום לעצור
@@ -1493,6 +1532,7 @@ GUARDRAILS = [
 ### 15.1 טופס מובנה (שדות חובה)
 
 מוכנס ישירות ל-`business_knowledge` columns:
+
 - `name` (ב-`businesses`)
 - `vertical` (eCommerce/שירותים/לידים/אפליקציה/אחר)
 - `website_url`
@@ -1558,6 +1598,7 @@ create table auto_approval_rules (
 ### 16.3 Safety Net
 
 גם כשיופעל (v2):
+
 - כל פעולה מתועדת ב-`agent_decisions` עם `approved_by='auto'`
 - תקרה יומית על פעולות אוטומטיות
 - Rollback מהיר — הפלטפורמה תציג "Undo" ל-24h
@@ -1567,7 +1608,7 @@ create table auto_approval_rules (
 
 ## 17. עץ החלטות לדיאגנוזה
 
-*(עודכן ע"פ findings-diff 2026-04-16 — נוסף §17.0 Early Creative Evaluation (Gate 1) שרץ לפני שאר הענפים. המימוש: prompt ב-`prompts/decision-tree.md` שClaude קורא.)*
+_(עודכן ע"פ findings-diff 2026-04-16 — נוסף §17.0 Early Creative Evaluation (Gate 1) שרץ לפני שאר הענפים. המימוש: prompt ב-`prompts/decision-tree.md` שClaude קורא.)_
 
 **מבנה שני שערים (ר' §6.5):** הסוכן מריץ תחילה את §17.0 (Gate 1 — leading signals, creative-level) על כל קריאייטיב. אם קריאייטיב עובר את Gate 1, הוא זכאי להערכה ב-§17.1-17.3 (Gate 2 — lagging signals, campaign-level).
 
@@ -1697,6 +1738,7 @@ CPA < יעד × 0.8 למשך 5-7 ימים יציב + hook rate > 35%
 ```
 
 **Hard caps (כלים ב-check_guardrails.py):**
+
 - `max_ad_sets_per_campaign = 3`
 - `max_parallel_campaigns_per_business = 2` (3rd ↔ `requires_human_review=true`)
 - `cbo_only_across_services = true` — ABO-per-service = rejection with rule `deprecated_abo_service_split`
@@ -1737,12 +1779,12 @@ CPA < יעד × 0.8 למשך 5-7 ימים יציב + hook rate > 35%
 
 ### 18.1 לוח זמנים MVP
 
-| Cron expression | שם משימה | פקודה | משך משוער |
-|---|---|---|---|
-| `0 9 * * *` (Asia/Jerusalem) | daily-observe-propose | `bash runners/daily_observe_propose.sh` | 2-5min |
-| `*/15 * * * *` | execute-approvals | `bash runners/execute_approvals.sh` | 10-60s |
-| `0 10 * * 1` (Mon 10:00 IL) | weekly-creative-firehose | `bash runners/weekly_creative_firehose.sh` | 3-8min |
-| `0 3 1 * *` | monthly-baseline-refresh | `python -m campaigner.scripts.refresh_baselines --business-id aiweon` | 1-2min |
+| Cron expression              | שם משימה                 | פקודה                                                                 | משך משוער |
+| ---------------------------- | ------------------------ | --------------------------------------------------------------------- | --------- |
+| `0 9 * * *` (Asia/Jerusalem) | daily-observe-propose    | `bash runners/daily_observe_propose.sh`                               | 2-5min    |
+| `*/15 * * * *`               | execute-approvals        | `bash runners/execute_approvals.sh`                                   | 10-60s    |
+| `0 10 * * 1` (Mon 10:00 IL)  | weekly-creative-firehose | `bash runners/weekly_creative_firehose.sh`                            | 3-8min    |
+| `0 3 1 * *`                  | monthly-baseline-refresh | `python -m campaigner.scripts.refresh_baselines --business-id aiweon` | 1-2min    |
 
 `runners/*.sh` קוראים ל-`claude -p "..."` עם משתני סביבה (ר' §11.8).
 
@@ -1760,6 +1802,7 @@ claude -p --output-format json \
 ```
 
 **Flow בתוך CAMPAIGNER.md:**
+
 1. שלוף קמפיינים פעילים + קריאייטיבים קיימים (דרך `tools/list_active_creatives.py`)
 2. לכל קמפיין — בחר 3 marketing angles שעוד לא נוסו מספיק (§7.5) לפי הביצועים
 3. לכל angle — צור 1 קריאייטיב דרך `tools/generate_creative.py` (עוטף `image_generator.py` + Claude copy generation)
@@ -1769,6 +1812,7 @@ claude -p --output-format json \
 **עיקרון:** אף פעם לא פאוזה ידנית של קריאייטיבים קיימים ב-flow הזה — זה רק מוסיף. פאוזה מתבצעת דרך §17.0 Gate 1 ב-flow היומי.
 
 **Cost estimation (תוספת ל-§21):**
+
 - Claude: ~3K input + 2K output tokens × 5 creatives = ~$0.05/שבוע
 - Imagen: 5 תמונות × 3 aspect ratios × $0.02 = $0.30/שבוע
 - **~$1.40/חודש** נוספים. כלול ב-§21.4.
@@ -1781,6 +1825,7 @@ claude -p --output-format json \
 2. **crontab על שרת (GCE / Cloud Run Jobs) שמכיל את Claude CLI** — ⭐ **מועדף**.
 
 **מימוש מומלץ:** Cloud Run Job עם Docker image שמכיל:
+
 - Claude CLI (מ-`npm i -g @anthropic-ai/claude-code`)
 - Python 3.11 + requirements.txt
 - הקוד של `campaigner/`
@@ -1914,6 +1959,7 @@ meta-ads-automation-ai-fork/
 ```
 
 **הערות:**
+
 - **`campaigner/tools/*.py` = הכלים של Claude.** כל אחד CLI עצמאי, input/output JSON, exit codes נקיים (§11.6).
 - **`campaigner/cli/*.py` = הכלים של המשתמש.** גם Python, אבל נקודת הכניסה היא `campaigner` בינארי.
 - **`campaigner/lib/*.py` = קוד משותף.** גם tools/ וגם cli/ מייבאים ממנו.
@@ -1925,26 +1971,28 @@ meta-ads-automation-ai-fork/
 
 ## 20. Tech Stack
 
-| שכבה | טכנולוגיה | הערות |
-|---|---|---|
-| שפה | Python 3.11+ + Bash | Bash ל-runners |
-| **Agent engine** | **Claude Code CLI (headless)** | `@anthropic-ai/claude-code` (npm) |
-| LLM | **Claude** (Sonnet 4.6 / Opus 4.6) | משרת ע"י Claude Code, דרך Anthropic API |
-| DB | **Supabase** (Postgres + Auth + Storage) | |
-| Python DB client | `supabase-py` | |
-| Meta SDK | `facebook-business` | כבר מותקן ברפו |
-| Image gen | `google-genai` (Vertex AI Imagen) | כבר מותקן ברפו |
-| CLI framework | `typer` או `click` | ל-`campaigner` binary |
-| Scheduling | **Cloud Run Jobs + Cloud Scheduler** | GCP native, קיים ב-project |
-| Secrets | Google Secret Manager | `ANTHROPIC_API_KEY`, `META_ACCESS_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY` |
-| Observability | טבלת `agent_decisions` + stdout logs | MVP; LangSmith נדחה ל-v2 |
-| Testing | pytest + supabase-py mocks | |
-| Deployment | Docker → Artifact Registry → Cloud Run Job | Dockerfile כולל Claude CLI + Python |
+| שכבה             | טכנולוגיה                                  | הערות                                                                 |
+| ---------------- | ------------------------------------------ | --------------------------------------------------------------------- |
+| שפה              | Python 3.11+ + Bash                        | Bash ל-runners                                                        |
+| **Agent engine** | **Claude Code CLI (headless)**             | `@anthropic-ai/claude-code` (npm)                                     |
+| LLM              | **Claude** (Sonnet 4.6 / Opus 4.6)         | משרת ע"י Claude Code, דרך Anthropic API                               |
+| DB               | **Supabase** (Postgres + Auth + Storage)   |                                                                       |
+| Python DB client | `supabase-py`                              |                                                                       |
+| Meta SDK         | `facebook-business`                        | כבר מותקן ברפו                                                        |
+| Image gen        | `google-genai` (Vertex AI Imagen)          | כבר מותקן ברפו                                                        |
+| CLI framework    | `typer` או `click`                         | ל-`campaigner` binary                                                 |
+| Scheduling       | **Cloud Run Jobs + Cloud Scheduler**       | GCP native, קיים ב-project                                            |
+| Secrets          | Google Secret Manager                      | `ANTHROPIC_API_KEY`, `META_ACCESS_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Observability    | טבלת `agent_decisions` + stdout logs       | MVP; LangSmith נדחה ל-v2                                              |
+| Testing          | pytest + supabase-py mocks                 |                                                                       |
+| Deployment       | Docker → Artifact Registry → Cloud Run Job | Dockerfile כולל Claude CLI + Python                                   |
 
 **הסרו מ-MVP (שמור ל-v2 LangGraph):**
+
 - `langgraph`, `langchain-google-vertexai`, `jinja2`
 
 **חבילות חדשות להוסיף ל-`requirements.txt`:**
+
 ```
 supabase>=2.0
 pydantic>=2.0
@@ -1952,6 +2000,7 @@ typer>=0.12
 ```
 
 **חבילות קיימות (נשארות):**
+
 ```
 google-genai       # Imagen
 facebook-business  # Meta API
@@ -1961,6 +2010,7 @@ pillow
 ```
 
 **Dockerfile outline:**
+
 ```Dockerfile
 FROM python:3.11-slim
 
@@ -1991,22 +2041,26 @@ CMD ["runners/daily_observe_propose.sh"]
 ### 21.1 מחירון Claude (Anthropic API)
 
 **Claude Sonnet 4.6** (מומלץ ברירת מחדל):
+
 - Input: $3 / 1M tokens
 - Output: $15 / 1M tokens
-- עם prompt caching: cache reads $0.30 / 1M (-90%) ← משמעותי כי CAMPAIGNER.md + prompts/*.md קבועים
+- עם prompt caching: cache reads $0.30 / 1M (-90%) ← משמעותי כי CAMPAIGNER.md + prompts/\*.md קבועים
 
 **Claude Opus 4.6** (אופציונלי לhard cases):
+
 - Input: $15 / 1M tokens
 - Output: $75 / 1M tokens
 
 ### 21.2 הערכה לעסק אחד (MVP) — Flow 1 (Observe-Propose, 1×/יום)
 
 session של Claude Code headless טיפוסי מכיל:
+
 - `CLAUDE.md` + `CAMPAIGNER.md` + כל `prompts/*.md` — **cacheable** (~15K tokens)
 - תוצרי כלים (fetch_insights, load_baselines, business_knowledge) — ~8K tokens
 - Claude reasoning output + tool calls — ~5K tokens output
 
 **Estimate per daily run:**
+
 - Input (first turn, uncached): 23K × $3/1M = **$0.069**
 - Input (subsequent turns, cached): 15K × $0.30/1M + 8K × $3/1M = **$0.028**
 - בהנחה של 5 turns בעל session (Claude קורא לכלים מספר פעמים):
@@ -2018,6 +2072,7 @@ session של Claude Code headless טיפוסי מכיל:
 ### 21.3 Flow 2 (Execute, 96×/יום)
 
 רוב הריצות ריקות (אין approvals ממתינים). ב-no-op:
+
 - 1 turn, 15K cached input → ~$0.005
 - ממוצע 3 approvals בפועל/יום → 3 × $0.05 = $0.15
 
@@ -2034,6 +2089,7 @@ Claude total:                                          ~$23.00/חודש/עסק
 ```
 
 **הוספה — Imagen:**
+
 - Imagen Fast: $0.02/תמונה
 - Flow יומי: ad-hoc (לפי הצעות) — ~20 תמונות/חודש = **$0.40**
 - Flow שבועי (creative firehose): 5 קריאייטיבים × 3 aspect ratios × 4 שבועות = 60 תמונות = **$1.20**
@@ -2042,6 +2098,7 @@ Claude total:                                          ~$23.00/חודש/עסק
 **סה"כ AI costs per business MVP: ~$25/חודש.** עדיין זניח ל-SaaS.
 
 **הערות:**
+
 - עם caching יעיל (cache hits >90%) המספר ירד משמעותית.
 - Flow 2 רוב הריצות no-op — במימוש מנוהל אפשר לסגור את claude session מוקדם אם אין approvals.
 - ב-v2 LangGraph עם Gemini — עלויות נמוכות יותר (~$4/חודש), אבל מפסידים את איכות ה-reasoning והעברית של Claude.
@@ -2052,24 +2109,24 @@ Claude total:                                          ~$23.00/חודש/עסק
 
 להלן דברים שנחתכו במפורש, עם סיבה לכל אחד. חשוב לתעד כדי שיחזרו לאחר MVP.
 
-| נושא | סיבת דחייה | טריגר לשחזור |
-|---|---|---|
-| **LangGraph orchestration** | Claude Code Native מספיק לעסק אחד; LangGraph מורכב יותר | **חשבון מודעות שני** נוסף למערכת |
-| **Gemini 2.5 Pro** (LLM זול יותר) | נצמד ל-LangGraph כדי לנצל יתרונות של structured output + פחות context overhead | ביחד עם LangGraph |
-| Multi-tenant | דורש RLS מלא + auth flow + billing per tenant | לקוח שני |
-| Operation Modes (Storm/Off-Season/Peak) | דורש Context Engine + מקורות חיצוניים | אחרי 60 ימי Normal יציב |
-| Annual Budget War Chest | דורש ≥12 חודשי דאטה | שנה אחרי go-live |
-| RLHF feedback loop | דורש Vector DB + preference learning | >20 דחיות חוזרות מאותו משתמש |
-| Master View dashboard | רלוונטי רק ב-multi-tenant | עם multi-tenant |
-| Context Engine (news/season scanning) | מורכבות גבוהה, ROI לא ברור ב-MVP | lead מלקוח בעל עונתיות חזקה |
-| WhatsApp attribution | דורש WhatsApp Business API + Pixel integration | קיום WhatsApp בעסק פעיל |
-| Advantage+ Multi-campaign Testing | תקציב מינימלי $100/day לא תמיד יש | תקציב יומי > ₪500 |
-| Auto audience building | מורכב; risk גבוה | אחרי 30 ימי HITL stable |
-| Real-time alerts (webhook) | דורש endpoint ציבורי ב-Meta | |
-| Video/Voice-over AI generation | עלות גבוהה, איכות בעברית עדיין חלשה | איכות Veo/ElevenLabs בעברית > סף |
-| Regeneration loop על דחיית קריאייטיב | UX מורכב | feedback מלקוחות |
-| Cross-business intelligence | רלוונטי רק ב-multi-tenant | עם multi-tenant |
-| LangSmith / Langfuse | `agent_decisions` מספיק ל-MVP | debugging מסובך שהטבלה לא מכסה |
+| נושא                                    | סיבת דחייה                                                                     | טריגר לשחזור                     |
+| --------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------- |
+| **LangGraph orchestration**             | Claude Code Native מספיק לעסק אחד; LangGraph מורכב יותר                        | **חשבון מודעות שני** נוסף למערכת |
+| **Gemini 2.5 Pro** (LLM זול יותר)       | נצמד ל-LangGraph כדי לנצל יתרונות של structured output + פחות context overhead | ביחד עם LangGraph                |
+| Multi-tenant                            | דורש RLS מלא + auth flow + billing per tenant                                  | לקוח שני                         |
+| Operation Modes (Storm/Off-Season/Peak) | דורש Context Engine + מקורות חיצוניים                                          | אחרי 60 ימי Normal יציב          |
+| Annual Budget War Chest                 | דורש ≥12 חודשי דאטה                                                            | שנה אחרי go-live                 |
+| RLHF feedback loop                      | דורש Vector DB + preference learning                                           | >20 דחיות חוזרות מאותו משתמש     |
+| Master View dashboard                   | רלוונטי רק ב-multi-tenant                                                      | עם multi-tenant                  |
+| Context Engine (news/season scanning)   | מורכבות גבוהה, ROI לא ברור ב-MVP                                               | lead מלקוח בעל עונתיות חזקה      |
+| WhatsApp attribution                    | דורש WhatsApp Business API + Pixel integration                                 | קיום WhatsApp בעסק פעיל          |
+| Advantage+ Multi-campaign Testing       | תקציב מינימלי $100/day לא תמיד יש                                              | תקציב יומי > ₪500                |
+| Auto audience building                  | מורכב; risk גבוה                                                               | אחרי 30 ימי HITL stable          |
+| Real-time alerts (webhook)              | דורש endpoint ציבורי ב-Meta                                                    |                                  |
+| Video/Voice-over AI generation          | עלות גבוהה, איכות בעברית עדיין חלשה                                            | איכות Veo/ElevenLabs בעברית > סף |
+| Regeneration loop על דחיית קריאייטיב    | UX מורכב                                                                       | feedback מלקוחות                 |
+| Cross-business intelligence             | רלוונטי רק ב-multi-tenant                                                      | עם multi-tenant                  |
+| LangSmith / Langfuse                    | `agent_decisions` מספיק ל-MVP                                                  | debugging מסובך שהטבלה לא מכסה   |
 
 ### 22.1 תכנית מעבר ל-LangGraph (v2)
 
@@ -2143,43 +2200,52 @@ Claude total:                                          ~$23.00/חודש/עסק
 ### מקורות חיצוניים (נשמרו מהאפיון הראשוני)
 
 **Meta Andromeda:**
+
 - [Meta Andromeda Engineering Blog](https://engineering.fb.com/2024/12/02/production-engineering/meta-andromeda-advantage-automation-next-gen-personalized-ads-retrieval-engine/)
 - [Inside Meta's Andromeda and GEM (Search Engine Land)](https://searchengineland.com/meta-ai-driven-advertising-system-andromeda-gem-468020)
 - [Mastering Meta Andromeda (Logical Position 2026)](https://www.logicalposition.com/blog/the-2026-paid-social-playbook)
 
 **Advantage+ / Campaign Structure 2026:**
+
 - [Meta Ads Best Practices 2026 (OptiFOX)](https://optifox.in/blog/meta-ads-best-practices-2026/)
 - [CBO vs ABO 2026 (Adligator)](https://adligator.com/blog/facebook-ads-budget-optimization-cbo-vs-abo-guide)
 - [Advantage+ Campaign Budget (Meta)](https://www.facebook.com/business/help/2177212182495139)
 
 **Learning Phase:**
+
 - [Learning Phase (Meta Business)](https://www.facebook.com/business/help/112167992830700)
 - [Significant Edits and Learning Phase (Meta)](https://www.facebook.com/business/help/316478108955072)
 - [Jon Loomer - Learning Phase](https://www.jonloomer.com/facebook-ads-learning-phase/)
 
 **Benchmarks 2026:**
+
 - [Facebook Ads Benchmarks 2026 (Visible Factors)](https://visiblefactors.com/facebook-ads-benchmarks/)
 - [Meta Ads Benchmarks 2026 (AdAmigo)](https://www.adamigo.ai/blog/meta-ads-benchmarks-2026-by-objective-and-placement)
 
 **Creative & Specs:**
+
 - [Meta Ads Size Guide 2026](https://adsuploader.com/blog/meta-ads-size)
 - [Facebook Ad Sizes & Specs (Shopify)](https://www.shopify.com/blog/facebook-ad-sizes)
 
 **Agent Architecture (MVP):**
+
 - [Claude Code Overview](https://docs.claude.com/en/docs/claude-code/overview)
 - [Claude Code Headless Mode (`claude -p`)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-headless)
 - [Claude Code Settings](https://docs.claude.com/en/docs/claude-code/settings)
 - [Anthropic API — Prompt Caching](https://docs.claude.com/en/docs/build-with-claude/prompt-caching)
 
 **Agent Architecture (v2 — reference, לא ב-MVP):**
+
 - [LangGraph Human-in-the-Loop Docs](https://docs.langchain.com/oss/python/deepagents/human-in-the-loop)
 - [LangChain Google Vertex AI](https://python.langchain.com/docs/integrations/chat/google_vertex_ai_palm/)
 
 **Supabase:**
+
 - [Supabase Python Client](https://supabase.com/docs/reference/python/introduction)
 - [Supabase Row-Level Security](https://supabase.com/docs/guides/auth/row-level-security)
 
 **GCP:**
+
 - [Cloud Run Jobs](https://cloud.google.com/run/docs/create-jobs)
 - [Cloud Scheduler](https://cloud.google.com/scheduler/docs)
 
@@ -2188,6 +2254,7 @@ Claude total:                                          ~$23.00/חודש/עסק
 **סוף אפיון MVP.**
 
 > הצעד הבא המומלץ:
+>
 > 1. הרצת סעיף 23.1 (pre-dev checklist) — במיוחד Meta App Review + Anthropic API key
 > 2. יצירת migrations (`migrations/001-006.sql`) והרצה מול Supabase
 > 3. בניית `campaigner/lib/meta_client.py` (עיטוף הקוד הקיים) + `campaigner/lib/supabase_client.py`

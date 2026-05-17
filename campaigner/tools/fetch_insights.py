@@ -6,6 +6,7 @@ this first to get a fresh picture of account/campaign/adset/ad performance.
 
 Exit codes per contract §11.6 (0 / 1 / 2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,7 +18,6 @@ from campaigner.tools._contract import (
     emit_success,
     emit_validation_error,
 )
-
 
 VALID_LEVELS = ("account", "campaign", "adset", "ad")
 
@@ -40,6 +40,13 @@ def main() -> None:
         default=None,
         help="Comma-separated insights fields to request (optional; uses sensible defaults)",
     )
+    p.add_argument(
+        "--with-prior-window",
+        action="store_true",
+        help="Also fetch the prior equal-length window (days N..2N back) and "
+        "merge into rows as *_current / *_prior / delta_*_pct. Used by §T2+ "
+        "Pre-check 2 (marginal-CPM guard) and §T_SD trend detection.",
+    )
     args = p.parse_args()
 
     if args.days <= 0 or args.days > 90:
@@ -55,11 +62,26 @@ def main() -> None:
         return
 
     try:
-        rows = client.fetch_insights(
-            level=args.level,
-            date_preset=f"last_{args.days}d",
-            fields=fields,
-        )
+        if args.with_prior_window:
+            rows = client.fetch_insights_with_prior_window(
+                level=args.level,
+                days=args.days,
+                fields=fields,
+            )
+        else:
+            # Meta Graph v25 rejected `date_preset=last_1d` — only valid presets
+            # for "1 day" are `today` and `yesterday`. Map --days=1 → today so
+            # Flow H's intra-day CPL spike check actually works (Bug found
+            # during 2026-05-17 scan; midday_health_check Step 1 crashed here).
+            if args.days == 1:
+                preset = "today"
+            else:
+                preset = f"last_{args.days}d"
+            rows = client.fetch_insights(
+                level=args.level,
+                date_preset=preset,
+                fields=fields,
+            )
     except Exception as e:
         emit_runtime_error(f"Meta insights fetch failed: {e}", exc=e)
         return
@@ -70,6 +92,7 @@ def main() -> None:
             "level": args.level,
             "days": args.days,
             "fields": fields,
+            "with_prior_window": args.with_prior_window,
             "row_count": len(rows),
             "rows": rows,
         }

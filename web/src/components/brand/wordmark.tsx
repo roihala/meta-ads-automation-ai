@@ -10,9 +10,16 @@ type WordmarkProps = {
  * Aiweon wordmark lockup. Typography-based so it adapts to theme + scales
  * cleanly; `Ai` sits in the brand orange, `weOn` inherits foreground.
  */
-export function AiweonWordmark({ className, tagline = false, subtitle }: WordmarkProps) {
+export function AiweonWordmark({
+  className,
+  tagline = false,
+  subtitle,
+}: WordmarkProps) {
   return (
-    <span dir="ltr" className={cn("inline-flex items-baseline gap-2", className)}>
+    <span
+      dir="ltr"
+      className={cn("inline-flex items-baseline gap-2", className)}
+    >
       <span className="font-sans font-extrabold leading-none tracking-[-0.035em]">
         <span className="text-brand-500 dark:text-brand-400">A</span>
         <span className="relative text-brand-500 dark:text-brand-400">

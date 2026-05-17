@@ -63,6 +63,7 @@ Creative uploaded
 **למה זה קריטי:** CPL ממוצע של Aiweon הוא ₪85. בעסק שני — ₪250. שניהם יכולים להיות "טובים" עבור העסק שלהם. לא משנה שהחציון הגלובלי הוא $27.66. ה-baseline הפנימי הוא האמת.
 
 **השלכה מעשית:**
+
 ```
 ❌ "CPL ₪110 זה רע כי החציון הגלובלי נמוך יותר"
 ✅ "CPL ₪110 זה 29% מעל ה-baseline של 30 הימים האחרונים של החשבון — סמן כבעייתי"
@@ -72,10 +73,10 @@ Creative uploaded
 
 **אל תכפיל benchmarks גלובליים ב-factor עבור ישראל.** המספרים האלה לא צייתנים:
 
-| מדד | ישראל 2025 | גלובל 2025 | יחס |
-|---|---|---|---|
-| CPM | $8.38 | $20.15 | ~40% נמוך |
-| CPL | $104.72 | $41.53 | **2.5× יותר יקר** |
+| מדד | ישראל 2025 | גלובל 2025 | יחס               |
+| --- | ---------- | ---------- | ----------------- |
+| CPM | $8.38      | $20.15     | ~40% נמוך         |
+| CPL | $104.72    | $41.53     | **2.5× יותר יקר** |
 
 נוסף לכך: ישראל סובלת מ-volatility קיצוני באירועים ביטחוניים (CPL קופץ ל-$385 בחודשי מלחמה). **Operation Modes דחוי ל-v2** — אבל הסוכן כבר מודע לקיומה של תופעה זו.
 
@@ -87,24 +88,25 @@ Creative uploaded
 
 ### Gate 1 — Leading signals (החלטות מהירות)
 
-| מדד | מה הוא אומר | Kill trigger | Good |
-|---|---|---|---|
-| **Hook Rate (3s)** | האם הקריאייטיב עוצר גלילה? | < 25% אחרי 48h | > 35% |
-| **CTR (מוקדם)** | האם יש עניין / התאמה לקהל? | < 1% עם ≥1,000 חשיפות | > 2% |
-| **Thumb-Stop Rate** | גרסה מדויקת יותר של Hook | < 20% אחרי 48h | > 30% |
+| מדד                 | מה הוא אומר                | Kill trigger          | Good  |
+| ------------------- | -------------------------- | --------------------- | ----- |
+| **Hook Rate (3s)**  | האם הקריאייטיב עוצר גלילה? | < 25% אחרי 48h        | > 35% |
+| **CTR (מוקדם)**     | האם יש עניין / התאמה לקהל? | < 1% עם ≥1,000 חשיפות | > 2%  |
+| **Thumb-Stop Rate** | גרסה מדויקת יותר של Hook   | < 20% אחרי 48h        | > 30% |
 
 **עיקרון:** אם קריאייטיב נכשל ב-Gate 1, **לא מסתכלים על CPA** — לא אמין עדיין. kill ומעבר הלאה.
 
 ### Gate 2 — Lagging signals (החלטות אסטרטגיות)
 
-| מדד | מה הוא אומר | Kill / Action | Good |
-|---|---|---|---|
-| **CPA** | כמה עולה המרה | > 1.3× יעד ל-5+ ימים → refresh/pause | ≤ יעד |
-| **ROAS** | כמה מחזירים על שקל | < Break-even → pause | ≥ רווחיות מינימלית |
-| **Meta Creative Fatigue flag** | Meta עצמה מזהה שחיקה | CPR ≥ 2× היסטורי → הוסף קריאייטיבים | לא מסומן |
-| **Frequency** | כמה פעמים קהל רואה | **לא trigger עצמאי** | מדד monitoring |
+| מדד                            | מה הוא אומר          | Kill / Action                        | Good               |
+| ------------------------------ | -------------------- | ------------------------------------ | ------------------ |
+| **CPA**                        | כמה עולה המרה        | > 1.3× יעד ל-5+ ימים → refresh/pause | ≤ יעד              |
+| **ROAS**                       | כמה מחזירים על שקל   | < Break-even → pause                 | ≥ רווחיות מינימלית |
+| **Meta Creative Fatigue flag** | Meta עצמה מזהה שחיקה | CPR ≥ 2× היסטורי → הוסף קריאייטיבים  | לא מסומן           |
+| **Frequency**                  | כמה פעמים קהל רואה   | **לא trigger עצמאי**                 | מדד monitoring     |
 
 **דגשי חובה:**
+
 - ❌ **Frequency > 3 כבר אינו קריטריון kill.** זה היה נכון ב-2021; לא נכון ב-2026.
 - ✅ **Meta Creative Fatigue flag החליף אותו** — CPR (cost per result) שעולה פי 2 מה-baseline. זה ה-signal האמיתי של שחיקה.
 
@@ -126,6 +128,7 @@ Creative uploaded
 ```
 
 **מעשית זה אומר:**
+
 - **Gate 1** רץ **פר-קריאייטיב** — כל קריאייטיב נבחן בנפרד
 - **Gate 2** רץ **פר-קמפיין** (aggregate) — CPA של הקמפיין ככלל, לא פר-ad set
 - ad set כמעט אף פעם לא הישות לה-action — Advantage+ מחליפה את רוב ה-targeting
@@ -189,7 +192,7 @@ Creative uploaded
 > "Campaign 'Q2 Push' פעיל 12 ימים. CPA התחיל ב-₪48, עלה ל-₪71 ב-6 ימים האחרונים. Meta Fatigue flag פעיל (CPR × 2.3). Frequency 3.2."
 >
 > **Gate 2 החלטה:**
-> CPR flag של Meta טריגר, CPA > 1.3× יעד. אבל: **לא משהים את הקמפיין**. הפעולה היא *הוספת* קריאייטיבים חדשים — לא פאוזה.
+> CPR flag של Meta טריגר, CPA > 1.3× יעד. אבל: **לא משהים את הקמפיין**. הפעולה היא _הוספת_ קריאייטיבים חדשים — לא פאוזה.
 >
 > **פעולה:** הוספת 5 קריאייטיבים חדשים מהגלריה + יצירה של 3 דרך `generate_creative.py`. תן ל-Andromeda להחליף ה-under-performers באופן טבעי.
 >
@@ -210,19 +213,19 @@ Creative uploaded
 
 **אם אתה כותב prompt חדש, guardrail, או מציע פיצ'ר — ודא שאינך משחזר אחד מאלה:**
 
-| חוק ישן (pre-2024) | למה הוא שגוי עכשיו |
-|---|---|
-| 1 ad set = 1 ad | Andromeda מעדיפה ad sets עם 10+ קריאייטיבים |
-| הפרדה לקמפיינים TOFU/MOFU/BOFU | Meta מזהה stage פנימית — Advantage+ |
-| Manual placement optimization | ספק aspect ratios; תן ל-Meta |
-| Horizontal scaling ע"י duplication | מאפס Learning Phase |
-| Narrow interest targeting | Andromeda עובד טוב יותר ב-broad |
-| **Frequency > 3 = kill** | **Creative Fatigue flag החליף אותו** |
-| Daily edits based on 1-3 days data | מפריע ל-Learning |
-| Single winning creative reliance | מביא לשחיקה מהירה |
-| Hook Rate > 30% כ-binary | עכשיו banded: >35% / 25-35% / <25% |
-| אחרי 5-7 ימים — השאר top 3-5 | Andromeda מחלקת תקציב לא-אחיד — don't prune |
-| Time-based sufficiency (72h) | Volume-based (1,000 impr + 50 clicks) |
+| חוק ישן (pre-2024)                 | למה הוא שגוי עכשיו                          |
+| ---------------------------------- | ------------------------------------------- |
+| 1 ad set = 1 ad                    | Andromeda מעדיפה ad sets עם 10+ קריאייטיבים |
+| הפרדה לקמפיינים TOFU/MOFU/BOFU     | Meta מזהה stage פנימית — Advantage+         |
+| Manual placement optimization      | ספק aspect ratios; תן ל-Meta                |
+| Horizontal scaling ע"י duplication | מאפס Learning Phase                         |
+| Narrow interest targeting          | Andromeda עובד טוב יותר ב-broad             |
+| **Frequency > 3 = kill**           | **Creative Fatigue flag החליף אותו**        |
+| Daily edits based on 1-3 days data | מפריע ל-Learning                            |
+| Single winning creative reliance   | מביא לשחיקה מהירה                           |
+| Hook Rate > 30% כ-binary           | עכשיו banded: >35% / 25-35% / <25%          |
+| אחרי 5-7 ימים — השאר top 3-5       | Andromeda מחלקת תקציב לא-אחיד — don't prune |
+| Time-based sufficiency (72h)       | Volume-based (1,000 impr + 50 clicks)       |
 
 **כלל:** כל trigger שמופעל בלבד מ-Frequency, או pause מבוסס CPA בלבד ב-48h, או פרסום של single-winner strategy — עבר על אחד מהמוסלחים. תחזור לסעיף 4.
 
@@ -263,15 +266,15 @@ Creative uploaded
 
 מסמך זה מתורגם לקוד ב:
 
-| אלמנט | מיקום |
-|---|---|
-| Two gates logic | `campaigner/prompts/performance-brain.md` + `decision-tree.md` |
-| Leading signals check | `campaigner/tools/check_data_sufficiency.py` |
-| Deprecated rules enforcement | `campaigner/guardrails.py` (5+ new guardrails 2026) |
-| Baselines rolling window | `campaigner/lib/baselines.py` (windows 7/14/30) |
-| Creative firehose | `runners/weekly_creative_firehose.sh` + `tools/generate_creative.py` |
-| Human-in-the-loop approval | טבלת `approvals` ב-Supabase |
-| Decision trail | טבלת `agent_decisions` |
+| אלמנט                        | מיקום                                                                |
+| ---------------------------- | -------------------------------------------------------------------- |
+| Two gates logic              | `campaigner/prompts/performance-brain.md` + `decision-tree.md`       |
+| Leading signals check        | `campaigner/tools/check_data_sufficiency.py`                         |
+| Deprecated rules enforcement | `campaigner/guardrails.py` (5+ new guardrails 2026)                  |
+| Baselines rolling window     | `campaigner/lib/baselines.py` (windows 7/14/30)                      |
+| Creative firehose            | `runners/weekly_creative_firehose.sh` + `tools/generate_creative.py` |
+| Human-in-the-loop approval   | טבלת `approvals` ב-Supabase                                          |
+| Decision trail               | טבלת `agent_decisions`                                               |
 
 **אם החלפת עיקרון ב-EVALUATION.md — לא מספיק.** חייב לעדכן את הקוד המקביל, את `prompts/*.md` שClaude טוען, ואת הguardrails. אחרת השינוי הוא תיאורטי בלבד.
 

@@ -5,14 +5,15 @@ Tests run against the *same* local Postgres as dev — we're validating the
 contract + SQL wiring, not mocked behavior. Each test gets a fresh `run_id`
 and is responsible (via fixtures here) for cleaning up anything it wrote.
 """
+
 from __future__ import annotations
 
 import os
 import subprocess
 import sys
 import uuid
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 import pytest
 
@@ -48,6 +49,7 @@ def cleanup_run(run_id: str):
     yield run_id
     # teardown — best-effort; test failures must not mask cleanup errors
     from campaigner.lib.db import execute
+
     try:
         execute("DELETE FROM agent_decisions WHERE run_id = %s", (run_id,))
         execute("DELETE FROM approvals WHERE created_by_run_id = %s", (run_id,))
@@ -63,6 +65,14 @@ def invoke_tool() -> Callable[..., subprocess.CompletedProcess]:
     Tools are invoked exactly as Claude would invoke them — no in-process
     imports, no mocked argv. This is what the contract promises.
     """
+
+    # Default 120s — Python + DB import warm-up runs 20-30s on Docker-on-Windows
+    # cold spawns; with the Phase 1-4 expansion (CustomAudience SDK, lead_fetching
+    # httpx, etc.) cold import of `campaigner.lib.meta_client` can hit 45s. The
+    # previous 60s default was on the edge after the Phase 3 chain methods landed.
+    # Override via CAMPAIGNER_TEST_TIMEOUT_S if you need a deliberately-slow path.
+    invoke_timeout = int(os.environ.get("CAMPAIGNER_TEST_TIMEOUT_S", "120"))
+
     def _invoke(tool_module: str, *cli_args: str) -> subprocess.CompletedProcess:
         return subprocess.run(
             [sys.executable, "-m", f"campaigner.tools.{tool_module}", *cli_args],
@@ -70,7 +80,7 @@ def invoke_tool() -> Callable[..., subprocess.CompletedProcess]:
             text=True,
             cwd=str(REPO_ROOT),
             env={**os.environ, "PYTHONPATH": str(REPO_ROOT)},
-            timeout=30,
+            timeout=invoke_timeout,
         )
 
     return _invoke

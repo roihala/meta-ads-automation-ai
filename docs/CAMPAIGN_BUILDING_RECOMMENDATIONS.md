@@ -3,6 +3,7 @@
 **Last updated:** 2026-04-16
 **Sources merged:** Manus (primary, tie-breaker) + Grok
 **Raw source docs:**
+
 - `deep_research/manus-campaign-building-recommendations-2026-04-16.md`
 - `deep_research/grok-campaign-building-recommendations-2026-04-16.md`
 
@@ -51,14 +52,14 @@ _Grok differs:_ Grok frames Power of One as "one campaign, one ad set" — stric
 
 Meta's current objective map (2025-2026):
 
-| Objective | When to use |
-|-----------|-------------|
-| **Awareness** | Reach & brand recall, TOFU branding |
-| **Traffic** | Maximize clicks to site/LP |
-| **Engagement** | Post interactions, video views, DMs |
-| **Leads** | Instant Forms, Messenger, calls, or website lead conversions — default for most lead-gen businesses |
-| **Sales** | Purchases, catalog sales, high-value website/app conversions — default for eCommerce |
-| **App Promotion** | App installs & in-app events |
+| Objective         | When to use                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------- |
+| **Awareness**     | Reach & brand recall, TOFU branding                                                                 |
+| **Traffic**       | Maximize clicks to site/LP                                                                          |
+| **Engagement**    | Post interactions, video views, DMs                                                                 |
+| **Leads**         | Instant Forms, Messenger, calls, or website lead conversions — default for most lead-gen businesses |
+| **Sales**         | Purchases, catalog sales, high-value website/app conversions — default for eCommerce                |
+| **App Promotion** | App installs & in-app events                                                                        |
 
 **For a non-eCom lead-gen business:** Default to **Leads**. Use **Sales + website lead event** only if you have strong pixel/CAPI data and want to optimize for a deeper event (Submit Application, Contact, Complete Registration).
 
@@ -94,7 +95,7 @@ Rationale: Meta needs ~50 optimization events/week per ad set to exit the learni
 Worked examples:
 
 | Target CPA | Min daily budget |
-|------------|------------------|
+| ---------- | ---------------- |
 | $10        | ~$72/day         |
 | $20        | ~$143/day        |
 | $50        | ~$358/day        |
@@ -252,16 +253,16 @@ The damaging ones, ranked by how often they kill campaigns before they exit lear
 
 **Pre-Andromeda rules now actively misleading:**
 
-| Pre-Andromeda rule | 2026 replacement |
-|---|---|
-| Granular interest targeting as default | Broad + Advantage+ Audience; creative is the targeting |
-| Excessive ad set duplication to scale | Consolidated campaign + CBO + Advantage+ Sales |
-| Manual placement optimization | Advantage+ Placements (auto) |
-| ABO as the default for testing | CBO as the default |
-| "One creative per ad set" discipline | 3-5 at launch, 10-50+ at steady state, Advantage+ Creative |
-| Separate remarketing campaigns | Auto-prioritization inside Advantage+; use audience segments for reporting |
-| Complex TOFU/MOFU/BOFU ad set structure | One consolidated ad set; funnel lives in creative + audience signals |
-| CTR-first optimization | ROAS / CPA / lead quality |
+| Pre-Andromeda rule                      | 2026 replacement                                                           |
+| --------------------------------------- | -------------------------------------------------------------------------- |
+| Granular interest targeting as default  | Broad + Advantage+ Audience; creative is the targeting                     |
+| Excessive ad set duplication to scale   | Consolidated campaign + CBO + Advantage+ Sales                             |
+| Manual placement optimization           | Advantage+ Placements (auto)                                               |
+| ABO as the default for testing          | CBO as the default                                                         |
+| "One creative per ad set" discipline    | 3-5 at launch, 10-50+ at steady state, Advantage+ Creative                 |
+| Separate remarketing campaigns          | Auto-prioritization inside Advantage+; use audience segments for reporting |
+| Complex TOFU/MOFU/BOFU ad set structure | One consolidated ad set; funnel lives in creative + audience signals       |
+| CTR-first optimization                  | ROAS / CPA / lead quality                                                  |
 
 ---
 

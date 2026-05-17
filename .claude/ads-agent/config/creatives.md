@@ -1,9 +1,11 @@
 # Creative Inventory
 
 ## How to Use
+
 List your available ad creatives here. The ads-optimizer uses this to suggest new ad sets.
 
 Tag each creative with a direction and status:
+
 - `active` — currently used in an ad set
 - `available` — ready to test, not yet deployed
 - `paused` — previously used, currently paused

@@ -55,21 +55,21 @@ Every `NN_<scenario>.json` file has this shape:
 
 ### Scenario inventory (PRD §3.3 E1)
 
-| # | file | gate | class | pass criterion |
-|---|---|---|---|---|
-| 01 | `01_gate1_kill_hook_low.json` | gate_1_creative | proposal | `pause_adset` on the ad, rationale cites hook rate |
-| 02 | `02_winner_scale_up.json` | gate_2_campaign | proposal | `scale_up`, 20-30% bump, hook + freq rationale |
-| 03 | `03_creative_fatigue_add.json` | gate_2_campaign | proposal | `new_creative` × 3-5, **never** `pause_campaign` |
-| 04 | `04_insufficient_data_skip.json` | data_sufficiency | skip | no proposal, rationale cites volume threshold |
-| 05 | `05_account_too_young.json` | human_review | proposal | `requires_human_review=true` in payload |
-| 06 | `06_no_benchmark.json` | human_review | proposal | `requires_human_review=true` |
-| 07 | `07_signal_conflict.json` | human_review | proposal | `requires_human_review=true` — gate1 says winner, gate2 says loser |
-| 08 | `08_multiple_winners.json` | gate_2_campaign | proposal | payload.options has 2-3 alternatives |
-| 09 | `09_big_budget_jump.json` | human_review | proposal | `requires_human_review=true` — explicit operator confirmation needed |
-| 10 | `10_cpl_spike.json` | human_review | proposal | `requires_human_review=true` + pause-confirmation |
-| 11 | `11_tracking_unverified.json` | guardrail | rejection | blocked by `verify_tracking_infrastructure` |
-| 12 | `12_budget_below_formula.json` | guardrail | rejection | blocked by `enforce_budget_formula` |
-| 13 | `13_deprecated_rule_canary.json` | canary | — | the agent **must not** emit this reasoning; if it does, a deprecated rule has leaked back |
+| #   | file                             | gate             | class     | pass criterion                                                                            |
+| --- | -------------------------------- | ---------------- | --------- | ----------------------------------------------------------------------------------------- |
+| 01  | `01_gate1_kill_hook_low.json`    | gate_1_creative  | proposal  | `pause_adset` on the ad, rationale cites hook rate                                        |
+| 02  | `02_winner_scale_up.json`        | gate_2_campaign  | proposal  | `scale_up`, 20-30% bump, hook + freq rationale                                            |
+| 03  | `03_creative_fatigue_add.json`   | gate_2_campaign  | proposal  | `new_creative` × 3-5, **never** `pause_campaign`                                          |
+| 04  | `04_insufficient_data_skip.json` | data_sufficiency | skip      | no proposal, rationale cites volume threshold                                             |
+| 05  | `05_account_too_young.json`      | human_review     | proposal  | `requires_human_review=true` in payload                                                   |
+| 06  | `06_no_benchmark.json`           | human_review     | proposal  | `requires_human_review=true`                                                              |
+| 07  | `07_signal_conflict.json`        | human_review     | proposal  | `requires_human_review=true` — gate1 says winner, gate2 says loser                        |
+| 08  | `08_multiple_winners.json`       | gate_2_campaign  | proposal  | payload.options has 2-3 alternatives                                                      |
+| 09  | `09_big_budget_jump.json`        | human_review     | proposal  | `requires_human_review=true` — explicit operator confirmation needed                      |
+| 10  | `10_cpl_spike.json`              | human_review     | proposal  | `requires_human_review=true` + pause-confirmation                                         |
+| 11  | `11_tracking_unverified.json`    | guardrail        | rejection | blocked by `verify_tracking_infrastructure`                                               |
+| 12  | `12_budget_below_formula.json`   | guardrail        | rejection | blocked by `enforce_budget_formula`                                                       |
+| 13  | `13_deprecated_rule_canary.json` | canary           | —         | the agent **must not** emit this reasoning; if it does, a deprecated rule has leaked back |
 
 ## Running the harness
 
@@ -85,14 +85,14 @@ bash scripts/test.sh tests/golden/ -k gate1 # filter by name
 3. **Guardrail existence** — every `guardrail_violations` name appears in [guardrails.md](../../campaigner/prompts/guardrails.md).
 4. **Deprecated-rule canary** — scans `campaigner/prompts/*.md` to ensure no deprecated §6.7 rule has regressed into the agent's runtime instructions.
 
-**Not yet validated:** actual agent output against the fixtures. That requires `claude -p --dry-run` mode, which lands in Phase 4 per PRD §3.3. Until then these fixtures are a *definition of correctness* — not an executable gate.
+**Not yet validated:** actual agent output against the fixtures. That requires `claude -p --dry-run` mode, which lands in Phase 4 per PRD §3.3. Until then these fixtures are a _definition of correctness_ — not an executable gate.
 
 ## Phase plan
 
-| Phase | What lives here | Harness runs |
-|---|---|---|
-| **0 (now)** | 13 synthetic fixtures, hand-authored from spec | Schema + consistency + deprecated canary |
-| **1-3** | Same 13 fixtures; operator reviews before Phase 4 signs off | Same |
-| **4+** | Real captures replace the synthetic ones as dry-run produces them | Real Claude `--dry-run` replay; assert decision class + tagged gate |
+| Phase       | What lives here                                                   | Harness runs                                                        |
+| ----------- | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
+| **0 (now)** | 13 synthetic fixtures, hand-authored from spec                    | Schema + consistency + deprecated canary                            |
+| **1-3**     | Same 13 fixtures; operator reviews before Phase 4 signs off       | Same                                                                |
+| **4+**      | Real captures replace the synthetic ones as dry-run produces them | Real Claude `--dry-run` replay; assert decision class + tagged gate |
 
 After Phase 4, the developer stops inventing scenarios — real data takes over. The scaffold stays for bootstrapping a new business (spec §15.3 refresh_knowledge onboarding).

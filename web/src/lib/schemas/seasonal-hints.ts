@@ -16,8 +16,8 @@ export const seasonalHintSchema = z
     name: z.string().trim().min(1, "חובה שם חלון").max(60, "עד 60 תווים"),
     start: z.string().regex(ISO_DATE, "תאריך פתיחה חייב להיות YYYY-MM-DD"),
     end: z.string().regex(ISO_DATE, "תאריך סגירה חייב להיות YYYY-MM-DD"),
-    multiplier: z
-      .coerce.number({ invalid_type_error: "מכפיל חייב להיות מספר" })
+    multiplier: z.coerce
+      .number({ invalid_type_error: "מכפיל חייב להיות מספר" })
       .min(0.1, "מינימום 0.1")
       .max(3.0, "מקסימום 3.0"),
     confidence: z.enum(["user_stated", "learned"]).default("user_stated"),
@@ -39,12 +39,20 @@ export type SeasonalHintsForm = z.infer<typeof seasonalHintsSchema>;
  * from a backend tool) so the overlap hint can render synchronously on the
  * settings page without a round-trip.
  */
-export function multiplierForDate(hints: SeasonalHintsForm | undefined, on: Date): number {
+export function multiplierForDate(
+  hints: SeasonalHintsForm | undefined,
+  on: Date,
+): number {
   if (!hints?.windows?.length) return 1.0;
   const iso = on.toISOString().slice(0, 10);
   let total = 1.0;
   for (const w of hints.windows) {
-    if (w.start <= iso && iso <= w.end && Number.isFinite(w.multiplier) && w.multiplier > 0) {
+    if (
+      w.start <= iso &&
+      iso <= w.end &&
+      Number.isFinite(w.multiplier) &&
+      w.multiplier > 0
+    ) {
       total *= w.multiplier;
     }
   }
@@ -60,7 +68,11 @@ export function overlappingPairs(
   hints: SeasonalHintsForm | undefined,
 ): Array<{ a: SeasonalHintForm; b: SeasonalHintForm; product: number }> {
   const windows = hints?.windows ?? [];
-  const out: Array<{ a: SeasonalHintForm; b: SeasonalHintForm; product: number }> = [];
+  const out: Array<{
+    a: SeasonalHintForm;
+    b: SeasonalHintForm;
+    product: number;
+  }> = [];
   for (let i = 0; i < windows.length; i++) {
     for (let j = i + 1; j < windows.length; j++) {
       const a = windows[i];

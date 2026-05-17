@@ -9,16 +9,17 @@ Contract (spec §11.6):
 Every tool routes all its exits through `emit_*` so the contract is
 enforced in one place. Tools never call `sys.exit` or `print` directly.
 """
+
 from __future__ import annotations
 
 import json
 import sys
 import time
 import traceback
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 import psycopg
-
 
 T = TypeVar("T")
 

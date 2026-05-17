@@ -20,18 +20,17 @@ Invocation:
   # or via the `campaigner` bash wrapper at the repo root:
   ./campaigner list --pending
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 from campaigner.lib.config import Config, ConfigError
 from campaigner.lib.db import execute, fetch_all, fetch_one
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -47,6 +46,7 @@ FINAL_STATUSES = {"approved", "rejected", "executed", "failed", "expired"}
 # =============================================================================
 # list
 # =============================================================================
+
 
 def _cmd_list(args: argparse.Namespace) -> int:
     cfg = _load_cfg()
@@ -80,7 +80,9 @@ def _cmd_list(args: argparse.Namespace) -> int:
         print("(no approvals match)")
         return 0
 
-    print(f"{'ID':<10} {'STATUS':<10} {'URGENCY':<8} {'TASK':<18} {'TARGET':<22} {'CREATED':<17} RATIONALE")
+    print(
+        f"{'ID':<10} {'STATUS':<10} {'URGENCY':<8} {'TASK':<18} {'TARGET':<22} {'CREATED':<17} RATIONALE"
+    )
     print("-" * 140)
     for r in rows:
         rid = str(r["id"])[:8]
@@ -88,13 +90,16 @@ def _cmd_list(args: argparse.Namespace) -> int:
         target = f"{r['target_kind'] or '-'}:{(r['target_id'] or '-')[:14]}"
         created = r["created_at"].strftime("%Y-%m-%d %H:%M")
         rationale = (r["rationale"] or "").replace("\n", " ")[:60]
-        print(f"{rid:<10} {r['status']:<10} {r['urgency'] or '-':<8} {task:<18} {target:<22} {created:<17} {rationale}")
+        print(
+            f"{rid:<10} {r['status']:<10} {r['urgency'] or '-':<8} {task:<18} {target:<22} {created:<17} {rationale}"
+        )
     return 0
 
 
 # =============================================================================
 # approve
 # =============================================================================
+
 
 def _cmd_approve(args: argparse.Namespace) -> int:
     row = _resolve_approval(args.approval_id)
@@ -105,7 +110,9 @@ def _cmd_approve(args: argparse.Namespace) -> int:
         print(f"already {row['status']} (id={row['id']}, approved_at={row.get('approved_at')})")
         return 0
     if row["status"] != "pending":
-        _fail_validation(f"cannot approve from status '{row['status']}' — only 'pending' is approvable")
+        _fail_validation(
+            f"cannot approve from status '{row['status']}' — only 'pending' is approvable"
+        )
 
     approver = args.by or "terminal"
     execute(
@@ -125,6 +132,7 @@ def _cmd_approve(args: argparse.Namespace) -> int:
 # =============================================================================
 # reject
 # =============================================================================
+
 
 def _cmd_reject(args: argparse.Namespace) -> int:
     row = _resolve_approval(args.approval_id)
@@ -158,6 +166,7 @@ def _cmd_reject(args: argparse.Namespace) -> int:
 # inspect
 # =============================================================================
 
+
 def _cmd_inspect(args: argparse.Namespace) -> int:
     target = args.id.strip()
     approval = _resolve_approval(target)
@@ -182,7 +191,9 @@ def _cmd_inspect(args: argparse.Namespace) -> int:
     if approval is not None:
         print(f"Approval {approval['id']}")
         print(f"  status     {approval['status']}   urgency {approval['urgency']}")
-        print(f"  task       {approval['task_type']}  target {approval['target_kind']}:{approval['target_id']}")
+        print(
+            f"  task       {approval['task_type']}  target {approval['target_kind']}:{approval['target_id']}"
+        )
         print(f"  created    {approval['created_at']}  expires {approval['expires_at']}")
         if approval.get("approved_at"):
             print(f"  approved   {approval['approved_at']} by {approval.get('approved_by')}")
@@ -218,6 +229,7 @@ def _cmd_inspect(args: argparse.Namespace) -> int:
 # run
 # =============================================================================
 
+
 def _cmd_run(args: argparse.Namespace) -> int:
     script = RUNNER_FOR_FLOW.get(args.flow)
     if script is None:
@@ -234,6 +246,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
 # =============================================================================
 # helpers
 # =============================================================================
+
 
 def _load_cfg() -> Config:
     try:
@@ -280,6 +293,7 @@ def _fail_validation(message: str) -> None:
 # =============================================================================
 # entrypoint
 # =============================================================================
+
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="campaigner")

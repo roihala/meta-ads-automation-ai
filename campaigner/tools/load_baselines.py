@@ -6,6 +6,7 @@ baselines (spec §6.2 reactive 7/14/30-day windows).
 
 Exit codes per contract §11.6 (0 / 1 / 2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,7 +19,6 @@ from campaigner.tools._contract import (
     emit_validation_error,
     with_db_retry,
 )
-
 
 VALID_SCOPES = ("account", "campaign", "adset")
 

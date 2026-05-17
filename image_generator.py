@@ -1,8 +1,10 @@
 """
 Image generation module using Vertex AI Imagen
 """
+
 import os
-from typing import Optional, Literal
+from typing import Literal
+
 from google import genai
 from google.genai.types import GenerateImagesConfig
 
@@ -19,8 +21,8 @@ class ImageGenerator:
 
     def __init__(
         self,
-        project_id: Optional[str] = None,
-        location: Optional[str] = None,
+        project_id: str | None = None,
+        location: str | None = None,
         model_tier: Literal["fast", "standard", "ultra"] = "fast",
     ):
         self.project_id = project_id or os.getenv("GCP_PROJECT_ID", "bemtech-478413")
@@ -37,7 +39,7 @@ class ImageGenerator:
         self,
         prompt: str,
         aspect_ratio: str = "1:1",
-        save_path: Optional[str] = None,
+        save_path: str | None = None,
     ) -> dict:
         """
         Generate an image from a text prompt.
@@ -116,13 +118,14 @@ class ImageGenerator:
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
 
     generator = ImageGenerator()
 
     result = generator.generate_image(
         prompt="Professional digital marketing agency workspace, modern and sleek, "
-               "AI-powered dashboards on screens, clean design",
+        "AI-powered dashboards on screens, clean design",
         aspect_ratio="1:1",
         save_path="./generated_images/test_aiweon.png",
     )

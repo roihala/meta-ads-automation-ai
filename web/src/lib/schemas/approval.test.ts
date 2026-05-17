@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { approvalSchema, rejectRequestSchema, TASK_TYPES, URGENCY } from "./approval";
+import {
+  approvalSchema,
+  rejectRequestSchema,
+  TASK_TYPES,
+  URGENCY,
+} from "./approval";
 
 const validApproval = {
   id: "550e8400-e29b-41d4-a716-446655440000",

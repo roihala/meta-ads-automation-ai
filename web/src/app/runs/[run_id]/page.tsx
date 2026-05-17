@@ -1,9 +1,20 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Nav } from "@/components/nav";
-import { DecisionRow, DECISION_LABEL_HE, DECISION_STYLES } from "@/components/decision-row";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Shell, PageHeader } from "@/components/shell";
+import {
+  DecisionRow,
+  DECISION_LABEL_HE,
+  DECISION_STYLES,
+} from "@/components/decision-row";
+import { getActiveBusiness } from "@/lib/active-business";
 import { getAuth } from "@/lib/auth";
 import { getDataClient } from "@/lib/db";
 import type { AgentDecision, DecisionType } from "@/lib/db/types";
@@ -27,7 +38,10 @@ function formatDuration(ms: number): string {
   if (sec < 60) return `${sec}ש״נ`;
   const min = Math.floor(sec / 60);
   const remSec = sec % 60;
-  if (min < 60) return remSec ? `${min}:${String(remSec).padStart(2, "0")} דק׳` : `${min} דק׳`;
+  if (min < 60)
+    return remSec
+      ? `${min}:${String(remSec).padStart(2, "0")} דק׳`
+      : `${min} דק׳`;
   const hr = Math.floor(min / 60);
   const remMin = min % 60;
   return `${hr}ש׳ ${remMin}דק׳`;
@@ -45,9 +59,7 @@ export default async function RunDetailPage({
   if (!session) redirect(`/login?next=/runs/${runId}`);
 
   const db = getDataClient();
-  const business = process.env.BUSINESS_ID
-    ? await db.getBusinessById(process.env.BUSINESS_ID)
-    : await db.getFirstBusiness();
+  const business = await getActiveBusiness();
   if (!business) notFound();
 
   const decisions = await db.listDecisionsForRun(business.id, runId);
@@ -55,15 +67,22 @@ export default async function RunDetailPage({
 
   const first = decisions[0];
   const last = decisions[decisions.length - 1];
-  const durationMs = new Date(last.created_at).getTime() - new Date(first.created_at).getTime();
+  const durationMs =
+    new Date(last.created_at).getTime() - new Date(first.created_at).getTime();
 
   const typeCounts = new Map<DecisionType, number>();
   for (const d of decisions) {
     typeCounts.set(d.decision_type, (typeCounts.get(d.decision_type) ?? 0) + 1);
   }
 
-  const totalTokensIn = decisions.reduce((s, d) => s + (d.llm_tokens_in ?? 0), 0);
-  const totalTokensOut = decisions.reduce((s, d) => s + (d.llm_tokens_out ?? 0), 0);
+  const totalTokensIn = decisions.reduce(
+    (s, d) => s + (d.llm_tokens_in ?? 0),
+    0,
+  );
+  const totalTokensOut = decisions.reduce(
+    (s, d) => s + (d.llm_tokens_out ?? 0),
+    0,
+  );
   const totalLatencyMs = decisions.reduce((s, d) => s + (d.latency_ms ?? 0), 0);
 
   const graphNames = Array.from(new Set(decisions.map((d) => d.graph_name)));
@@ -73,7 +92,9 @@ export default async function RunDetailPage({
 
   const relatedApprovals = buildRelatedApprovals(decisions);
   const relatedCampaigns = Array.from(
-    new Set(decisions.map((d) => d.campaign_id).filter((c): c is string => !!c)),
+    new Set(
+      decisions.map((d) => d.campaign_id).filter((c): c is string => !!c),
+    ),
   );
   const hasErrors = (typeCounts.get("error") ?? 0) > 0;
   const guardrailHits = decisions.reduce(
@@ -81,33 +102,32 @@ export default async function RunDetailPage({
     0,
   );
 
+  const right = (
+    <Link href="/approvals">
+      <Button variant="outline" size="sm">
+        הצעות
+      </Button>
+    </Link>
+  );
+
   return (
-    <main className="min-h-screen p-6">
-      <div className="mx-auto flex max-w-4xl flex-col gap-6">
-        <Nav active="/runs" />
+    <Shell active="/runs" right={right}>
+      <PageHeader
+        eyebrow="ריצה"
+        title={graphNames.join(", ") || "ריצה"}
+        subtitle={`${runId} · התחילה ${relativeHe(first.created_at)}`}
+      />
 
-        <header className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-bold">ריצה</h1>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span dir="ltr" className="font-mono text-xs">{runId}</span>
-              <span>·</span>
-              <span>{graphNames.join(", ")}</span>
-              <span>·</span>
-              <span>התחילה {relativeHe(first.created_at)}</span>
-            </div>
-          </div>
-          <Link href="/approvals">
-            <Button variant="outline">הצעות</Button>
-          </Link>
-        </header>
-
+      <div className="flex flex-col gap-6">
         {hasErrors ? (
-          <Card className="border-red-300 bg-red-50/40">
+          <Card className="border-red-300/60 bg-red-50/40 dark:border-red-900/50 dark:bg-red-900/10">
             <CardHeader>
-              <CardTitle className="text-red-900">הריצה כללה שגיאות</CardTitle>
-              <CardDescription className="text-red-800">
-                {typeCounts.get("error")} רשומות error. בדוק את השורות המסומנות באדום למטה.
+              <CardTitle className="text-red-900 dark:text-red-200">
+                הריצה כללה שגיאות
+              </CardTitle>
+              <CardDescription className="text-red-800 dark:text-red-300">
+                {typeCounts.get("error")} רשומות error. בדוק את השורות המסומנות
+                באדום למטה.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -135,7 +155,9 @@ export default async function RunDetailPage({
               />
               <Stat
                 label="סך latency"
-                value={totalLatencyMs > 0 ? formatDuration(totalLatencyMs) : "—"}
+                value={
+                  totalLatencyMs > 0 ? formatDuration(totalLatencyMs) : "—"
+                }
               />
             </div>
 
@@ -156,7 +178,7 @@ export default async function RunDetailPage({
             </div>
 
             {guardrailHits > 0 ? (
-              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+              <div className="rounded-md border border-amber-300/60 bg-amber-50/60 p-3 text-sm text-amber-900 dark:border-amber-700/50 dark:bg-amber-900/15 dark:text-amber-200">
                 🛡 {guardrailHits} guardrail violations בריצה הזו
               </div>
             ) : null}
@@ -168,7 +190,8 @@ export default async function RunDetailPage({
             <CardHeader>
               <CardTitle>הצעות שנוצרו מהריצה</CardTitle>
               <CardDescription>
-                {relatedApprovals.length} הצעות יחודיות עם קישורי `related_approval_id`.
+                {relatedApprovals.length} הצעות יחודיות עם קישורי
+                related_approval_id.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -177,13 +200,18 @@ export default async function RunDetailPage({
                   <li key={r.id}>
                     <Link
                       href={`/approvals/${r.id}`}
-                      className="flex flex-wrap items-center gap-2 rounded-md border p-2 text-sm hover:bg-muted/50"
+                      className="flex flex-wrap items-center gap-2 rounded-md border bg-card/40 p-2 text-sm transition-colors hover:bg-muted/40"
                     >
-                      <span dir="ltr" className="font-mono text-xs text-muted-foreground">
+                      <span
+                        dir="ltr"
+                        className="font-mono text-xs text-muted-foreground"
+                      >
                         {r.id.slice(0, 8)}
                       </span>
                       {r.taskType ? (
-                        <span className="font-medium">{taskTypeLabel(r.taskType)}</span>
+                        <span className="font-medium">
+                          {taskTypeLabel(r.taskType)}
+                        </span>
                       ) : null}
                       {r.campaignId ? (
                         <span className="text-xs text-muted-foreground">
@@ -212,9 +240,11 @@ export default async function RunDetailPage({
                   <Link
                     key={c}
                     href={`/campaigns#campaign-${c}`}
-                    className="inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs hover:bg-muted/50"
+                    className="inline-flex items-center gap-1 rounded-full border bg-card/40 px-3 py-1 text-xs transition-colors hover:bg-muted/40"
                   >
-                    <span dir="ltr" className="font-mono">{c}</span>
+                    <span dir="ltr" className="font-mono">
+                      {c}
+                    </span>
                     <span>↗</span>
                   </Link>
                 ))}
@@ -242,7 +272,7 @@ export default async function RunDetailPage({
           </CardContent>
         </Card>
       </div>
-    </main>
+    </Shell>
   );
 }
 
@@ -258,7 +288,8 @@ function buildRelatedApprovals(decisions: AgentDecision[]): RelatedApproval[] {
     if (!d.related_approval_id) continue;
     const existing = byId.get(d.related_approval_id);
     if (existing) {
-      if (!existing.campaignId && d.campaign_id) existing.campaignId = d.campaign_id;
+      if (!existing.campaignId && d.campaign_id)
+        existing.campaignId = d.campaign_id;
     } else {
       byId.set(d.related_approval_id, {
         id: d.related_approval_id,
@@ -278,9 +309,11 @@ function inferTaskType(d: AgentDecision): string | null {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border p-3">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 text-lg font-semibold">{value}</div>
+    <div className="rounded-md border bg-card/40 p-3">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-1 text-lg font-semibold tabular-nums">{value}</div>
     </div>
   );
 }

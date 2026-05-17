@@ -10,12 +10,13 @@ rationale viewer, business knowledge form.
 
 ## Dual-mode infrastructure
 
-| Mode | DB | Auth | When to use |
-|---|---|---|---|
-| `local-postgres` + `dev-cookie` | `pg` → local Postgres | email cookie (no verification) | **active** today; matches local backend stack |
-| `supabase` + `supabase` | `@supabase/ssr` + RLS | Supabase Auth magic link | stub today; lights up after [decisions-log §1.4](../docs/plans/decisions-log.md) resolves on Supabase |
+| Mode                            | DB                    | Auth                           | When to use                                                                                           |
+| ------------------------------- | --------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `local-postgres` + `dev-cookie` | `pg` → local Postgres | email cookie (no verification) | **active** today; matches local backend stack                                                         |
+| `supabase` + `supabase`         | `@supabase/ssr` + RLS | Supabase Auth magic link       | stub today; lights up after [decisions-log §1.4](../docs/plans/decisions-log.md) resolves on Supabase |
 
 Toggle via env:
+
 ```
 WEB_DB_MODE=local-postgres | supabase
 WEB_AUTH_MODE=dev-cookie  | supabase
@@ -28,7 +29,7 @@ the flag before wiring Supabase fails loudly.
 
 ```bash
 cp web/.env.example web/.env.local   # optional; compose also injects defaults
-docker compose --profile web up web  # http://localhost:3000
+docker compose --profile web up web  # http://localhost:3100
 ```
 
 The `web` service is behind the `web` compose profile so `docker compose up` (backend-only

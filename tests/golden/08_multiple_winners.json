@@ -46,7 +46,13 @@
       }
     ],
     "baselines": [
-      {"scope": "campaign", "scope_id": "120220000000000008", "metric": "cpa", "value": 55, "window_days": 30}
+      {
+        "scope": "campaign",
+        "scope_id": "120220000000000008",
+        "metric": "cpa",
+        "value": 55,
+        "window_days": 30
+      }
     ]
   },
   "expected": {

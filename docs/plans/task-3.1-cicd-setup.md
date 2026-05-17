@@ -91,19 +91,19 @@ Go to `https://github.com/roihala/meta-ads-automation-ai/settings/variables/acti
 
 **Variables** (not secret, visible in logs):
 
-| Name | Value |
-|---|---|
-| `GCP_PROJECT_ID` | `bemtech-478413` |
-| `AR_LOCATION` | `us-central1` |
-| `AR_REPOSITORY` | `generic-agent-repo` |
+| Name              | Value                                          |
+| ----------------- | ---------------------------------------------- |
+| `GCP_PROJECT_ID`  | `bemtech-478413`                               |
+| `AR_LOCATION`     | `us-central1`                                  |
+| `AR_REPOSITORY`   | `generic-agent-repo`                           |
 | `AR_PUSH_ENABLED` | `true` ← flip this last, acts as master switch |
 
 **Secrets** (masked in logs):
 
-| Name | Value |
-|---|---|
-| `WIF_PROVIDER` | `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/github-pool/providers/github-provider` |
-| `WIF_SERVICE_ACCOUNT` | `campaigner-ci@bemtech-478413.iam.gserviceaccount.com` |
+| Name                  | Value                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------- |
+| `WIF_PROVIDER`        | `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/github-pool/providers/github-provider` |
+| `WIF_SERVICE_ACCOUNT` | `campaigner-ci@bemtech-478413.iam.gserviceaccount.com`                                                   |
 
 > Get `PROJECT_NUMBER` from step 4 above.
 

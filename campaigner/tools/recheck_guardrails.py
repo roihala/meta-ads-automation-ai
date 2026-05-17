@@ -9,6 +9,7 @@ approval.
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -31,7 +32,9 @@ from campaigner.tools._contract import (
 def main() -> None:
     p = argparse.ArgumentParser(description="Re-run guardrail checks against an approved approval.")
     p.add_argument("--approval-id", required=True)
-    p.add_argument("--state", default=None, help="JSON with live Meta state (learning_status, hook_rate, ...)")
+    p.add_argument(
+        "--state", default=None, help="JSON with live Meta state (learning_status, hook_rate, ...)"
+    )
     args = p.parse_args()
 
     state = parse_json_arg(args.state, "state") or {}
@@ -46,15 +49,17 @@ def main() -> None:
         return
 
     try:
-        row = with_db_retry(lambda: fetch_one(
-            """
+        row = with_db_retry(
+            lambda: fetch_one(
+                """
             SELECT id, business_id, task_type, target_kind, target_id,
                    payload, rationale, urgency, status
             FROM approvals
             WHERE id = %s
             """,
-            (args.approval_id,),
-        ))
+                (args.approval_id,),
+            )
+        )
     except Exception as e:
         emit_runtime_error(f"approval fetch failed: {e}", exc=e)
         return
@@ -79,12 +84,19 @@ def main() -> None:
 
     # Delegate to check_guardrails as a subprocess so we re-use exactly one implementation.
     cmd = [
-        sys.executable, "-m", "campaigner.tools.check_guardrails",
-        "--business-id", str(row["business_id"]),
-        "--proposal", json.dumps(proposal_json, default=str),
-        "--state", json.dumps(state, default=str),
+        sys.executable,
+        "-m",
+        "campaigner.tools.check_guardrails",
+        "--business-id",
+        str(row["business_id"]),
+        "--proposal",
+        json.dumps(proposal_json, default=str),
+        "--state",
+        json.dumps(state, default=str),
     ]
-    proc = subprocess.run(cmd, capture_output=True, text=True, cwd=str(Path(__file__).resolve().parents[2]))
+    proc = subprocess.run(
+        cmd, capture_output=True, text=True, cwd=str(Path(__file__).resolve().parents[2])
+    )
     if proc.returncode != 0:
         emit_runtime_error(f"check_guardrails subprocess failed: {proc.stderr.strip()}", exc=None)
         return
@@ -95,11 +107,13 @@ def main() -> None:
         emit_runtime_error(f"check_guardrails returned non-JSON: {e}", exc=e)
         return
 
-    emit_success({
-        "approval_id": args.approval_id,
-        "rechecked_against_state": bool(state),
-        **inner,
-    })
+    emit_success(
+        {
+            "approval_id": args.approval_id,
+            "rechecked_against_state": bool(state),
+            **inner,
+        }
+    )
 
 
 if __name__ == "__main__":

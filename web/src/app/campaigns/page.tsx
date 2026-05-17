@@ -1,15 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Nav } from "@/components/nav";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Shell, PageHeader } from "@/components/shell";
+import { SubNav, CAMPAIGN_GROUP_ITEMS } from "@/components/sub-nav";
+import { Sparkline, synthSpendTrend } from "@/components/sparkline";
+import { getActiveBusiness } from "@/lib/active-business";
 import { getAuth } from "@/lib/auth";
 import { getDataClient } from "@/lib/db";
 import {
   MetaApiError,
   type DatePreset,
   type DateRange,
+  type MetaAdSetSummary,
   type MetaAdSummary,
   type MetaInsights,
   findAction,
@@ -17,12 +28,40 @@ import {
   formatMoney,
   formatPct,
   getAdAccountInfo,
+  listAdSetsForAccount,
   listAdsForAccount,
   listCampaignsWithInsights,
   parseDateRange,
 } from "@/lib/meta";
+import {
+  getTokenForBusiness,
+  MetaConnectionExpired,
+  MetaConnectionRequired,
+} from "@/lib/meta-tokens";
+import { matchSubVertical, SUBVERTICALS } from "@/lib/cpl-infrastructure";
+import type { Vertical } from "@/lib/db/types";
+
+// Hebrew labels mirroring SUB_VERTICAL_HE in /business-knowledge. Kept here
+// to avoid a circular dep — single source of truth would be a shared map.
+const SUB_VERTICAL_HE_LOCAL: Record<string, string> = {
+  ai_chatbot_services: "סוכני AI",
+  ai_video_production: "סרטוני AI",
+  ai_campaign_management: "ניהול קמפיינים AI",
+  saas_marketing_tech: "טכנולוגיית שיווק",
+  agency_services: "סוכנות שיווק",
+  real_estate_residential: "נדל\"ן מגורים",
+  home_services: "שירותי בית",
+  beauty_aesthetic: "אסתטיקה",
+  fitness_studio: "סטודיו כושר",
+  legal_personal: "עו\"ד אישי",
+  insurance_agent: "סוכן ביטוח",
+  renovation_contractor: "קבלן שיפוצים",
+  dental_clinic: "מרפאת שיניים",
+  other: "אחר",
+};
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "קמפיינים" };
 
 const STATUS_STYLES: Record<string, string> = {
   ACTIVE: "bg-green-100 text-green-800",
@@ -48,40 +87,64 @@ const OBJECTIVE_LABEL_HE: Record<string, string> = {
 
 // Per-objective conversion metrics to surface on each campaign card.
 // Each entry tries action types in order and uses the first one that returned a value.
-const CONVERSIONS_BY_OBJECTIVE: Record<string, Array<{ label: string; types: string[] }>> = {
+const CONVERSIONS_BY_OBJECTIVE: Record<
+  string,
+  Array<{ label: string; types: string[] }>
+> = {
   MESSAGES: [
-    { label: "שיחות שנפתחו", types: ["onsite_conversion.messaging_conversation_started_7d"] },
-    { label: "תגובות ראשונות", types: ["onsite_conversion.messaging_first_reply"] },
+    {
+      label: "שיחות שנפתחו",
+      types: ["onsite_conversion.messaging_conversation_started_7d"],
+    },
+    {
+      label: "תגובות ראשונות",
+      types: ["onsite_conversion.messaging_first_reply"],
+    },
   ],
   OUTCOME_ENGAGEMENT: [
-    { label: "שיחות שנפתחו", types: ["onsite_conversion.messaging_conversation_started_7d"] },
+    {
+      label: "שיחות שנפתחו",
+      types: ["onsite_conversion.messaging_conversation_started_7d"],
+    },
     { label: "מעורבות בפוסט", types: ["post_engagement"] },
   ],
-  POST_ENGAGEMENT: [
-    { label: "מעורבות בפוסט", types: ["post_engagement"] },
-  ],
+  POST_ENGAGEMENT: [{ label: "מעורבות בפוסט", types: ["post_engagement"] }],
   OUTCOME_LEADS: [
-    { label: "לידים", types: ["lead", "onsite_conversion.lead_grouped", "offsite_conversion.fb_pixel_lead"] },
+    {
+      label: "לידים",
+      types: [
+        "lead",
+        "onsite_conversion.lead_grouped",
+        "offsite_conversion.fb_pixel_lead",
+      ],
+    },
     { label: "שיחות טלפון", types: ["click_to_call_call_confirm"] },
   ],
   LEAD_GENERATION: [
     { label: "לידים", types: ["lead", "onsite_conversion.lead_grouped"] },
   ],
   OUTCOME_SALES: [
-    { label: "רכישות", types: ["purchase", "offsite_conversion.fb_pixel_purchase"] },
-    { label: "הוספות לסל", types: ["add_to_cart", "offsite_conversion.fb_pixel_add_to_cart"] },
+    {
+      label: "רכישות",
+      types: ["purchase", "offsite_conversion.fb_pixel_purchase"],
+    },
+    {
+      label: "הוספות לסל",
+      types: ["add_to_cart", "offsite_conversion.fb_pixel_add_to_cart"],
+    },
   ],
   CONVERSIONS: [
-    { label: "רכישות", types: ["purchase", "offsite_conversion.fb_pixel_purchase"] },
+    {
+      label: "רכישות",
+      types: ["purchase", "offsite_conversion.fb_pixel_purchase"],
+    },
     { label: "לידים", types: ["lead", "offsite_conversion.fb_pixel_lead"] },
   ],
   OUTCOME_TRAFFIC: [
     { label: "קליקים ללינק", types: ["link_click"] },
     { label: "צפיות בדף נחיתה", types: ["landing_page_view"] },
   ],
-  LINK_CLICKS: [
-    { label: "קליקים ללינק", types: ["link_click"] },
-  ],
+  LINK_CLICKS: [{ label: "קליקים ללינק", types: ["link_click"] }],
 };
 
 function getConversions(
@@ -95,7 +158,9 @@ function getConversions(
     for (const t of types) {
       const value = findAction(ins, t);
       if (value) {
-        const cpa = ins.cost_per_action_type?.find((a) => a.action_type === t)?.value;
+        const cpa = ins.cost_per_action_type?.find(
+          (a) => a.action_type === t,
+        )?.value;
         out.push({ label, value, cpa });
         break;
       }
@@ -117,9 +182,14 @@ export default async function CampaignsPage({
   const range = parseDateRange(sp);
 
   const db = getDataClient();
-  const business = process.env.BUSINESS_ID
-    ? await db.getBusinessById(process.env.BUSINESS_ID)
-    : await db.getFirstBusiness();
+  const business = await getActiveBusiness();
+  // Per-campaign service inference (G5, 2026-05-13). For each Meta campaign,
+  // we run matchSubVertical with campaign.name as `campaign_name` (×3 weight)
+  // → derives which AIWEON service this campaign is about. Shown as a badge
+  // on the campaign card so the operator can verify the agent's anchoring.
+  const knowledgeForServiceInference = business
+    ? await db.getBusinessKnowledge(business.id)
+    : null;
 
   if (!business) {
     return (
@@ -137,21 +207,28 @@ export default async function CampaignsPage({
   let accountInfo: Awaited<ReturnType<typeof getAdAccountInfo>> | null = null;
   let campaigns: Awaited<ReturnType<typeof listCampaignsWithInsights>> = [];
   let allAds: MetaAdSummary[] = [];
+  let allAdSets: MetaAdSetSummary[] = [];
   let errorMsg: string | null = null;
 
   try {
-    [accountInfo, campaigns, allAds] = await Promise.all([
-      getAdAccountInfo(business.meta_ad_account_id),
-      listCampaignsWithInsights(business.meta_ad_account_id, range),
-      listAdsForAccount(business.meta_ad_account_id),
+    const { token } = await getTokenForBusiness(db, business);
+    [accountInfo, campaigns, allAds, allAdSets] = await Promise.all([
+      getAdAccountInfo(token, business.meta_ad_account_id),
+      listCampaignsWithInsights(token, business.meta_ad_account_id, range),
+      listAdsForAccount(token, business.meta_ad_account_id),
+      listAdSetsForAccount(token, business.meta_ad_account_id),
     ]);
   } catch (e) {
     errorMsg =
-      e instanceof MetaApiError
-        ? `Meta API: ${e.message}${e.code ? ` (code ${e.code})` : ""}`
-        : e instanceof Error
-          ? e.message
-          : String(e);
+      e instanceof MetaConnectionRequired
+        ? "אין חיבור פעיל ל-Meta — עבור ל-/integrations להתחבר"
+        : e instanceof MetaConnectionExpired
+          ? "החיבור ל-Meta פג — עבור ל-/integrations להתחבר מחדש"
+          : e instanceof MetaApiError
+            ? `Meta API: ${e.message}${e.code ? ` (code ${e.code})` : ""}`
+            : e instanceof Error
+              ? e.message
+              : String(e);
   }
 
   const currency = accountInfo?.currency ?? "USD";
@@ -162,7 +239,10 @@ export default async function CampaignsPage({
         <Card className="border-red-300">
           <CardHeader>
             <CardTitle className="text-red-900">שגיאה בקריאה ל-Meta</CardTitle>
-            <CardDescription dir="ltr" className="text-left font-mono text-xs text-red-800">
+            <CardDescription
+              dir="ltr"
+              className="text-left font-mono text-xs text-red-800"
+            >
               {errorMsg}
             </CardDescription>
           </CardHeader>
@@ -171,8 +251,24 @@ export default async function CampaignsPage({
     );
   }
 
-  const activeCount = campaigns.filter((c) => c.effective_status === "ACTIVE").length;
-  const totalSpend = campaigns.reduce((sum, c) => sum + Number(c.insights?.spend ?? 0), 0);
+  const activeCount = campaigns.filter(
+    (c) => c.effective_status === "ACTIVE",
+  ).length;
+  const totalSpend = campaigns.reduce(
+    (sum, c) => sum + Number(c.insights?.spend ?? 0),
+    0,
+  );
+
+  const pendingApprovals = await db.listPendingApprovals(business.id);
+  const pendingByCampaign = new Map<string, number>();
+  for (const a of pendingApprovals) {
+    if (a.target_kind === "campaign" && a.target_id) {
+      pendingByCampaign.set(
+        a.target_id,
+        (pendingByCampaign.get(a.target_id) ?? 0) + 1,
+      );
+    }
+  }
 
   const adsByCampaign = new Map<string, MetaAdSummary[]>();
   for (const ad of allAds) {
@@ -181,22 +277,30 @@ export default async function CampaignsPage({
     adsByCampaign.set(ad.campaign_id, arr);
   }
 
+  const adSetsByCampaign = new Map<string, MetaAdSetSummary[]>();
+  for (const as of allAdSets) {
+    const arr = adSetsByCampaign.get(as.campaign_id) ?? [];
+    arr.push(as);
+    adSetsByCampaign.set(as.campaign_id, arr);
+  }
+
   return (
     <Page>
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">קמפיינים (חיים מ-Meta)</h1>
-        <p className="text-sm text-muted-foreground">
-          חשבון: <span dir="ltr" className="font-mono text-xs">{accountInfo?.id}</span> ·{" "}
-          {accountInfo?.name} · {currency} · timezone {accountInfo?.timezone_name}
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="קמפיינים"
+        title="חיים מ-Meta"
+        subtitle={`חשבון: ${accountInfo?.id ?? "—"} · ${accountInfo?.name ?? ""} · ${currency} · timezone ${accountInfo?.timezone_name ?? ""}`}
+      />
 
       <DateRangePicker range={range} />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatCard label="קמפיינים סה״כ" value={campaigns.length.toString()} />
         <StatCard label="פעילים" value={activeCount.toString()} />
-        <StatCard label={`הוצאה · ${rangeLabel(range)}`} value={formatMoney(String(totalSpend), currency)} />
+        <StatCard
+          label={`הוצאה · ${rangeLabel(range)}`}
+          value={formatMoney(String(totalSpend), currency)}
+        />
       </div>
 
       {campaigns.length === 0 ? (
@@ -213,17 +317,79 @@ export default async function CampaignsPage({
           {campaigns.map((c) => {
             const ins = c.insights;
             const conversions = getConversions(c.objective, ins);
-            const objectiveLabel = OBJECTIVE_LABEL_HE[c.objective] ?? c.objective;
+            const objectiveLabel =
+              OBJECTIVE_LABEL_HE[c.objective] ?? c.objective;
             const ads = adsByCampaign.get(c.id) ?? [];
-            const activeAds = ads.filter((a) => a.effective_status === "ACTIVE").length;
+            const activeAds = ads.filter(
+              (a) => a.effective_status === "ACTIVE",
+            ).length;
+            const campaignAdSets = adSetsByCampaign.get(c.id) ?? [];
+            const adSetDailyTotal = campaignAdSets
+              .filter(
+                (as) =>
+                  as.effective_status !== "DELETED" &&
+                  as.effective_status !== "ARCHIVED",
+              )
+              .reduce((sum, as) => sum + Number(as.daily_budget ?? 0), 0);
+            const effectiveDailyCents =
+              Number(c.daily_budget ?? 0) || adSetDailyTotal;
+            const pendingCount = pendingByCampaign.get(c.id) ?? 0;
+            // Per-campaign service inference (G5). The matcher consumes the
+            // business haystack plus this campaign's name as `campaign_name`
+            // (×3 weight). When the campaign name carries a service term
+            // (e.g. "סוכן AI - שלב 1"), that wins. If not, falls back to
+            // aggregate match and the badge reads as warm-amber to nudge
+            // the operator to rename.
+            const serviceInference = knowledgeForServiceInference
+              ? matchSubVertical({
+                  vertical: knowledgeForServiceInference.vertical as Vertical | null,
+                  products_raw: (knowledgeForServiceInference.products ?? [])
+                    .map((p) => (p.description ? `${p.name} — ${p.description}` : p.name))
+                    .join("  ") || null,
+                  ideal_customer:
+                    (knowledgeForServiceInference.questionnaire_answers as Record<string, string | undefined> | null)
+                      ?.ideal_customer ?? null,
+                  usp:
+                    (knowledgeForServiceInference.questionnaire_answers as Record<string, string | undefined> | null)
+                      ?.usp ?? null,
+                  main_pain:
+                    (knowledgeForServiceInference.questionnaire_answers as Record<string, string | undefined> | null)
+                      ?.main_pain ?? null,
+                  campaign_name: c.name,
+                })
+              : null;
+            const serviceIsExplicit =
+              serviceInference?.confidence_of_match === "exact" &&
+              serviceInference.matched_terms.some((t) =>
+                c.name.toLowerCase().includes(t.toLowerCase()),
+              );
+            const serviceLabelHe = serviceInference
+              ? (SUB_VERTICAL_HE_LOCAL[serviceInference.sub] ?? serviceInference.sub)
+              : null;
+            // Decorative spend curve per card — synthesized from the
+            // aggregate spend value (same approach as the dashboard hero).
+            // Real per-day breakdown will replace this when we sample
+            // `budget_health` decisions or daily insights.
+            const cardSpendTrend = synthSpendTrend(
+              Math.round(Number(ins?.spend ?? 0)),
+              30,
+            );
+            const isPaused = c.effective_status !== "ACTIVE";
             return (
-              <Card key={c.id}>
+              <Card
+                key={c.id}
+                id={`campaign-${c.id}`}
+                className={`glass-panel scroll-mt-6 border-0 ${isPaused ? "opacity-70" : ""}`}
+              >
                 <CardHeader>
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="flex flex-col gap-1">
                       <CardTitle className="text-base">
                         {c.name}
-                        <span dir="ltr" className="ms-2 font-mono text-[10px] font-normal text-muted-foreground">
+                        <span
+                          dir="ltr"
+                          className="ms-2 font-mono text-[10px] font-normal text-muted-foreground"
+                        >
                           #{c.id}
                         </span>
                       </CardTitle>
@@ -233,19 +399,54 @@ export default async function CampaignsPage({
                         >
                           {c.effective_status}
                         </span>
-                        <span className="text-xs text-muted-foreground">{objectiveLabel}</span>
                         <span className="text-xs text-muted-foreground">
-                          מודעות: <strong className="text-foreground">{ads.length}</strong>
-                          {activeAds !== ads.length ? ` (${activeAds} פעילות)` : null}
+                          {objectiveLabel}
                         </span>
-                        {c.daily_budget ? (
-                          <span className="text-xs text-muted-foreground">
-                            תקציב יומי: {formatCents(c.daily_budget, currency)}
+                        {serviceLabelHe ? (
+                          <span
+                            className={
+                              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium " +
+                              (serviceIsExplicit
+                                ? "border border-emerald-300/60 bg-emerald-50/60 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                : "border border-amber-300/60 bg-amber-50/60 text-amber-800 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-300")
+                            }
+                            title={
+                              serviceIsExplicit
+                                ? `שם הקמפיין מזכיר את השירות '${serviceLabelHe}' — הסוכן יחקור לפי תת-ורטיקל זה`
+                                : `שם הקמפיין לא ספציפי — הסוכן נופל ל-${serviceLabelHe} כברירת מחדל. שנה את שם הקמפיין לתיאורי כדי לקבל אומדן מדויק.`
+                            }
+                          >
+                            שירות: {serviceLabelHe}
+                            {!serviceIsExplicit ? " (משוער)" : ""}
                           </span>
                         ) : null}
+                        {pendingCount > 0 ? (
+                          <Link
+                            href={`/approvals?campaign=${c.id}`}
+                            className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 hover:bg-amber-200"
+                          >
+                            🔔 {pendingCount} הצעות ממתינות
+                          </Link>
+                        ) : null}
+                        <span className="text-xs text-muted-foreground">
+                          מודעות:{" "}
+                          <strong className="text-foreground">
+                            {ads.length}
+                          </strong>
+                          {activeAds !== ads.length
+                            ? ` (${activeAds} פעילות)`
+                            : null}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          תקציב יומי:{" "}
+                          {effectiveDailyCents > 0
+                            ? formatCents(String(effectiveDailyCents), currency)
+                            : "ללא הגבלה"}
+                        </span>
                         {c.lifetime_budget ? (
                           <span className="text-xs text-muted-foreground">
-                            תקציב חיים: {formatCents(c.lifetime_budget, currency)}
+                            תקציב חיים:{" "}
+                            {formatCents(c.lifetime_budget, currency)}
                           </span>
                         ) : null}
                       </div>
@@ -261,13 +462,36 @@ export default async function CampaignsPage({
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {Number(ins?.spend ?? 0) > 0 ? (
+                    <div className="mb-4 h-[56px]">
+                      <Sparkline
+                        data={cardSpendTrend}
+                        height={56}
+                        color={
+                          isPaused
+                            ? "hsl(var(--muted-foreground))"
+                            : "var(--brand-500, hsl(28 91% 54%))"
+                        }
+                        strokeWidth={1.6}
+                      />
+                    </div>
+                  ) : null}
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
-                    <Metric label="הוצאה" value={formatMoney(ins?.spend, currency)} />
+                    <Metric
+                      label="הוצאה"
+                      value={formatMoney(ins?.spend, currency)}
+                    />
                     <Metric label="חשיפות" value={ins?.impressions ?? "—"} />
                     <Metric label="קליקים" value={ins?.clicks ?? "—"} />
                     <Metric label="CTR" value={formatPct(ins?.ctr)} />
-                    <Metric label="CPM" value={formatMoney(ins?.cpm, currency)} />
-                    <Metric label="CPC" value={formatMoney(ins?.cpc, currency)} />
+                    <Metric
+                      label="CPM"
+                      value={formatMoney(ins?.cpm, currency)}
+                    />
+                    <Metric
+                      label="CPC"
+                      value={formatMoney(ins?.cpc, currency)}
+                    />
                     <Metric label="Frequency" value={ins?.frequency ?? "—"} />
                   </div>
                   {conversions.length > 0 ? (
@@ -292,14 +516,20 @@ export default async function CampaignsPage({
                       </summary>
                       <ul className="mt-2 space-y-1 pe-4">
                         {ads.map((a) => (
-                          <li key={a.id} className="flex flex-wrap items-center gap-2">
+                          <li
+                            key={a.id}
+                            className="flex flex-wrap items-center gap-2"
+                          >
                             <span
                               className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[a.effective_status] ?? "bg-slate-200"}`}
                             >
                               {a.effective_status}
                             </span>
                             <span>{a.name}</span>
-                            <span dir="ltr" className="font-mono text-[10px] text-muted-foreground">
+                            <span
+                              dir="ltr"
+                              className="font-mono text-[10px] text-muted-foreground"
+                            >
                               #{a.id}
                             </span>
                           </li>
@@ -315,8 +545,9 @@ export default async function CampaignsPage({
       )}
 
       <p className="text-xs text-muted-foreground">
-        הנתונים נלקחים חי מ-Meta Graph API (טווח: {rangeLabel(range)}). ה-PRD רואה את העמוד הזה כ-v2,
-        אבל הוא כאן כדי שתוכל לראות את הנתונים הגולמיים לפני שהסוכן מעבד אותם.
+        הנתונים נלקחים חי מ-Meta Graph API (טווח: {rangeLabel(range)}). ה-PRD
+        רואה את העמוד הזה כ-v2, אבל הוא כאן כדי שתוכל לראות את הנתונים הגולמיים
+        לפני שהסוכן מעבד אותם.
       </p>
     </Page>
   );
@@ -324,20 +555,38 @@ export default async function CampaignsPage({
 
 function Page({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen p-6">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6">
-        <Nav active="/campaigns" />
-        {children}
-      </div>
-    </main>
+    <Shell active="/campaigns">
+      <SubNav items={CAMPAIGN_GROUP_ITEMS} />
+      <div className="flex flex-col gap-6">{children}</div>
+    </Shell>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
   return (
-    <div className="rounded-md border p-4">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 text-2xl font-bold">{value}</div>
+    <div className="glass-panel group relative overflow-hidden rounded-lg p-4 transition-transform hover:-translate-y-0.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[11.5px] font-medium text-muted-foreground">
+          {label}
+        </span>
+        {accent ? (
+          <span
+            className="h-1.5 w-1.5 rounded-full bg-brand-500 dark:bg-brand-400"
+            aria-hidden
+          />
+        ) : null}
+      </div>
+      <div className="font-tabular mt-2 text-[26px] font-bold leading-none tracking-[-0.02em]">
+        {value}
+      </div>
     </div>
   );
 }
@@ -357,14 +606,23 @@ function rangeLabel(range: DateRange): string {
 }
 
 function DateRangePicker({ range }: { range: DateRange }) {
-  const presets: DatePreset[] = ["today", "yesterday", "last_7d", "last_30d", "last_90d", "maximum"];
+  const presets: DatePreset[] = [
+    "today",
+    "yesterday",
+    "last_7d",
+    "last_30d",
+    "last_90d",
+    "maximum",
+  ];
   const currentPreset = range.kind === "preset" ? range.preset : null;
   const customSince = range.kind === "custom" ? range.since : "";
   const customUntil = range.kind === "custom" ? range.until : "";
 
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-md border p-3">
-      <span className="text-sm font-medium text-muted-foreground">טווח תאריכים:</span>
+      <span className="text-sm font-medium text-muted-foreground">
+        טווח תאריכים:
+      </span>
       <div className="flex flex-wrap gap-1">
         {presets.map((p) => {
           const isActive = currentPreset === p;
@@ -383,7 +641,11 @@ function DateRangePicker({ range }: { range: DateRange }) {
           );
         })}
       </div>
-      <form method="GET" action="/campaigns" className="ms-auto flex flex-wrap items-center gap-1">
+      <form
+        method="GET"
+        action="/campaigns"
+        className="ms-auto flex flex-wrap items-center gap-1"
+      >
         <span className="text-xs text-muted-foreground">טווח מותאם:</span>
         <input
           type="date"

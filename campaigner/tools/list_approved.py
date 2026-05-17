@@ -6,6 +6,7 @@ Flow B executes the oldest urgent first.
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -21,7 +22,9 @@ from campaigner.tools._contract import (
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="List approvals ready for execution (status='approved').")
+    p = argparse.ArgumentParser(
+        description="List approvals ready for execution (status='approved')."
+    )
     p.add_argument("--business-id", required=True)
     p.add_argument("--limit", type=int, default=50)
     args = p.parse_args()
@@ -45,29 +48,40 @@ def main() -> None:
         END
     """
 
+    # `scheduled_for IS NULL OR scheduled_for <= now()` keeps publish-style
+    # approvals that should fire later (e.g. story at 20:00) out of the
+    # executor's hands until their moment arrives. NULL means "as soon as
+    # approved" — that's the existing behavior for ad-mutation task types.
     try:
-        rows = with_db_retry(lambda: fetch_all(
-            f"""
+        rows = with_db_retry(
+            lambda: fetch_all(
+                f"""
             SELECT id, business_id, created_by_run_id, task_type,
                    target_kind, target_id, payload, rationale,
                    expected_impact, urgency, status,
-                   approved_at, approved_by, expires_at, created_at
+                   approved_at, approved_by, expires_at, created_at,
+                   scheduled_for
             FROM approvals
-            WHERE business_id = %s AND status = 'approved'
+            WHERE business_id = %s
+              AND status = 'approved'
+              AND (scheduled_for IS NULL OR scheduled_for <= now())
             ORDER BY {urgency_rank} DESC, created_at ASC
             LIMIT %s
             """,
-            (args.business_id, args.limit),
-        ))
+                (args.business_id, args.limit),
+            )
+        )
     except Exception as e:
         emit_runtime_error(f"approvals fetch failed: {e}", exc=e)
         return
 
-    emit_success({
-        "business_id": args.business_id,
-        "count": len(rows),
-        "approvals": rows,
-    })
+    emit_success(
+        {
+            "business_id": args.business_id,
+            "count": len(rows),
+            "approvals": rows,
+        }
+    )
 
 
 if __name__ == "__main__":

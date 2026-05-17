@@ -25,7 +25,12 @@
       "spend_ils": 48
     },
     "baselines": [
-      {"scope": "account", "metric": "hook_rate", "value": 0.33, "window_days": 30}
+      {
+        "scope": "account",
+        "metric": "hook_rate",
+        "value": 0.33,
+        "window_days": 30
+      }
     ]
   },
   "expected": {

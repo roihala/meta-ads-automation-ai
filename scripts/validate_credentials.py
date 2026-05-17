@@ -18,12 +18,14 @@ Usage:
 Exits 0 on full pass, 1 on any failure. Each check prints a masked value of the
 credential it's using so you can see wiring without exposing secrets.
 """
+
 from __future__ import annotations
 
 import argparse
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -67,7 +69,9 @@ def check_anthropic() -> bool:
             env={**os.environ, "ANTHROPIC_API_KEY": key},
         )
     except FileNotFoundError:
-        _fail("`claude` CLI not found on PATH. Dockerfile installs @anthropic-ai/claude-code; rebuild image.")
+        _fail(
+            "`claude` CLI not found on PATH. Dockerfile installs @anthropic-ai/claude-code; rebuild image."
+        )
         return False
     except subprocess.TimeoutExpired:
         _fail("`claude -p` timed out after 60s")
@@ -96,7 +100,7 @@ def check_gcp(with_imagen: bool) -> bool:
     print(f"      GCP_LOCATION   = {location}")
     print(f"      ADC file       = {creds_path or '(unset)'}")
 
-    if creds_path and not os.path.exists(creds_path):
+    if creds_path and not Path(creds_path).exists():
         _fail(f"GOOGLE_APPLICATION_CREDENTIALS points to missing file: {creds_path}")
         print("      Run on host: gcloud auth application-default login", file=sys.stderr)
         return False
@@ -130,7 +134,7 @@ def check_gcp(with_imagen: bool) -> bool:
         if count != 1:
             _fail(f"Imagen returned {count} images (expected 1)")
             return False
-        _ok(f"Imagen generation succeeded (1 image, fast tier)")
+        _ok("Imagen generation succeeded (1 image, fast tier)")
         return True
     except Exception as e:  # noqa: BLE001
         _fail(f"Imagen generation failed: {e}")
@@ -179,11 +183,11 @@ def check_meta() -> bool:
         if body:
             print(f"      body: {body}", file=sys.stderr)
         hint = None
-        if "Invalid OAuth" in err or "expired" in err.lower() or "code\":190" in err:
+        if "Invalid OAuth" in err or "expired" in err.lower() or 'code":190' in err:
             hint = "Token expired/invalid — regenerate at https://developers.facebook.com/tools/explorer/"
-        elif "code\":200" in err or "permission" in err.lower():
+        elif 'code":200' in err or "permission" in err.lower():
             hint = "Missing permissions — token needs ads_management, ads_read, business_management, pages_show_list, pages_read_engagement, instagram_basic"
-        elif "code\":10" in err or "code\":803" in err or "does not exist" in err.lower():
+        elif 'code":10' in err or 'code":803' in err or "does not exist" in err.lower():
             hint = f"Ad account {account_id} not visible to this token — check: (a) account ID correct, (b) token's user has access, (c) app is linked to the Business owning the account"
         if hint:
             print(f"      HINT: {hint}", file=sys.stderr)

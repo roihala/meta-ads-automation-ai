@@ -36,8 +36,10 @@ export const devCookieAuth: AuthAdapter = {
 
   async signIn(email: string) {
     const normalized = email.trim().toLowerCase();
-    if (!isValidEmail(normalized)) return { ok: false as const, error: "כתובת אימייל לא תקינה" };
-    if (!isAllowed(normalized)) return { ok: false as const, error: "אימייל לא מורשה לסביבת dev" };
+    if (!isValidEmail(normalized))
+      return { ok: false as const, error: "כתובת אימייל לא תקינה" };
+    if (!isAllowed(normalized))
+      return { ok: false as const, error: "אימייל לא מורשה לסביבת dev" };
     const jar = await cookies();
     jar.set({
       name: COOKIE_NAME,

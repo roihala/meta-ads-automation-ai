@@ -27,8 +27,20 @@
       "cpa_ils": 57
     },
     "baselines": [
-      {"scope": "campaign", "scope_id": "120220000000000007", "metric": "cpa", "value": 30, "window_days": 30},
-      {"scope": "campaign", "scope_id": "120220000000000007", "metric": "hook_rate", "value": 0.31, "window_days": 30}
+      {
+        "scope": "campaign",
+        "scope_id": "120220000000000007",
+        "metric": "cpa",
+        "value": 30,
+        "window_days": 30
+      },
+      {
+        "scope": "campaign",
+        "scope_id": "120220000000000007",
+        "metric": "hook_rate",
+        "value": 0.31,
+        "window_days": 30
+      }
     ],
     "targets": {
       "cpa_ils": 28

@@ -1,19 +1,21 @@
 """
 Meta Ads Manager — create campaigns, ad sets, creatives, and ads via the Marketing API.
 """
+
 import os
 import subprocess
+import sys
 import tempfile
+
 import requests as http_requests
-from typing import Optional, Literal
-from facebook_business.api import FacebookAdsApi
-from facebook_business.adobjects.adaccount import AdAccount
-from facebook_business.adobjects.campaign import Campaign
-from facebook_business.adobjects.adset import AdSet
 from facebook_business.adobjects.ad import Ad
+from facebook_business.adobjects.adaccount import AdAccount
 from facebook_business.adobjects.adcreative import AdCreative
 from facebook_business.adobjects.adimage import AdImage
+from facebook_business.adobjects.adset import AdSet
 from facebook_business.adobjects.advideo import AdVideo
+from facebook_business.adobjects.campaign import Campaign
+from facebook_business.api import FacebookAdsApi
 
 
 class MetaAdsManager:
@@ -21,10 +23,10 @@ class MetaAdsManager:
 
     def __init__(
         self,
-        app_id: Optional[str] = None,
-        app_secret: Optional[str] = None,
-        access_token: Optional[str] = None,
-        ad_account_id: Optional[str] = None
+        app_id: str | None = None,
+        app_secret: str | None = None,
+        access_token: str | None = None,
+        ad_account_id: str | None = None,
     ):
         """
         Inicializa o gerenciador de anúncios Meta
@@ -35,10 +37,10 @@ class MetaAdsManager:
             access_token: Token de acesso do usuário
             ad_account_id: ID da conta de anúncios (formato: act_xxxxx)
         """
-        self.app_id = app_id or os.getenv('META_APP_ID')
-        self.app_secret = app_secret or os.getenv('META_APP_SECRET')
-        self.access_token = access_token or os.getenv('META_ACCESS_TOKEN')
-        self.ad_account_id = ad_account_id or os.getenv('META_AD_ACCOUNT_ID')
+        self.app_id = app_id or os.getenv("META_APP_ID")
+        self.app_secret = app_secret or os.getenv("META_APP_SECRET")
+        self.access_token = access_token or os.getenv("META_ACCESS_TOKEN")
+        self.ad_account_id = ad_account_id or os.getenv("META_AD_ACCOUNT_ID")
 
         # Validar credenciais
         if not all([self.app_id, self.app_secret, self.access_token, self.ad_account_id]):
@@ -49,14 +51,12 @@ class MetaAdsManager:
 
         # Inicializar API
         FacebookAdsApi.init(
-            app_id=self.app_id,
-            app_secret=self.app_secret,
-            access_token=self.access_token
+            app_id=self.app_id, app_secret=self.app_secret, access_token=self.access_token
         )
 
         self.ad_account = AdAccount(self.ad_account_id)
         self._usdils_rate = None
-        print(f"✅ Meta Ads API inicializada para conta: {self.ad_account_id}")
+        print(f"✅ Meta Ads API inicializada para conta: {self.ad_account_id}", file=sys.stderr)
 
     @property
     def usdils_rate(self) -> float:
@@ -79,7 +79,7 @@ class MetaAdsManager:
         ils = usd * self.usdils_rate
         return int(ils * 100)
 
-    def upload_image(self, image_path: str, image_name: Optional[str] = None) -> str:
+    def upload_image(self, image_path: str, image_name: str | None = None) -> str:
         """
         Faz upload de uma imagem para a biblioteca de anúncios
 
@@ -114,7 +114,7 @@ class MetaAdsManager:
         name: str,
         objective: str = "OUTCOME_TRAFFIC",
         status: str = "PAUSED",
-        special_ad_categories: Optional[list] = None
+        special_ad_categories: list | None = None,
     ) -> Campaign:
         """
         Cria uma nova campanha
@@ -141,7 +141,7 @@ class MetaAdsManager:
             params[Campaign.Field.special_ad_categories] = special_ad_categories or []
 
             # Novo requisito da Meta API: budget sharing
-            params['is_adset_budget_sharing_enabled'] = False
+            params["is_adset_budget_sharing_enabled"] = False
 
             campaign = self.ad_account.create_campaign(params=params)
 
@@ -160,7 +160,7 @@ class MetaAdsManager:
         targeting: dict,
         optimization_goal: str = "LINK_CLICKS",
         billing_event: str = "IMPRESSIONS",
-        bid_amount: Optional[int] = None
+        bid_amount: int | None = None,
     ) -> AdSet:
         """
         Create an ad set.
@@ -178,7 +178,9 @@ class MetaAdsManager:
             AdSet object
         """
         daily_budget_agorot = self.usd_to_agorot(daily_budget_usd)
-        print(f"🎯 Creating ad set: {name} (${daily_budget_usd:.2f}/day = {daily_budget_agorot} agorot)")
+        print(
+            f"🎯 Creating ad set: {name} (${daily_budget_usd:.2f}/day = {daily_budget_agorot} agorot)"
+        )
 
         try:
             params = {
@@ -189,9 +191,9 @@ class MetaAdsManager:
                 AdSet.Field.optimization_goal: optimization_goal,
                 AdSet.Field.targeting: {
                     **targeting,
-                    'targeting_automation': {'advantage_audience': 0},
+                    "targeting_automation": {"advantage_audience": 0},
                 },
-                AdSet.Field.status: 'PAUSED',
+                AdSet.Field.status: "PAUSED",
             }
 
             if bid_amount:
@@ -216,7 +218,7 @@ class MetaAdsManager:
         body: str,
         link_url: str,
         call_to_action_type: str = "LEARN_MORE",
-        page_id: Optional[str] = None
+        page_id: str | None = None,
     ) -> AdCreative:
         """
         Cria um criativo de anúncio
@@ -236,27 +238,22 @@ class MetaAdsManager:
         print(f"🎨 Criando criativo: {name}")
 
         try:
-            page_id = page_id or os.getenv('META_PAGE_ID')
+            page_id = page_id or os.getenv("META_PAGE_ID")
 
             object_story_spec = {
-                'page_id': page_id,
-                'link_data': {
-                    'image_hash': image_hash,
-                    'link': link_url,
-                    'message': body,
-                    'name': title,
-                    'call_to_action': {
-                        'type': call_to_action_type,
-                        'value': {
-                            'link': link_url
-                        }
-                    }
-                }
+                "page_id": page_id,
+                "link_data": {
+                    "image_hash": image_hash,
+                    "link": link_url,
+                    "message": body,
+                    "name": title,
+                    "call_to_action": {"type": call_to_action_type, "value": {"link": link_url}},
+                },
             }
 
             params = {
                 AdCreative.Field.name: name,
-                AdCreative.Field.object_story_spec: object_story_spec
+                AdCreative.Field.object_story_spec: object_story_spec,
             }
 
             creative = self.ad_account.create_ad_creative(params=params)
@@ -268,13 +265,7 @@ class MetaAdsManager:
             print(f"❌ Erro ao criar criativo: {str(e)}")
             raise
 
-    def create_ad(
-        self,
-        ad_set_id: str,
-        creative_id: str,
-        name: str,
-        status: str = "PAUSED"
-    ) -> Ad:
+    def create_ad(self, ad_set_id: str, creative_id: str, name: str, status: str = "PAUSED") -> Ad:
         """
         Cria um anúncio
 
@@ -293,7 +284,7 @@ class MetaAdsManager:
             params = {
                 Ad.Field.name: name,
                 Ad.Field.adset_id: ad_set_id,
-                Ad.Field.creative: {'creative_id': creative_id},
+                Ad.Field.creative: {"creative_id": creative_id},
                 Ad.Field.status: status,
             }
 
@@ -306,7 +297,7 @@ class MetaAdsManager:
             print(f"❌ Erro ao criar anúncio: {str(e)}")
             raise
 
-    def upload_video(self, video_path: str, video_name: Optional[str] = None) -> str:
+    def upload_video(self, video_path: str, video_name: str | None = None) -> str:
         """
         Upload a video to the ad account's video library.
 
@@ -344,8 +335,8 @@ class MetaAdsManager:
         body: str,
         link_url: str,
         call_to_action_type: str = "LEARN_MORE",
-        page_id: Optional[str] = None,
-        thumbnail_hash: Optional[str] = None,
+        page_id: str | None = None,
+        thumbnail_hash: str | None = None,
     ) -> AdCreative:
         """
         Create an ad creative using a video.
@@ -366,26 +357,26 @@ class MetaAdsManager:
         print(f"🎨 Creating video creative: {name}")
 
         try:
-            page_id = page_id or os.getenv('META_PAGE_ID')
+            page_id = page_id or os.getenv("META_PAGE_ID")
 
             video_data = {
-                'video_id': video_id,
-                'message': body,
-                'title': title,
-                'call_to_action': {
-                    'type': call_to_action_type,
-                    'value': {
-                        'link': link_url,
+                "video_id": video_id,
+                "message": body,
+                "title": title,
+                "call_to_action": {
+                    "type": call_to_action_type,
+                    "value": {
+                        "link": link_url,
                     },
                 },
             }
 
             if thumbnail_hash:
-                video_data['image_hash'] = thumbnail_hash
+                video_data["image_hash"] = thumbnail_hash
 
             object_story_spec = {
-                'page_id': page_id,
-                'video_data': video_data,
+                "page_id": page_id,
+                "video_data": video_data,
             }
 
             params = {
@@ -415,7 +406,7 @@ class MetaAdsManager:
         objective: str = "OUTCOME_AWARENESS",
         call_to_action: str = "LEARN_MORE",
         optimization_goal: str = "THRUPLAY",
-        special_ad_categories: Optional[list] = None,
+        special_ad_categories: list | None = None,
     ) -> dict:
         """
         Create a complete video ad (campaign + ad set + creative + ad).
@@ -465,8 +456,19 @@ class MetaAdsManager:
             print("🖼️ Extracting video thumbnail...")
             thumb_path = os.path.join(tempfile.gettempdir(), "ad_thumbnail.png")
             subprocess.run(
-                ["ffmpeg", "-i", video_path, "-ss", "00:00:02", "-frames:v", "1",
-                 "-update", "1", thumb_path, "-y"],
+                [
+                    "ffmpeg",
+                    "-i",
+                    video_path,
+                    "-ss",
+                    "00:00:02",
+                    "-frames:v",
+                    "1",
+                    "-update",
+                    "1",
+                    thumb_path,
+                    "-y",
+                ],
                 capture_output=True,
             )
             thumbnail_hash = self.upload_image(thumb_path, image_name=f"{ad_name} - Thumbnail")
@@ -491,12 +493,12 @@ class MetaAdsManager:
             )
 
             result = {
-                'campaign_id': campaign.get_id(),
-                'ad_set_id': ad_set.get_id(),
-                'creative_id': creative.get_id(),
-                'ad_id': ad.get_id(),
-                'video_id': video_id,
-                'thumbnail_hash': thumbnail_hash,
+                "campaign_id": campaign.get_id(),
+                "ad_set_id": ad_set.get_id(),
+                "creative_id": creative.get_id(),
+                "ad_id": ad.get_id(),
+                "video_id": video_id,
+                "thumbnail_hash": thumbnail_hash,
             }
 
             print("\n" + "=" * 60)
@@ -526,7 +528,7 @@ class MetaAdsManager:
         targeting: dict,
         objective: str = "OUTCOME_TRAFFIC",
         call_to_action: str = "LEARN_MORE",
-        special_ad_categories: Optional[list] = None
+        special_ad_categories: list | None = None,
     ) -> dict:
         """
         Create a complete ad (campaign + ad set + creative + ad).
@@ -558,7 +560,7 @@ class MetaAdsManager:
                 name=campaign_name,
                 objective=objective,
                 status="PAUSED",
-                special_ad_categories=special_ad_categories
+                special_ad_categories=special_ad_categories,
             )
 
             # 3. Criar conjunto de anúncios
@@ -566,7 +568,7 @@ class MetaAdsManager:
                 campaign_id=campaign.get_id(),
                 name=f"{ad_name} - Ad Set",
                 daily_budget_usd=daily_budget_usd,
-                targeting=targeting
+                targeting=targeting,
             )
 
             # 4. Criar criativo
@@ -576,7 +578,7 @@ class MetaAdsManager:
                 title=title,
                 body=body,
                 link_url=link_url,
-                call_to_action_type=call_to_action
+                call_to_action_type=call_to_action,
             )
 
             # 5. Criar anúncio
@@ -584,15 +586,15 @@ class MetaAdsManager:
                 ad_set_id=ad_set.get_id(),
                 creative_id=creative.get_id(),
                 name=ad_name,
-                status="PAUSED"
+                status="PAUSED",
             )
 
             result = {
-                'campaign_id': campaign.get_id(),
-                'ad_set_id': ad_set.get_id(),
-                'creative_id': creative.get_id(),
-                'ad_id': ad.get_id(),
-                'image_hash': image_hash
+                "campaign_id": campaign.get_id(),
+                "ad_set_id": ad_set.get_id(),
+                "creative_id": creative.get_id(),
+                "ad_id": ad.get_id(),
+                "image_hash": image_hash,
             }
 
             print("\n" + "=" * 60)
@@ -612,14 +614,15 @@ class MetaAdsManager:
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+
     load_dotenv()
 
     manager = MetaAdsManager()
 
     targeting = {
-        'geo_locations': {'countries': ['IL']},
-        'age_min': 25,
-        'age_max': 55,
+        "geo_locations": {"countries": ["IL"]},
+        "age_min": 25,
+        "age_max": 55,
     }
 
     result = manager.create_complete_ad(

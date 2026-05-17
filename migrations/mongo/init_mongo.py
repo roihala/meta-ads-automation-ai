@@ -14,6 +14,7 @@ This is a local-dev bootstrap. The remote target (Supabase / Mongo Atlas / self-
 is pending a §1.4 re-decision — see decisions-log.md §1.4 amendment and
 migrations/README.md.
 """
+
 from __future__ import annotations
 
 import os
@@ -37,11 +38,20 @@ COLLECTIONS = [
 
 INDEXES = {
     "business_knowledge": [
-        {"keys": [("business_id", ASCENDING)], "unique": True, "name": "business_knowledge_business_id_uidx"},
+        {
+            "keys": [("business_id", ASCENDING)],
+            "unique": True,
+            "name": "business_knowledge_business_id_uidx",
+        },
     ],
     "baselines": [
         {
-            "keys": [("business_id", ASCENDING), ("scope", ASCENDING), ("scope_id", ASCENDING), ("metric", ASCENDING)],
+            "keys": [
+                ("business_id", ASCENDING),
+                ("scope", ASCENDING),
+                ("scope_id", ASCENDING),
+                ("metric", ASCENDING),
+            ],
             "name": "baselines_lookup_idx",
         },
     ],
@@ -53,7 +63,10 @@ INDEXES = {
         {"keys": [("created_by_run_id", ASCENDING)], "name": "approvals_run_idx"},
     ],
     "agent_decisions": [
-        {"keys": [("business_id", ASCENDING), ("created_at", DESCENDING)], "name": "agent_decisions_time_idx"},
+        {
+            "keys": [("business_id", ASCENDING), ("created_at", DESCENDING)],
+            "name": "agent_decisions_time_idx",
+        },
         {"keys": [("run_id", ASCENDING)], "name": "agent_decisions_run_idx"},
         {
             "keys": [("related_approval_id", ASCENDING)],
@@ -63,7 +76,10 @@ INDEXES = {
         {"keys": [("decision_type", ASCENDING)], "name": "agent_decisions_type_idx"},
     ],
     "creative_gallery": [
-        {"keys": [("business_id", ASCENDING), ("created_at", DESCENDING)], "name": "creative_gallery_time_idx"},
+        {
+            "keys": [("business_id", ASCENDING), ("created_at", DESCENDING)],
+            "name": "creative_gallery_time_idx",
+        },
     ],
     "heartbeats": [
         {

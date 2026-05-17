@@ -7,6 +7,7 @@ on the object layer — the DB row is RLS-enforced).
 Usage:
     docker compose run --rm campaigner python scripts/setup_gallery_bucket.py
 """
+
 from __future__ import annotations
 
 import os

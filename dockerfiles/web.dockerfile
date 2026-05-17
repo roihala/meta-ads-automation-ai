@@ -30,6 +30,11 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME=0.0.0.0
 
+# ffmpeg + ffprobe for server-side video transcoding. iPhone/Mac upload .mov
+# files in HEVC, which Chrome on Windows can't decode — we re-encode to
+# H.264/MP4 in the upload pipeline (web/src/lib/transcode.ts).
+RUN apk add --no-cache ffmpeg
+
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public

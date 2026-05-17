@@ -16,7 +16,7 @@
 - **Pixel + CAPI + domain verification is non-negotiable** before launch. For lead-gen, optimize for "Lead" (on-platform) or specific website event (off-platform).
 - **Landing page match + speed still matters massively** post-Andromeda; poor experience kills delivery and raises CPA.
 - **Cold-start playbook**: Broad + Advantage+ Audience + diverse creatives + strong first-party signals (CAPI). LAL/custom audiences as optional suggestions only.
-- **Naming & organization**: Consistent, parseable names (e.g., [Goal]_[Offer]_[Date]_[Test#]) are now table stakes for agent scalability.
+- **Naming & organization**: Consistent, parseable names (e.g., [Goal]_[Offer]_[Date]\_[Test#]) are now table stakes for agent scalability.
 
 ## 2. Section-by-section answers
 

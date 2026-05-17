@@ -34,7 +34,13 @@ export function RunNowButton({ flow }: { flow: HeartbeatFlow }) {
     });
   };
 
-  const label = pending ? "מריץ..." : err ? `שגיאה: ${err}` : sent ? "נשלח ✓" : "הרץ";
+  const label = pending
+    ? "מריץ..."
+    : err
+      ? `שגיאה: ${err}`
+      : sent
+        ? "נשלח ✓"
+        : "הרץ";
 
   return (
     <Button
@@ -43,7 +49,9 @@ export function RunNowButton({ flow }: { flow: HeartbeatFlow }) {
       size="sm"
       onClick={onClick}
       disabled={pending}
-      title={err ?? "הרץ עכשיו (local only) — לוקח ~5-10 שניות עד שה-heartbeat נכתב"}
+      title={
+        err ?? "הרץ עכשיו (local only) — לוקח ~5-10 שניות עד שה-heartbeat נכתב"
+      }
       className="h-7 gap-1 px-2 text-[11.5px]"
     >
       <Play size={11} />

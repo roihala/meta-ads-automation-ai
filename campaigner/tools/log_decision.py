@@ -7,6 +7,7 @@ log), this tool exits 1 on DB failure after retrying transient errors.
 
 Exit codes per contract §11.6 (0 / 1 / 2).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -20,7 +21,6 @@ from campaigner.tools._contract import (
     parse_json_arg,
     with_db_retry,
 )
-
 
 VALID_DECISION_TYPES = (
     "observation",
@@ -40,8 +40,14 @@ def main() -> None:
     # required
     p.add_argument("--business-id", required=True)
     p.add_argument("--run-id", required=True, help="Groups rows from a single Claude invocation")
-    p.add_argument("--graph-name", required=True, help="e.g. observe_propose | execute | onboarding")
-    p.add_argument("--node-name", required=True, help="Logical phase (e.g. observe, diagnose, apply_guardrails)")
+    p.add_argument(
+        "--graph-name", required=True, help="e.g. observe_propose | execute | onboarding"
+    )
+    p.add_argument(
+        "--node-name",
+        required=True,
+        help="Logical phase (e.g. observe, diagnose, apply_guardrails)",
+    )
     p.add_argument("--decision-type", required=True, choices=VALID_DECISION_TYPES)
     p.add_argument("--summary", required=True, help="One-line human-readable")
 
@@ -79,10 +85,10 @@ def main() -> None:
         emit_validation_error(f"--confidence must be in [0, 1] (got {args.confidence})")
 
     inputs = parse_json_arg(args.inputs, "inputs")
-    if inputs is not None and not isinstance(inputs, (dict, list)):
+    if inputs is not None and not isinstance(inputs, dict | list):
         emit_validation_error("--inputs must be a JSON object or array")
     outputs = parse_json_arg(args.outputs, "outputs")
-    if outputs is not None and not isinstance(outputs, (dict, list)):
+    if outputs is not None and not isinstance(outputs, dict | list):
         emit_validation_error("--outputs must be a JSON object or array")
 
     violations = None
@@ -118,13 +124,25 @@ def main() -> None:
                 RETURNING id, created_at
                 """,
                 (
-                    args.business_id, args.run_id, args.graph_name, args.node_name, args.decision_type,
-                    args.summary, args.rationale,
+                    args.business_id,
+                    args.run_id,
+                    args.graph_name,
+                    args.node_name,
+                    args.decision_type,
+                    args.summary,
+                    args.rationale,
                     _json.dumps(inputs) if inputs is not None else None,
                     _json.dumps(outputs) if outputs is not None else None,
-                    args.related_approval_id, args.campaign_id, args.adset_id, args.ad_id,
-                    args.llm_model, args.llm_tokens_in, args.llm_tokens_out, args.latency_ms,
-                    violations, args.confidence,
+                    args.related_approval_id,
+                    args.campaign_id,
+                    args.adset_id,
+                    args.ad_id,
+                    args.llm_model,
+                    args.llm_tokens_in,
+                    args.llm_tokens_out,
+                    args.latency_ms,
+                    violations,
+                    args.confidence,
                 ),
             )
             return cur.fetchone()

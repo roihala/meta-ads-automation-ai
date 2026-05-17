@@ -12,6 +12,7 @@ Usage:
 
 Exits 0 on full pass, 1 on any failure. Safe to re-run (cleans up its own docs).
 """
+
 from __future__ import annotations
 
 import os

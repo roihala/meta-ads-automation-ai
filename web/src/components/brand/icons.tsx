@@ -99,6 +99,13 @@ export function PulseDot({
     success: "bg-success shadow-[0_0_0_3px_hsl(150_60%_40%/0.18)]",
   }[tone];
   return (
-    <span className={"inline-flex h-2 w-2 rounded-full " + toneCls + (className ? " " + className : "")} aria-hidden />
+    <span
+      className={
+        "inline-flex h-2 w-2 rounded-full " +
+        toneCls +
+        (className ? " " + className : "")
+      }
+      aria-hidden
+    />
   );
 }
