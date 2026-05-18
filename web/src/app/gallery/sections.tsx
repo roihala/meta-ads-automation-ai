@@ -5,12 +5,15 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { CreativeAsset } from "@/lib/db/types";
-import type { AdInsightsRow, MetaAdWithCreative } from "@/lib/meta";
+import type { MetaAdWithCreative } from "@/lib/meta";
 import { AssetTile } from "./asset-tile";
 import {
   buildPriorityQueue,
-  groupLiveMetaCreativesByCampaign,
+  lifecycleOf,
+  lifecycleOfLiveMetaCreative,
+  matchesLifecycleFilter,
   type CreativeUsage,
+  type LifecycleFilter,
   type LiveMetaCampaignGroup,
   type LiveMetaCreative,
   type OrganicPost,
@@ -25,9 +28,6 @@ interface SectionHeaderProps {
 }
 
 function SectionHeader({ title, subtitle, count, right }: SectionHeaderProps) {
-  // Quiet eyebrow — the brief's gallery shows one continuous grid with no
-  // loud section banners. We keep our 3-section structure (live/priority/
-  // archive) but cue each with a small uppercase eyebrow rather than a h2.
   return (
     <div className="flex items-end justify-between gap-4 border-b border-border/40 pb-2">
       <div className="flex items-baseline gap-2">
@@ -51,28 +51,54 @@ function SectionHeader({ title, subtitle, count, right }: SectionHeaderProps) {
 }
 
 interface LiveSectionProps {
-  assets: CreativeAsset[];
-  usage: CreativeUsage;
-  adInsights: Record<string, AdInsightsRow>;
-  videoSources: Record<string, string>;
+  groups: LiveMetaCampaignGroup[];
   metaError: string | null;
   organicPosts: OrganicPost[];
+  search: string;
+  lifecycleFilter: LifecycleFilter;
 }
 
 export function LiveSection({
-  assets,
-  usage,
-  adInsights,
-  videoSources,
+  groups,
   metaError,
   organicPosts,
+  search,
+  lifecycleFilter,
 }: LiveSectionProps) {
-  const groups = useMemo(
-    () => groupLiveMetaCreativesByCampaign(usage, assets, adInsights, videoSources),
-    [usage, assets, adInsights, videoSources],
-  );
-  const liveCreativesCount = groups.reduce((s, g) => s + g.creatives.length, 0);
-  const total = liveCreativesCount + organicPosts.length;
+  // Apply both axis filters — lifecycle by computed grade/freq, search by
+  // creative name / campaign name / ad id substring (case-insensitive).
+  const q = search.trim().toLowerCase();
+  const filteredCreatives = useMemo(() => {
+    const all: LiveMetaCreative[] = groups.flatMap((g) => g.creatives);
+    return all.filter((c) => {
+      const lc = lifecycleOfLiveMetaCreative(c);
+      if (!matchesLifecycleFilter(lc, lifecycleFilter)) return false;
+      if (!q) return true;
+      const haystack = [
+        c.name ?? "",
+        c.campaign_name,
+        c.creative_id,
+        c.ad_id,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [groups, lifecycleFilter, q]);
+
+  // Organic posts are always "live" — match the filter when it's "all" or
+  // "live", hide them otherwise. Search applies to caption text.
+  const filteredOrganic = useMemo(() => {
+    const lifecycleMatch =
+      lifecycleFilter === "all" || lifecycleFilter === "live";
+    if (!lifecycleMatch) return [];
+    if (!q) return organicPosts;
+    return organicPosts.filter((p) =>
+      (p.caption ?? "").toLowerCase().includes(q),
+    );
+  }, [organicPosts, lifecycleFilter, q]);
+
+  const total = filteredCreatives.length + filteredOrganic.length;
 
   return (
     <section className="flex flex-col gap-6">
@@ -90,22 +116,22 @@ export function LiveSection({
       <div className="flex flex-col gap-3">
         <SubsectionHeader
           title="פרסומות חיות"
-          count={liveCreativesCount}
+          count={filteredCreatives.length}
           subtitle="כל הקריאייטיבים שרצים בקמפיינים פעילים — מ-Ads Manager וגם אלו שעלו דרך הגלרייה"
         />
-        {groups.length === 0 ? (
-          <EmptyState text="אין מודעה חיה במטא כרגע." />
+        {filteredCreatives.length === 0 ? (
+          <EmptyState
+            text={
+              q || lifecycleFilter !== "all"
+                ? "אין פרסומות חיות שתואמות לחיפוש/לפילטר."
+                : "אין מודעה חיה במטא כרגע."
+            }
+          />
         ) : (
-          // Flatten all groups into a single grid — each tile carries its
-          // own campaign label so the grid stays readable without per-group
-          // headers. Tiles from the same campaign cluster together because
-          // groups are iterated in order.
           <TileGrid>
-            {groups.flatMap((g) =>
-              g.creatives.map((c) => (
-                <LiveMetaCreativeTile key={c.creative_id} creative={c} />
-              )),
-            )}
+            {filteredCreatives.map((c) => (
+              <LiveMetaCreativeTile key={c.creative_id} creative={c} />
+            ))}
           </TileGrid>
         )}
       </div>
@@ -113,14 +139,20 @@ export function LiveSection({
       <div className="flex flex-col gap-3">
         <SubsectionHeader
           title="פוסטים אורגניים"
-          count={organicPosts.length}
+          count={filteredOrganic.length}
           subtitle="פוסטים שפורסמו בעמוד הפייסבוק וב-Instagram Business"
         />
-        {organicPosts.length === 0 ? (
-          <EmptyState text="אין פוסטים אורגניים זמינים. ודא שלטוקן יש pages_show_list, pages_read_engagement, instagram_basic." />
+        {filteredOrganic.length === 0 ? (
+          <EmptyState
+            text={
+              q || lifecycleFilter !== "all"
+                ? "אין פוסטים אורגניים שתואמים לחיפוש/לפילטר."
+                : "אין פוסטים אורגניים זמינים. ודא שלטוקן יש pages_show_list, pages_read_engagement, instagram_basic."
+            }
+          />
         ) : (
           <TileGrid>
-            {organicPosts.map((p) => (
+            {filteredOrganic.map((p) => (
               <OrganicLiveTile key={`${p.source}:${p.id}`} post={p} />
             ))}
           </TileGrid>
@@ -159,8 +191,6 @@ function OrganicLiveTile({ post }: { post: OrganicPost }) {
   const thumb = post.thumbnail
     ? `/api/gallery/organic-thumbnail?src=${post.source}&url=${encodeURIComponent(post.thumbnail)}`
     : null;
-  // Proxy IG/FB video through the same endpoint to strip the referer header —
-  // direct CDN loads from <video src> sometimes 403 without it.
   const videoSrc = post.video_url
     ? `/api/gallery/organic-thumbnail?src=${post.source}&url=${encodeURIComponent(post.video_url)}`
     : null;
@@ -310,9 +340,6 @@ function MetricChips({ perf }: { perf: NonNullable<LiveMetaCreative["performance
   );
 }
 
-// When Meta returns no insights row for an ad, we fall back to a synthetic
-// "learning" performance object so the badge + reason still render — the
-// user sees *why* there's no score (no data) instead of a silent fallback.
 const NO_DATA_PERFORMANCE = {
   score: 0,
   grade: "learning" as const,
@@ -330,8 +357,6 @@ const NO_DATA_PERFORMANCE = {
 function LiveMetaCreativeTile({ creative }: { creative: LiveMetaCreative }) {
   const [playing, setPlaying] = useState(false);
 
-  // Meta CDN URLs (fbcdn.net) sometimes block direct browser loads — proxy
-  // through our existing organic-thumbnail handler which strips referrer.
   const rawThumb = creative.thumbnail_url ?? creative.image_url;
   const thumb = rawThumb
     ? `/api/gallery/organic-thumbnail?src=meta&url=${encodeURIComponent(rawThumb)}`
@@ -344,8 +369,6 @@ function LiveMetaCreativeTile({ creative }: { creative: LiveMetaCreative }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Per-tile header — campaign label so it's clear at any scroll depth
-          which campaign this ad belongs to. */}
       <div className="flex items-center gap-2 px-1 text-[10px]">
         <span
           className="truncate font-semibold text-muted-foreground"
@@ -463,22 +486,40 @@ function LiveMetaCreativeTile({ creative }: { creative: LiveMetaCreative }) {
 interface PrioritySectionProps {
   assets: CreativeAsset[];
   usage: CreativeUsage;
+  search: string;
 }
 
-export function PrioritySection({ assets, usage }: PrioritySectionProps) {
+export function PrioritySection({ assets, usage, search }: PrioritySectionProps) {
   const items = useMemo(() => buildPriorityQueue(assets, usage), [assets, usage]);
+  const q = search.trim().toLowerCase();
+  const filtered = useMemo(() => {
+    if (!q) return items;
+    return items.filter((it) => {
+      if (!it.asset) return false;
+      const haystack = [
+        it.asset.original_filename ?? "",
+        it.asset.marketing_angle ?? "",
+        it.asset.service_tag ?? "",
+        it.asset.headline ?? "",
+        it.asset.primary_text ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [items, q]);
 
-  if (items.length === 0) return null;
+  if (filtered.length === 0) return null;
 
   return (
     <section className="flex flex-col gap-4">
       <SectionHeader
         title="הבא בתור"
         subtitle="נכסי גלריה שעוד לא רצו במודעה — ממוינים לפי score שקוף"
-        count={items.length}
+        count={filtered.length}
       />
       <TileGrid>
-        {items.slice(0, 12).map((item) =>
+        {filtered.slice(0, 12).map((item) =>
           item.asset ? (
             <AssetTile
               key={item.id}
@@ -583,23 +624,29 @@ function PromoteFooter({
   );
 }
 
-// ---------- Archive ----------
-
 type ArchiveSort = "newest" | "ctr" | "hook" | "most_used";
 
 interface ArchiveSectionProps {
   assets: CreativeAsset[];
   usage: CreativeUsage;
   search: string;
+  lifecycleFilter: LifecycleFilter;
 }
 
-export function ArchiveSection({ assets, usage, search }: ArchiveSectionProps) {
+export function ArchiveSection({
+  assets,
+  usage,
+  search,
+  lifecycleFilter,
+}: ArchiveSectionProps) {
   const [sort, setSort] = useState<ArchiveSort>("newest");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return assets;
     return assets.filter((a) => {
+      const lc = lifecycleOf(a, usage);
+      if (!matchesLifecycleFilter(lc, lifecycleFilter)) return false;
+      if (!q) return true;
       const haystack = [
         a.original_filename ?? "",
         a.marketing_angle ?? "",
@@ -615,7 +662,7 @@ export function ArchiveSection({ assets, usage, search }: ArchiveSectionProps) {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [assets, search, usage]);
+  }, [assets, search, usage, lifecycleFilter]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -653,9 +700,9 @@ export function ArchiveSection({ assets, usage, search }: ArchiveSectionProps) {
       />
       {sorted.length === 0 ? (
         assets.length === 0 ? (
-          <EmptyState text="עוד לא הועלו נכסים. לחץ על + העלה נכס למעלה." />
+          <EmptyState text="עוד לא הועלו נכסים. לחץ על + העלה למעלה." />
         ) : (
-          <EmptyState text="אין נכסים שתואמים את החיפוש." />
+          <EmptyState text="אין נכסים שתואמים את החיפוש/הפילטר." />
         )
       ) : (
         <TileGrid>
@@ -699,8 +746,10 @@ function SortPicker({
 }
 
 function TileGrid({ children }: { children: React.ReactNode }) {
+  // Looser auto-fill grid per Claude Design — tiles are ~220px wide so the
+  // hero card breathes and individual tiles are scannable from arm's length.
   return (
-    <div className="grid grid-cols-2 gap-x-5 gap-y-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-x-5 gap-y-7">
       {children}
     </div>
   );
@@ -714,6 +763,5 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-// Re-exports for convenience
 export type { OrganicPost };
 export { type MetaAdWithCreative };

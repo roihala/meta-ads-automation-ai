@@ -692,6 +692,61 @@ export const localPostgresClient: DataClient = {
     return rows[0];
   },
 
+  async createMetaCreativeDuplicateApprovals(input: {
+    business_id: string;
+    source_meta_creative_id: string;
+    source_campaign_id: string;
+    source_campaign_name: string | null;
+    source_metrics: {
+      ctr: number | null;
+      hook_rate: number | null;
+      spend: number | null;
+      impressions: number | null;
+    };
+    target_campaigns: Array<{ id: string; name: string }>;
+    rationale: string;
+    created_by_run_id: string;
+  }): Promise<Array<{ id: string; created_at: string; target_campaign_id: string }>> {
+    if (input.target_campaigns.length === 0) return [];
+    const out: Array<{ id: string; created_at: string; target_campaign_id: string }> = [];
+    // One row per target — sequential so a per-target failure surfaces clearly.
+    // Volume is bounded by N=active campaigns (typically < 10).
+    for (const target of input.target_campaigns) {
+      const payload = {
+        source: "user_duplicate_winner_from_gallery",
+        source_meta_creative_id: input.source_meta_creative_id,
+        source_campaign_id: input.source_campaign_id,
+        source_campaign_name: input.source_campaign_name,
+        source_metrics: input.source_metrics,
+        target_campaign_id: target.id,
+        target_campaign_name: target.name,
+      };
+      const { rows } = await getPool().query<{ id: string; created_at: string }>(
+        `INSERT INTO approvals (
+           business_id, created_by_run_id, task_type,
+           target_kind, target_id,
+           payload, rationale, expected_impact,
+           urgency, expires_at
+         ) VALUES (
+           $1, $2, 'new_creative',
+           'campaign', $3,
+           $4::jsonb, $5, NULL,
+           'medium', now() + interval '48 hours'
+         )
+         RETURNING id::text, created_at::text`,
+        [
+          input.business_id,
+          input.created_by_run_id,
+          target.id,
+          JSON.stringify(payload),
+          input.rationale,
+        ],
+      );
+      out.push({ ...rows[0], target_campaign_id: target.id });
+    }
+    return out;
+  },
+
   async listDecisionsForApproval(approvalId: string): Promise<AgentDecision[]> {
     const { rows } = await getPool().query<AgentDecision>(
       `${SELECT_DECISION}

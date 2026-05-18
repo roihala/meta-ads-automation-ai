@@ -134,9 +134,9 @@ export default async function GalleryPage() {
   return (
     <Shell active="/gallery" width="wide">
       <PageHeader
-        eyebrow="גלריה"
+        eyebrow="קריאייטיב"
         title="נכסי קריאייטיב"
-        subtitle="תמונות וסרטונים שמהם הסוכן מושך קריאייטיב כשמוצע new_creative או new_campaign. תמונות: JPEG/PNG/WebP עד 30MB. וידאו: MP4/MOV עד 4GB, 1–241 שניות, aspect 1:1/4:5/9:16/16:9."
+        subtitle="כל וריאציה שהסוכן ייצר או שהעלית. מטריקות חיות נמשכות מ-Meta — אסט שעדיין לא צבר 1,000 חשיפות מסומן כ-'אוסף נתונים'."
       />
       <GalleryClient
         assets={assets}

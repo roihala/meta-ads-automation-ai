@@ -485,6 +485,50 @@ export function isWinning(asset: CreativeAsset): boolean {
 
 export type Lifecycle = "draft" | "live" | "winning" | "fatiguing" | "killed";
 
+/**
+ * The pill set the operator can choose from on the gallery toolbar. "all"
+ * is the no-op default; the others narrow the visible tiles across every
+ * section. Note that "killed" deliberately isn't in the pills — killed tiles
+ * are always rendered with reduced opacity inside the archive but operators
+ * don't usually want a "show me only killed" lens.
+ */
+export type LifecycleFilter =
+  | "all"
+  | "winning"
+  | "live"
+  | "fatiguing"
+  | "draft";
+
+/**
+ * Maps a live Meta creative's perf grade + frequency to one of our
+ * Lifecycle states, so the same toolbar filter pill that means "winning"
+ * for a gallery asset also picks the right Meta-native creatives.
+ *
+ * Grade D or saturated frequency (>5) → fatiguing (kill candidate).
+ * Grade A → winning. Everything else still actively running → live.
+ * grade=learning is treated as live for filtering — sample size too small
+ * to call it anything sharper, but it's certainly not draft.
+ */
+export function lifecycleOfLiveMetaCreative(
+  creative: LiveMetaCreative,
+): Lifecycle {
+  const perf = creative.performance;
+  if (!perf) return "live";
+  if (perf.grade === "A") return "winning";
+  if (perf.grade === "D") return "fatiguing";
+  const freq = perf.metrics.frequency;
+  if (freq != null && freq > 5) return "fatiguing";
+  return "live";
+}
+
+export function matchesLifecycleFilter(
+  itemLifecycle: Lifecycle,
+  filter: LifecycleFilter,
+): boolean {
+  if (filter === "all") return true;
+  return itemLifecycle === filter;
+}
+
 export function lifecycleOf(asset: CreativeAsset, usage: CreativeUsage): Lifecycle {
   if (asset.deleted_at) return "killed";
   if (!asset.meta_creative_id) return "draft";

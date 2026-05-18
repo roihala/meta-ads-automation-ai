@@ -44,6 +44,8 @@ export const supabaseClient: DataClient = {
   getApprovalById: async () => notImplemented("getApprovalById"),
   createPromotionApproval: async () =>
     notImplemented("createPromotionApproval"),
+  createMetaCreativeDuplicateApprovals: async () =>
+    notImplemented("createMetaCreativeDuplicateApprovals"),
   createPixelVerificationApproval: async () =>
     notImplemented("createPixelVerificationApproval"),
   markTrackingVerified: async () => notImplemented("markTrackingVerified"),

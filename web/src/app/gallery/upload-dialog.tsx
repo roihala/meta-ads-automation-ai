@@ -185,9 +185,9 @@ export function UploadDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button variant="brand" size="sm" className="gap-1.5">
           <Plus className="h-4 w-4" />
-          העלה נכס
+          העלה
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-xl">

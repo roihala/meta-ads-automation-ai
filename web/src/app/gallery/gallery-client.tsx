@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
 import type { CreativeAsset } from "@/lib/db/types";
 import type {
   AdInsightsRow,
@@ -9,8 +8,15 @@ import type {
   InstagramMedia,
 } from "@/lib/meta";
 import { UploadDialog } from "./upload-dialog";
+import { GenerateWithAgentButton } from "./generate-with-agent-button";
+import { LeadingCreativeHero } from "./leading-creative-hero";
 import { LiveSection, PrioritySection, ArchiveSection } from "./sections";
-import type { CreativeUsage, OrganicPost } from "./scoring";
+import {
+  groupLiveMetaCreativesByCampaign,
+  type CreativeUsage,
+  type LifecycleFilter,
+  type OrganicPost,
+} from "./scoring";
 
 export type { CreativeUsage } from "./scoring";
 
@@ -20,7 +26,7 @@ function fbToOrganic(p: FacebookPagePost): OrganicPost {
     id: p.id,
     caption: p.message,
     thumbnail: p.full_picture,
-    video_url: null, // FB Page posts via /published_posts don't expose video src directly
+    video_url: null,
     permalink: p.permalink_url,
     timestamp: p.created_time,
     isVideo: false,
@@ -29,8 +35,6 @@ function fbToOrganic(p: FacebookPagePost): OrganicPost {
 
 function igToOrganic(m: InstagramMedia): OrganicPost {
   const isVideo = m.media_type === "VIDEO";
-  // For VIDEO: thumbnail_url is the poster frame; media_url is the actual video.
-  // For IMAGE/CAROUSEL: media_url is already an image URL.
   const thumb = isVideo ? (m.thumbnail_url ?? m.media_url) : m.media_url;
   return {
     source: "instagram",
@@ -65,7 +69,11 @@ export function GalleryClient({
   igPosts: InstagramMedia[];
   igError: string | null;
 }) {
-  const [search, setSearch] = useState("");
+  // Text search lives in the global nav (Ctrl/⌘+K). The page keeps only the
+  // lifecycle filter pills — that's the deliberate "filters only, no search"
+  // pattern applied uniformly across tabs.
+  const [lifecycleFilter, setLifecycleFilter] =
+    useState<LifecycleFilter>("all");
 
   const organicPosts = useMemo<OrganicPost[]>(() => {
     const items = [...fbPosts.map(fbToOrganic), ...igPosts.map(igToOrganic)];
@@ -73,19 +81,26 @@ export function GalleryClient({
     return items;
   }, [fbPosts, igPosts]);
 
-  // Lifecycle filter — hides whole sections that don't carry tiles of the
-  // selected lifecycle. Tile-level filtering inside LiveSection (winning vs
-  // live vs fatiguing) is a v2 feature; today the pills are at the
-  // section-axis: clicking "טיוטות" hides Live + Archive (drafts live in
-  // PrioritySection), "מנצחים/חיים/מתעייפים" hides Priority + Archive.
-  const [lifecycleFilter, setLifecycleFilter] =
-    useState<LifecycleFilter>("all");
+  // Computed once — feeds both the leading-creative hero and the Live
+  // section's tile grid, so both stay consistent on the same Meta snapshot.
+  const liveGroups = useMemo(
+    () =>
+      groupLiveMetaCreativesByCampaign(
+        creativeUsage,
+        assets,
+        adInsights,
+        videoSources,
+      ),
+    [creativeUsage, assets, adInsights, videoSources],
+  );
 
-  const showLive =
-    lifecycleFilter === "all" ||
-    lifecycleFilter === "winning" ||
-    lifecycleFilter === "live" ||
-    lifecycleFilter === "fatiguing";
+  // Filter pill axis — winning/live/fatiguing reach only live tiles; draft
+  // hides the live grid + organic + archive and shows only the priority
+  // queue. "All" shows everything. Hero is only meaningful in "all" / live /
+  // winning views; it would be misleading to celebrate a "winner" while the
+  // operator is intentionally inspecting "fatiguing" or "draft".
+  const showHero = lifecycleFilter === "all" || lifecycleFilter === "live" || lifecycleFilter === "winning";
+  const showLive = lifecycleFilter !== "draft";
   const showPriority =
     lifecycleFilter === "all" || lifecycleFilter === "draft";
   const showArchive = lifecycleFilter === "all";
@@ -93,8 +108,6 @@ export function GalleryClient({
   return (
     <div className="flex flex-col gap-10">
       <UnifiedToolbar
-        search={search}
-        onSearchChange={setSearch}
         lifecycleFilter={lifecycleFilter}
         onLifecycleFilterChange={setLifecycleFilter}
       />
@@ -116,36 +129,31 @@ export function GalleryClient({
         </div>
       ) : null}
 
+      {showHero ? <LeadingCreativeHero groups={liveGroups} /> : null}
+
       {showLive ? (
         <LiveSection
-          assets={assets}
-          usage={creativeUsage}
-          adInsights={adInsights}
-          videoSources={videoSources}
+          groups={liveGroups}
           metaError={metaError}
           organicPosts={organicPosts}
+          search=""
+          lifecycleFilter={lifecycleFilter}
         />
       ) : null}
       {showPriority ? (
-        <PrioritySection assets={assets} usage={creativeUsage} />
+        <PrioritySection assets={assets} usage={creativeUsage} search="" />
       ) : null}
       {showArchive ? (
         <ArchiveSection
           assets={assets}
           usage={creativeUsage}
-          search={search}
+          search=""
+          lifecycleFilter={lifecycleFilter}
         />
       ) : null}
     </div>
   );
 }
-
-type LifecycleFilter =
-  | "all"
-  | "winning"
-  | "live"
-  | "fatiguing"
-  | "draft";
 
 const FILTER_PILLS: Array<{ id: LifecycleFilter; label: string }> = [
   { id: "all", label: "הכל" },
@@ -155,28 +163,20 @@ const FILTER_PILLS: Array<{ id: LifecycleFilter; label: string }> = [
   { id: "draft", label: "טיוטות" },
 ];
 
-
 /**
- * Single unified toolbar — filter pills on one edge, search + upload on the
- * other. In RTL that puts pills on the right (reading-start) and the action
- * cluster on the left, mirroring the Campaigner.html mockup layout. Wraps to
- * multiple rows on small screens; each cluster keeps its glass surface so the
- * chrome reads as connected layers.
+ * Single unified toolbar — lifecycle filter pills + action cluster. Text
+ * search lives in the global nav (Ctrl/⌘+K) so the per-tab toolbar is just
+ * filters + actions; this is the uniform pattern across the project's tabs.
  */
 function UnifiedToolbar({
-  search,
-  onSearchChange,
   lifecycleFilter,
   onLifecycleFilterChange,
 }: {
-  search: string;
-  onSearchChange: (v: string) => void;
   lifecycleFilter: LifecycleFilter;
   onLifecycleFilterChange: (v: LifecycleFilter) => void;
 }) {
   return (
     <div className="sticky top-24 z-30 flex flex-wrap items-center justify-between gap-3">
-      {/* Filter pills — reading-start edge (right in RTL). */}
       <div className="glass-surface inline-flex w-fit items-center gap-0.5 rounded-full p-1">
         {FILTER_PILLS.map((p) => {
           const isActive = lifecycleFilter === p.id;
@@ -198,22 +198,8 @@ function UnifiedToolbar({
         })}
       </div>
 
-      {/* Action cluster — search input + upload CTA. Same glass-pill shell. */}
-      <div className="glass-surface flex flex-1 items-center gap-1 rounded-full p-1 sm:flex-none sm:min-w-[360px]">
-        <div className="flex flex-1 items-center gap-2 ps-3 pe-1">
-          <Search
-            size={14}
-            className="shrink-0 text-muted-foreground"
-            aria-hidden
-          />
-          <input
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="חיפוש: קובץ, headline, angle, קמפיין"
-            dir="auto"
-            className="h-9 w-full bg-transparent text-[12.5px] outline-none placeholder:text-muted-foreground/70"
-          />
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <GenerateWithAgentButton />
         <UploadDialog />
       </div>
     </div>

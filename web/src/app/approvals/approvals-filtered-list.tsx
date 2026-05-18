@@ -5,12 +5,10 @@ import Link from "next/link";
 import {
   ChevronDown,
   ChevronLeft,
-  Search,
   Sparkles,
   Target,
   X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -71,7 +69,8 @@ export function ApprovalsFilteredList({
   approvals: Approval[];
   initialCampaignFilter?: string | null;
 }) {
-  const [search, setSearch] = useState("");
+  // Text search lives in the global nav (Ctrl/⌘+K). The approvals toolbar keeps
+  // only the structured filters (urgency / type / age / human-review pill).
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
   const [selectedUrgencies, setSelectedUrgencies] = useState<Set<Urgency>>(
     new Set(),
@@ -96,7 +95,6 @@ export function ApprovalsFilteredList({
   }, [approvals]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     const ageCutoff = AGE_BUCKETS.find((b) => b.id === age)?.maxMs ?? null;
     const now = Date.now();
     return approvals.filter((a) => {
@@ -113,28 +111,18 @@ export function ApprovalsFilteredList({
         if (ageMs > ageCutoff) return false;
       }
       if (onlyHumanReview && !requiresHumanReview(a)) return false;
-      if (q) {
-        const label = (
-          TASK_TYPE_LABEL_HE[a.task_type] ?? a.task_type
-        ).toLowerCase();
-        const haystack = [a.task_type, label, a.target_id ?? "", a.rationale]
-          .join(" ")
-          .toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
       return true;
     });
   }, [
     approvals,
-    search,
     selectedTypes,
     selectedUrgencies,
     age,
     onlyHumanReview,
+    campaignFilter,
   ]);
 
   const activeFilterCount =
-    (search ? 1 : 0) +
     selectedTypes.size +
     selectedUrgencies.size +
     (age !== "all" ? 1 : 0) +
@@ -142,7 +130,6 @@ export function ApprovalsFilteredList({
     (campaignFilter ? 1 : 0);
 
   const clearAll = () => {
-    setSearch("");
     setSelectedTypes(new Set());
     setSelectedUrgencies(new Set());
     setAge("all");
@@ -190,28 +177,11 @@ export function ApprovalsFilteredList({
         </div>
       ) : null}
 
-      {/* Toolbar — single horizontal row, glass surface, no "form" feel.
-          Search expands to fill space; chip-dropdowns are tight on the left
-          (RTL: shown on the right). Mobile: wraps to multiple rows but each
-          element keeps its pill identity. */}
+      {/* Toolbar — chip-dropdowns + the "דורש בדיקה" pill on a single glass
+          surface. Free-text search lives in the global nav (Ctrl/⌘+K); the
+          toolbar is structured filters only. Mobile: wraps to multiple rows
+          but each chip keeps its pill identity. */}
       <div className="glass-panel sticky top-24 z-30 flex flex-wrap items-center gap-2 rounded-full p-1.5 sm:rounded-full">
-        {/* Flexbox layout (icon + input) — avoids absolute positioning
-            so the icon sits at the RTL inline-start (right side) naturally,
-            next to where the Hebrew placeholder begins. */}
-        <div className="flex flex-1 items-center gap-2 ps-3.5 pe-1">
-          <Search
-            size={15}
-            className="shrink-0 text-muted-foreground"
-            aria-hidden
-          />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="חיפוש לפי מזהה יעד, נימוק, או סוג משימה"
-            className="h-10 w-full bg-transparent text-[13.5px] outline-none placeholder:text-muted-foreground/80"
-          />
-        </div>
-
         <FilterPill
           label={urgencyLabel}
           active={selectedUrgencies.size > 0}

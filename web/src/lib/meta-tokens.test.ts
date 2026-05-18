@@ -90,6 +90,8 @@ function mkDb(
     listPendingApprovals: unused as DataClient["listPendingApprovals"],
     getApprovalById: unused as DataClient["getApprovalById"],
     createPromotionApproval: unused as DataClient["createPromotionApproval"],
+    createMetaCreativeDuplicateApprovals:
+      unused as DataClient["createMetaCreativeDuplicateApprovals"],
     listDecisionsForApproval: unused as DataClient["listDecisionsForApproval"],
     listDecisionsForRun: unused as DataClient["listDecisionsForRun"],
     approveApproval: unused as DataClient["approveApproval"],

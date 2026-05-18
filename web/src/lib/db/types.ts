@@ -582,6 +582,34 @@ export interface DataClient {
     created_by_run_id: string;
   }): Promise<{ id: string; created_at: string }>;
   /**
+   * Stage one `new_creative` approval per target campaign that asks the
+   * operator to confirm propagating a winning Meta creative (by
+   * meta_creative_id) to other active campaigns. Used by the gallery hero
+   * "שכפל ל-N קמפיינים" CTA. Each row carries the source creative + source
+   * campaign + target campaign in payload so the agent's execute_task can
+   * dispatch them individually once new_creative is supported beyond the
+   * gallery-upload path.
+   *
+   * Returns the inserted rows. Caller is responsible for picking the target
+   * campaign list (typically: all active campaigns that don't already carry
+   * this creative).
+   */
+  createMetaCreativeDuplicateApprovals(input: {
+    business_id: string;
+    source_meta_creative_id: string;
+    source_campaign_id: string;
+    source_campaign_name: string | null;
+    source_metrics: {
+      ctr: number | null;
+      hook_rate: number | null;
+      spend: number | null;
+      impressions: number | null;
+    };
+    target_campaigns: Array<{ id: string; name: string }>;
+    rationale: string;
+    created_by_run_id: string;
+  }): Promise<Array<{ id: string; created_at: string; target_campaign_id: string }>>;
+  /**
    * Stage a `verify_pixel_capi` approval with pixel findings from Graph. The
    * human reviewer is the verification step — they confirm Pixel + CAPI + AEM
    * + domain are all green before approving. On approve, the approve action
