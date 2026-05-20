@@ -133,12 +133,11 @@ def validate_structured_plan(plan: dict) -> str | None:
     if operator not in _VALID_OPERATORS:
         return f"--plan.trigger.operator must be one of {sorted(_VALID_OPERATORS)}"
     name = trigger.get("threshold_name")
-    if name is not None:
-        if not isinstance(name, str) or not _THRESHOLD_NAME_RX.match(name):
-            return (
-                "--plan.trigger.threshold_name must be a dotted name like "
-                "'gate_2.winner_ratio' (lowercase, snake_case, single dot)"
-            )
+    if name is not None and (not isinstance(name, str) or not _THRESHOLD_NAME_RX.match(name)):
+        return (
+            "--plan.trigger.threshold_name must be a dotted name like "
+            "'gate_2.winner_ratio' (lowercase, snake_case, single dot)"
+        )
     value = trigger.get("threshold_value")
     if value is not None and not isinstance(value, int | float):
         return "--plan.trigger.threshold_value must be a number"
@@ -150,7 +149,9 @@ def validate_structured_plan(plan: dict) -> str | None:
         )
     sustained = trigger.get("sustained_days")
     if sustained is not None and (not isinstance(sustained, int) or sustained < 1):
-        return "--plan.trigger.sustained_days must be a positive integer (omit for single-day signals)"
+        return (
+            "--plan.trigger.sustained_days must be a positive integer (omit for single-day signals)"
+        )
 
     action = plan.get("proposed_action")
     if not isinstance(action, dict):
@@ -211,11 +212,7 @@ def create_structured_row(
     trigger_condition = trigger.get("condition_text") or (
         f"{trigger['metric']} {trigger['operator']} "
         f"{trigger.get('threshold_name') or trigger.get('threshold_value')}"
-        + (
-            f" (sustained {trigger['sustained_days']}d)"
-            if trigger.get("sustained_days")
-            else ""
-        )
+        + (f" (sustained {trigger['sustained_days']}d)" if trigger.get("sustained_days") else "")
     )
 
     with conn.cursor() as cur:

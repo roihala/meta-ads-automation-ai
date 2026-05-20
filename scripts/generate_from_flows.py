@@ -270,9 +270,7 @@ def planned_outputs() -> dict[Path, str]:
 
     # ARCHITECTURE.md — flow index.
     arch_text = ARCHITECTURE_MD.read_text()
-    arch_text = replace_between_sentinels(
-        arch_text, SENTINEL_FLOW_INDEX, render_flow_index(flows)
-    )
+    arch_text = replace_between_sentinels(arch_text, SENTINEL_FLOW_INDEX, render_flow_index(flows))
     outputs[ARCHITECTURE_MD] = arch_text
 
     return outputs

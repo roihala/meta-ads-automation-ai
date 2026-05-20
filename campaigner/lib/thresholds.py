@@ -12,7 +12,6 @@ Regenerate by editing `config/thresholds.yaml` and running
 
 from __future__ import annotations
 
-
 SCHEMA_VERSION = "1.0.0"
 
 

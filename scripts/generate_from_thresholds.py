@@ -57,7 +57,6 @@ Regenerate by editing `config/thresholds.yaml` and running
 """
 
 from __future__ import annotations
-
 '''
 
 
@@ -103,7 +102,9 @@ def load_registry() -> tuple[str, list[Threshold]]:
         if domain == "schema_version":
             continue
         if not isinstance(entries, dict):
-            raise SystemExit(f"ERROR: domain '{domain}' must be a mapping, got {type(entries).__name__}.")
+            raise SystemExit(
+                f"ERROR: domain '{domain}' must be a mapping, got {type(entries).__name__}."
+            )
         for name, spec in entries.items():
             if not isinstance(spec, dict) or "value" not in spec:
                 raise SystemExit(

@@ -115,9 +115,7 @@ def main() -> None:
                 "target_id": r.get("target_id"),
                 "status": "approved_or_executed",
                 "committed_on": committed.date().isoformat() if committed else None,
-                "step_1_already_done": (
-                    "(step 1 already executed — see source approval)"
-                ),
+                "step_1_already_done": ("(step 1 already executed — see source approval)"),
                 "forward_steps": [],
             }
         # Build the per-step entry. Structured trigger fields are surfaced
