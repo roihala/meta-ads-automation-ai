@@ -1,8 +1,27 @@
 # Continue Prompt — Campaigner brain migration
 
 **Updated:** 2026-05-20
-**Branch:** `main` — local at `a0ddfad` (Step 5 just committed; not yet pushed).
+**Branch:** `main` — local at `a0ddfad` (Step 5 committed; not yet pushed).
 **Status:** PRD Steps 1, 2, 3, **and 5** of 9 landed. **All four parallel-safe foundations (Phase A) are done.** Next move: **Step 4 (per-flow prompt split + shared brain)** — the large atomic structural change.
+
+## Side task in flight — local non-docker demo against Supabase
+
+Roi asked for a light, docker-free way to run the campaigner end-to-end against Supabase so he can smoke-test the PRD step 5 logic. Mid-setup as of this writing:
+
+- ✅ `.venv/` created at repo root, `pip install -r requirements.txt` succeeded (~250 MB).
+- ✅ `.env` updated with new Supabase Session-pooler URI (ap-northeast-1 region).
+- ✅ Supabase DB ping works (`from campaigner.lib.db import ping; ping()` → True).
+- ✅ Supabase wiped clean (8 stale tables dropped) and migrated fresh from 001 → 032. All 34 migrations applied cleanly, including the PRD step 3 (`031_thresholds_schema_version`) and step 5 (`032_plans_structured_trigger`) ones we wanted to test.
+- ✅ Aiweon `businesses` row seeded via `scripts/seed_local.py` (id `9f8f42d9-3f6c-4e2e-bc1a-b60f9ff551f3`).
+- ✅ K8s `campaigner-secrets` Secret in `campaigner` namespace patched via `make secrets` — DATABASE_URL now points at the new Supabase pooler.
+- ❌ First Flow A run (`bash runners/daily_observe_propose.sh`) failed with **Anthropic 401 — "Invalid API key · Fix external API key"**. The `ANTHROPIC_API_KEY` in `.env` is rejected by the API. Headless `claude -p` does NOT fall back to the Claude.ai OAuth credential the interactive `claude` uses — it only reads `ANTHROPIC_API_KEY` from env.
+- ⏳ Waiting for Roi to paste a fresh `ANTHROPIC_API_KEY`.
+- 🐛 **Side bug discovered**: `runners/*.sh` use `date +%s%3N` which is a Linux-only format. macOS BSD `date` outputs the literal `%3N` as `3N`, breaking the `$((...))` arithmetic in the error trap (`runners/daily_observe_propose.sh: line 42: 17792705103N: value too great for base`). Net effect on the failed run: the `error` heartbeat row never got written, only `start`. Not blocking the demo; worth fixing in a follow-up if the runners are intended to run on macOS dev machines (alternatives: `python -c 'import time;print(int(time.time()*1000))'` or `gdate +%s%3N` via coreutils).
+- ⏭ Once new API key lands: (1) update `.env`, (2) re-run `make secrets` so the K8s Secret holds the working key, (3) re-run `PATH=$(pwd)/.venv/bin:$PATH bash runners/daily_observe_propose.sh` and watch a real Flow A complete against Supabase.
+
+Verified working stack so far: venv → psycopg → Supabase pooler → migrations → seeding → `make secrets` → K8s Secret patched. Only the `claude -p` step is blocked, by the bad API key.
+
+Resume the side task by reading the conversation above — Roi pasting a fresh API key is the unblocker.
 
 ## Where we are
 
