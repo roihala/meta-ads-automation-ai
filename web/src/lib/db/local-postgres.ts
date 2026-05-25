@@ -171,7 +171,8 @@ const SELECT_APPROVAL = `
          urgency, status, approved_at::text, approved_by, rejection_reason,
          executed_at::text, execution_result, expires_at::text,
          scheduled_for::text, external_post_id, published_at::text,
-         operator_questions, operator_response, answered_at::text
+         operator_questions, operator_response, answered_at::text,
+         finding_key
     FROM approvals
 `;
 
@@ -790,6 +791,7 @@ export const localPostgresClient: DataClient = {
       skip_count: number;
       rejection_count: number;
       error_count: number;
+      observation_blocked_count: number;
       campaigns_touched: number;
     }>(
       `SELECT run_id::text,
@@ -801,6 +803,7 @@ export const localPostgresClient: DataClient = {
               COUNT(*) FILTER (WHERE decision_type = 'skip')::int      AS skip_count,
               COUNT(*) FILTER (WHERE decision_type = 'rejection')::int AS rejection_count,
               COUNT(*) FILTER (WHERE decision_type = 'error')::int     AS error_count,
+              COUNT(*) FILTER (WHERE decision_type = 'observation_blocked')::int AS observation_blocked_count,
               COUNT(DISTINCT campaign_id)::int AS campaigns_touched
          FROM agent_decisions
         WHERE business_id = $1

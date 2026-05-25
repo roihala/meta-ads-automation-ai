@@ -38,6 +38,8 @@ export function LastScanCard({
   const headlineParts: string[] = [];
   headlineParts.push(`${run.campaigns_touched} קמפיינים נסרקו`);
   headlineParts.push(`${h.proposalCount} הצעות`);
+  if (h.observationBlockedCount > 0)
+    headlineParts.push(`${h.observationBlockedCount} ממצאים חסומים`);
   if (h.skipCount > 0) headlineParts.push(`${h.skipCount} דילוגים`);
   if (h.rejectionCount > 0) headlineParts.push(`${h.rejectionCount} דחיות`);
 
@@ -115,6 +117,33 @@ export function LastScanCard({
               הריצה הזו עברה ללא ממצא חריג — לפרטים מלאים פתח את הריצה.
             </div>
           )}
+
+          {h.blockedFindings.length > 0 ? (
+            <div className="rounded-md border border-amber-300/60 bg-amber-50/40 px-3 py-2.5 text-[12.5px] text-amber-950 dark:border-amber-900/50 dark:bg-amber-900/10 dark:text-amber-100">
+              <div className="text-[10.5px] font-semibold uppercase tracking-wider opacity-80">
+                ממצאים שמחכים להסרת חסם
+              </div>
+              <ul className="mt-1.5 space-y-1.5">
+                {h.blockedFindings.map((f) => (
+                  <li key={f.decisionId} className="flex flex-col gap-0.5">
+                    <span className="font-medium">{f.summary}</span>
+                    {f.blockedBy.length > 0 ? (
+                      <span className="flex flex-wrap gap-1">
+                        {f.blockedBy.map((b) => (
+                          <span
+                            key={b}
+                            className="rounded bg-amber-200 px-1.5 py-0.5 text-[10.5px] font-mono text-amber-900"
+                          >
+                            🔒 {b}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
@@ -168,6 +197,8 @@ function topFindingEyebrowHe(kind: NonNullable<ReturnType<typeof summarizeRun>["
       return "פול קריאייטיב";
     case "proposal":
       return "הצעה חדשה";
+    case "blocked":
+      return "ממצא חסום";
     case "route":
       return "ממצא ראשי";
   }

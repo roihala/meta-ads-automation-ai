@@ -275,6 +275,13 @@ export interface Approval {
   operator_response: Record<string, string | string[]> | null;
   /** When operator submitted MCQ answers. NULL until response is recorded. */
   answered_at: string | null;
+  /**
+   * Stable structural identifier for the (finding_type, target) pair this
+   * approval addresses. Added 2026-05-25 (Migration 033). NULL on legacy
+   * rows. Drives structural dedup at `propose_task` time: a pending row
+   * with the same finding_key blocks a duplicate insert.
+   */
+  finding_key: string | null;
 }
 
 export type HeartbeatFlow =
@@ -338,6 +345,15 @@ export interface CreativeAssetCreate {
 
 export type DecisionType =
   | "observation"
+  /**
+   * Added 2026-05-25 (Migration 033): the agent identified a finding but the
+   * capability needed to act is blocked (tracking unverified, KPI target not
+   * set, etc.). The diagnosis is surfaced — the action is not. `outputs`
+   * carries `finding_type`, `blocked_by` (list of capability requirement
+   * names), and `would_propose` (the payload the agent *would* have sent to
+   * propose_task). See `docs/todos/capability-gated-decision-flow.md`.
+   */
+  | "observation_blocked"
   | "diagnosis"
   | "proposal"
   | "rejection"
@@ -386,6 +402,12 @@ export interface RunSummaryRow {
   skip_count: number;
   rejection_count: number;
   error_count: number;
+  /**
+   * Findings the agent surfaced but couldn't act on because a capability is
+   * blocked (tracking unverified, KPI target not set, etc.). Added 2026-05-25
+   * with Migration 033 — see `docs/todos/capability-gated-decision-flow.md`.
+   */
+  observation_blocked_count: number;
   /** Distinct campaigns the run touched (via `agent_decisions.campaign_id`). */
   campaigns_touched: number;
 }

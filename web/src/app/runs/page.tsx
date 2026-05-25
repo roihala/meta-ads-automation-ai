@@ -134,6 +134,13 @@ function RunRow({ run }: { run: RunSummaryRow }) {
                 tone="warn"
               />
             ) : null}
+            {run.observation_blocked_count > 0 ? (
+              <Stat
+                label="ממצאים חסומים"
+                value={run.observation_blocked_count}
+                tone="warn"
+              />
+            ) : null}
             {run.error_count > 0 ? (
               <Stat label="שגיאות" value={run.error_count} tone="bad" />
             ) : null}
