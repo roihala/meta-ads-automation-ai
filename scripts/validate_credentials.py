@@ -1,19 +1,15 @@
 """Validate that all external credentials for Phase 1 dev work end-to-end.
 
-Supersedes the legacy `test_credentials.py` (fork artifact). Adds Anthropic
-coverage, GCP auth coverage, and a consistent pass/fail exit status.
+Supersedes the legacy `test_credentials.py` (fork artifact). The Vertex AI
+section was retired 2026-05-26 along with the Imagen path.
 
 Checks:
   1. ANTHROPIC_API_KEY present and Claude Code CLI responds (uses `claude -p`
      in the container — the exact entrypoint the agent will use in prod).
-  2. GCP Application Default Credentials mounted and Vertex AI client inits
-     against GCP_PROJECT_ID + GCP_LOCATION. (No Imagen generation by default —
-     pass --with-imagen to actually generate one image (~$0.02 on fast tier).)
-  3. Meta access token valid — reads ad account name + status via Marketing API.
+  2. Meta access token valid — reads ad account name + status via Marketing API.
 
 Usage:
   docker compose run --rm campaigner python scripts/validate_credentials.py
-  docker compose run --rm campaigner python scripts/validate_credentials.py --with-imagen
 
 Exits 0 on full pass, 1 on any failure. Each check prints a masked value of the
 credential it's using so you can see wiring without exposing secrets.
@@ -25,7 +21,6 @@ import argparse
 import os
 import subprocess
 import sys
-from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -53,7 +48,7 @@ def _mask(value: str | None, *, keep: int = 6) -> str:
 
 
 def check_anthropic() -> bool:
-    print("[1/3] Anthropic — Claude Code CLI (headless)")
+    print("[1/2] Anthropic — Claude Code CLI (headless)")
     key = os.getenv("ANTHROPIC_API_KEY")
     print(f"      ANTHROPIC_API_KEY = {_mask(key)}")
     if not key or key.startswith("sk-ant-your"):
@@ -91,58 +86,8 @@ def check_anthropic() -> bool:
     return True
 
 
-def check_gcp(with_imagen: bool) -> bool:
-    print("[2/3] GCP — Vertex AI (Imagen)")
-    project = os.getenv("GCP_PROJECT_ID", "bemtech-478413")
-    location = os.getenv("GCP_LOCATION", "us-central1")
-    creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    print(f"      GCP_PROJECT_ID = {project}")
-    print(f"      GCP_LOCATION   = {location}")
-    print(f"      ADC file       = {creds_path or '(unset)'}")
-
-    if creds_path and not Path(creds_path).exists():
-        _fail(f"GOOGLE_APPLICATION_CREDENTIALS points to missing file: {creds_path}")
-        print("      Run on host: gcloud auth application-default login", file=sys.stderr)
-        return False
-
-    try:
-        from google import genai  # type: ignore
-    except ImportError:
-        _fail("google-genai not installed — check requirements.txt")
-        return False
-
-    try:
-        client = genai.Client(vertexai=True, project=project, location=location)
-    except Exception as e:  # noqa: BLE001
-        _fail(f"Vertex AI client init failed: {e}")
-        print("      Run on host: gcloud auth application-default login", file=sys.stderr)
-        return False
-
-    _ok("Vertex AI client initialized")
-
-    if not with_imagen:
-        _skip("skipped live Imagen generation (pass --with-imagen to test, ~$0.02)")
-        return True
-
-    try:
-        response = client.models.generate_images(
-            model="imagen-3.0-fast-generate-001",
-            prompt="A simple blue square on white background, for credential test.",
-            config={"number_of_images": 1},
-        )
-        count = len(response.generated_images) if response.generated_images else 0
-        if count != 1:
-            _fail(f"Imagen returned {count} images (expected 1)")
-            return False
-        _ok("Imagen generation succeeded (1 image, fast tier)")
-        return True
-    except Exception as e:  # noqa: BLE001
-        _fail(f"Imagen generation failed: {e}")
-        return False
-
-
 def check_meta() -> bool:
-    print("[3/3] Meta — Marketing API")
+    print("[2/2] Meta — Marketing API")
     app_id = os.getenv("META_APP_ID")
     app_secret = os.getenv("META_APP_SECRET")
     token = os.getenv("META_ACCESS_TOKEN")
@@ -200,19 +145,12 @@ def check_meta() -> bool:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--with-imagen",
-        action="store_true",
-        help="actually generate a test image (~$0.02); default skips generation",
-    )
-    args = parser.parse_args()
+    argparse.ArgumentParser(description=__doc__).parse_args()
 
     print("Campaigner credentials check")
     print("=" * 60)
     results = {
         "anthropic": check_anthropic(),
-        "gcp": check_gcp(args.with_imagen),
         "meta": check_meta(),
     }
     print("=" * 60)

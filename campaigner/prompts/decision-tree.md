@@ -725,16 +725,17 @@ Cold start account
   │  │  │    לפני שניצור חדשים. חיסכון בעלות (הקריאייטיבים האלה כבר עלו לייצור)
   │  │  │    וגם זה Meta-Andromeda-friendly: יותר וריאנטים פעילים זה יותר טוב."
   │  │  │
-  │  │  ├─ 5 ≤ N ≤ 9: mixed — propose redeploy_creative × N + new_creative × (12 - N)
+  │  │  ├─ 5 ≤ N ≤ 9: mixed — propose redeploy_creative × N + pending_creative × (12 - N)
   │  │  │   rationale מציין את התערובת:
-  │  │  │   "נטמיע N אסטים מהגלריה שעוד לא נוצלו, ונשלים ב-(12-N) חדשים שייצור
-  │  │  │    Imagen כדי להגיע למינימום של 10-12 וריאנטים לפתיחה — היעד של
-  │  │  │    Andromeda Firehose מלא."
+  │  │  │   "נטמיע N אסטים מהגלריה שעוד לא נוצלו, ונשלים ב-(12-N) תקצירי Clara
+  │  │  │    חדשים שייכנסו לתור Flow I כדי להגיע למינימום של 10-12 וריאנטים
+  │  │  │    לפתיחה — היעד של Andromeda Firehose מלא."
   │  │  │
-  │  │  └─ N < 5: propose new_creative × 10-12 (הזרימה הקודמת — firehose מלא).
-  │  │      גלריה כמעט ריקה — בכל מקרה צריך לייצר את רוב הוריאנטים.
+  │  │  └─ N < 5: propose pending_creative × 10-12 (תקצירי Clara — Flow I יפיק
+  │  │      את הוידאוים בהדרגה לפי cap של 2/יום). גלריה כמעט ריקה — בכל מקרה
+  │  │      צריך לייצר את רוב הוריאנטים.
   │  │
-  │  │  ראה creative-guide.md §7 לגיוון angles בענף ה-new_creative.
+  │  │  ראה creative-guide.md §2 + §11 לגיוון angles בענף ה-pending_creative.
   │  │
   ├─ §T6.2 — יש קמפיין פעיל אחד או יותר, אבל גיל < 7 ימים:
   │  אין baselines. אין data sufficiency.

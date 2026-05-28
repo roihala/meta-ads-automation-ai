@@ -14,7 +14,7 @@ in docs/plans/campaigner-meta-mastery-v2.md §4.1:
     case (status, days_left, has_quality_winner, gallery_health):
       ("underrun", >7, True, healthy):    scale_up(+20%) on best
       ("underrun", >7, True, exhausted):  redeploy_creative from gallery
-      ("underrun", >7, True, empty):      alert "צריך תוכן חדש" + Imagen brief
+      ("underrun", >7, True, empty):      alert "צריך תוכן חדש" + Clara brief
       ("underrun", >7, False, *):         new_campaign OR boost_post if viral
       ("underrun", ≤5, *, *):             lost_opportunity log; no panic-spend
       ("overrun", *, *, *):               scale_down on weakest quality-CPL
@@ -165,11 +165,12 @@ def _route(
                 f"יש מנצח, אבל אין יצירתי חדש להזין למודל למידה — הגלריה "
                 f"הזמינה ריקה והמנצח מתחיל להתעייף. **לא ניתן להגדיל "
                 f"תקציב בלי תוכן חדש**. הצע alert: או 1) ייצור 3 יצירתיים "
-                f"חדשים דרך Imagen, או 2) boost_post על פוסט אורגני חזק."
+                f"חדשים דרך Clara (Flow C מייצר תקצירים, Flow I מפיק "
+                f"וידאו ביום שלמחרת), או 2) boost_post על פוסט אורגני חזק."
             ),
             "blockers": ["empty gallery + winner needs refresh"],
             "next_steps": [
-                "emit alert with 2-option MCQ: imagen vs boost_post candidate",
+                "emit alert with 2-option MCQ: pending_creative_brief vs boost_post candidate",
             ],
         }
 

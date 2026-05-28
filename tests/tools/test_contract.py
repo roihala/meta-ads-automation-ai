@@ -122,6 +122,8 @@ def test_propose_task_valid_args_exits_0(invoke_tool, cleanup_run, business_id, 
         "backfill_gallery_from_meta",
         "check_business_alignment",
         "check_account_health",
+        # Clara video flow (2026-05-26):
+        "propose_pending_creative",
     ],
 )
 def test_missing_business_id_exits_2(invoke_tool, tool):
@@ -430,6 +432,119 @@ def test_propose_task_redeploy_creative_accepted(invoke_tool, cleanup_run, busin
     payload = json.loads(r.stdout)
     assert payload["task_type"] == "redeploy_creative"
     assert payload["status"] == "pending"
+
+
+# ---------- propose_pending_creative (Clara flow, 2026-05-26) ----------
+
+
+@pytest.fixture
+def two_gallery_assets(business_id):
+    """Seed two creative_gallery rows for the business and clean them up on teardown."""
+    from campaigner.lib.db import execute, fetch_all
+
+    rows = fetch_all(
+        """
+        INSERT INTO creative_gallery (business_id, kind, status, storage_url, generated_by)
+        VALUES
+          (%s, 'image', 'generated', '/tmp/contract-test-1.png', 'manual_upload'),
+          (%s, 'image', 'generated', '/tmp/contract-test-2.png', 'manual_upload')
+        RETURNING id::text AS id
+        """,
+        (business_id, business_id),
+    )
+    ids = [row["id"] for row in rows]
+    yield ids
+    # Teardown: delete pending briefs that referenced these assets, then the assets themselves.
+    try:
+        execute(
+            "DELETE FROM creative_gallery WHERE source_asset_ids && %s::uuid[]",
+            (ids,),
+        )
+        execute("DELETE FROM creative_gallery WHERE id = ANY(%s::uuid[])", (ids,))
+    except Exception as e:
+        print(f"WARN: gallery cleanup failed: {e}", file=sys.stderr)
+
+
+def test_propose_pending_creative_valid_args_exits_0(
+    invoke_tool, business_id, run_id, two_gallery_assets
+):
+    r = invoke_tool(
+        "propose_pending_creative",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--hebrew-brief",
+        "מסעדת שף בראשון לציון עם תפריט ים-תיכוני מודרני — אור טבעי שנכנס בערב",
+        "--source-asset-ids",
+        json.dumps(two_gallery_assets),
+    )
+    assert r.returncode == 0, f"stderr: {r.stderr}"
+    payload = json.loads(r.stdout)
+    assert payload["status"] == "pending"
+    assert payload["kind"] == "video"
+    assert payload["generated_by"] == "clara"
+    assert set(payload["source_asset_ids"]) == set(two_gallery_assets)
+    assert "gallery_id" in payload
+    assert "expires_at" in payload
+
+
+def test_propose_pending_creative_wrong_source_count_exits_2(
+    invoke_tool, business_id, run_id, two_gallery_assets
+):
+    """Source list of length 1 is rejected (must be 2 or 3)."""
+    r = invoke_tool(
+        "propose_pending_creative",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--hebrew-brief",
+        "ניסיון תקציר עם נכס אחד בלבד",
+        "--source-asset-ids",
+        json.dumps(two_gallery_assets[:1]),  # only 1
+    )
+    assert r.returncode == 2
+    assert "validation_error" in r.stdout or "VALIDATION" in r.stderr
+
+
+def test_propose_pending_creative_empty_brief_exits_2(
+    invoke_tool, business_id, run_id, two_gallery_assets
+):
+    r = invoke_tool(
+        "propose_pending_creative",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--hebrew-brief",
+        "   ",  # whitespace only
+        "--source-asset-ids",
+        json.dumps(two_gallery_assets),
+    )
+    assert r.returncode == 2
+
+
+def test_propose_pending_creative_unknown_source_exits_2(
+    invoke_tool, business_id, run_id
+):
+    """Source-asset UUIDs that don't exist in the gallery are rejected."""
+    fake_ids = [
+        "11111111-1111-1111-1111-111111111111",
+        "22222222-2222-2222-2222-222222222222",
+    ]
+    r = invoke_tool(
+        "propose_pending_creative",
+        "--business-id",
+        business_id,
+        "--run-id",
+        run_id,
+        "--hebrew-brief",
+        "תקציר עם נכסים שלא קיימים",
+        "--source-asset-ids",
+        json.dumps(fake_ids),
+    )
+    assert r.returncode == 2
 
 
 # ---------- exit 2: malformed JSON in JSON args ----------

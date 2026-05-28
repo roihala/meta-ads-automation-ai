@@ -1,7 +1,8 @@
 # Creative Guide — מנוע הקריאייטיב
 
-> **Source:** [campaigner-spec §7](../../docs/plans/campaigner-spec.md#7-מנוע-קריאייטיב) + [CAMPAIGN_BUILDING_RECOMMENDATIONS.md](../../docs/CAMPAIGN_BUILDING_RECOMMENDATIONS.md).
+> **Source:** [campaigner-spec §7](../../docs/plans/campaigner-spec.md#7-מנוע-קריאייטיב) + [CAMPAIGN_BUILDING_RECOMMENDATIONS.md](../../docs/CAMPAIGN_BUILDING_RECOMMENDATIONS.md) + [clara-video-flow.md](../../docs/plans/clara-video-flow.md).
 > **מודל:** **Andromeda-era Firehose** — 10-50+ קריאייטיבים מגוונים פעילים, continuous additions, אל תחתוך ידנית.
+> **Generation backend:** **Clara** ([clarasocial.com](https://clarasocial.com/app)) דרך Playwright. החליף את Imagen ב-2026-05. Clara מקבל 2-3 תמונות מהגלריה + תקציר חופשי בעברית, מפיק וידאו 9:16 עם סאונד.
 > **Hebrew copy:** לקופי עצמו — קרא [hebrew-copy-style.md](hebrew-copy-style.md). הקובץ הזה עוסק בעקרונות המבניים.
 
 ---
@@ -21,11 +22,7 @@
 
 ## 2. Initial Batch — פתיחת קמפיין חדש
 
-**10-12 קריאייטיבים בפתיחה:**
-
-```
-3-4 Hooks × 3 aspect ratios = ~12
-```
+**10-12 קריאייטיבים בפתיחה.** מקור עיקרי: גלריה קיימת (`creative_gallery` — assets שהמפעיל העלה ידנית, או וידאו ש-Clara הפיק בעבר). אם אין מספיק — תקציב להוסיף תקצירים שבועיים ל-Clara (ראה §3).
 
 ### 3-4 Hooks שונים (angles לפי §7.5 בספק)
 
@@ -40,33 +37,47 @@
 
 הסוכן בוחר **3-4 זוויות שונות** לקמפיין (לא כולן) → Meta Dynamic Creative בוחר את הזוכה.
 
-### 3 Aspect Ratios
+### Aspect ratio — 9:16 בלבד
 
-לכל hook — תמיד 3 פורמטים:
+Clara מפיק תמיד **9:16 (אנכי)**. זה הפורמט הדומיננטי ל-Reels/Stories שבהם Andromeda הכי משחקת. ל-Feed Meta מקצצת אוטומטית.
 
-| Ratio | Dimensions | Placement מועדף                 |
-| ----- | ---------- | ------------------------------- |
-| 1:1   | 1080×1080  | Feed universal                  |
-| 4:5   | 1080×1350  | Feed (מומלץ — תופס יותר screen) |
-| 9:16  | 1080×1920  | Stories / Reels                 |
-
-**אל תקצה placement ידני** — תן את כל ה-ratios, Meta בוחרת לבד (Andromeda).
+קריאייטיבים סטטיים (תמונות מ-`creative_gallery`) — תמיד שלושה פורמטים מהמפעיל: 1:1 / 4:5 / 9:16. **אל תקצה placement ידני** — תן את כל הפורמטים, Meta בוחרת לבד.
 
 ---
 
-## 3. Continuous Additions — תוספת שבועית
+## 3. Continuous Additions — תקצירי Clara שבועיים
 
-**3-5 קריאייטיבים חדשים לשבוע**, בצורת proposals `task_type=new_creative` ב-`weekly_creative_firehose.sh`:
+**מטרה:** 3-5 וריאנטים חדשים לשבוע לכל קמפיין פעיל, דרך Flow C → Flow I.
 
-- **הוסף** — אל תחליף. האקטיבים הקיימים ממשיכים עד שטריגר Kill (Gate 1) פעל.
-- **מגוון** — כל תוספת צריכה להיות שונה מהקיים (hook חדש, angle חדש, פורמט שלא בשימוש).
-- **כלל זהב:** **אל תחתוך ידנית** — guardrail `no_manual_creative_pruning_before_48h` יפסול. חיתוך רק כש-Gate 1 kill trigger פעל: hook < 25% OR CTR < 1% עם ≥ 1,000 חשיפות.
+### 3.1. הזרימה השלמה
 
-### 3.1. Gallery-first sourcing (Block 8, 2026-05-13)
+```
+Mon 10:00  Flow C — propose_pending_creative.py
+             ↓
+           creative_gallery row: status='pending',
+             kind='video', generated_by='clara',
+             hebrew_brief, source_asset_ids[2..3],
+             expires_at = now() + 7d
+             ↓
+Daily 11:00  Flow I — generate_clara_video.py (≤ 2/day, FIFO)
+             ↓
+           Playwright → Clara (login, upload photos, submit brief)
+             ↓
+           creative_gallery row: status='generated',
+             storage_url='<clara mp4 url>'
+             ↓
+           propose_task --task-type upload_creative
+             ↓
+           operator approves in /library
+             ↓
+Flow B    execute_task — upload video to Meta + create ad
+             ↓
+           creative_gallery row: status='active', meta_creative_id=...
+```
 
-**עקרון:** לפני שמייצרים אסט חדש, בדוק מה כבר יש בגלריה ולא נוצל. Imagen עולה כסף; הגדול יותר — כל אסט שלא הוטמע הוא slot מבוזבז שכבר שילמת עליו.
+### 3.2. Gallery-first sourcing (Block 8, 2026-05-13)
 
-**הזרימה (חובה לפני כל `new_creative` ב-§T6.1 ו-§T_PE):**
+**עקרון:** לפני שמייצרים וריאנט חדש, בדוק מה כבר יש בגלריה ולא נוצל. גם ב-Andromeda — Clara עולה כסף; כל אסט שלא הוטמע הוא slot מבוזבז שכבר שילמת עליו.
 
 ```bash
 python -m campaigner.tools.list_active_creatives \
@@ -78,17 +89,41 @@ python -m campaigner.tools.list_active_creatives \
 
 **הסף (לפי שלב הסוכן):**
 
-| שלב | יעד וריאנטים | N ≥ סף → redeploy | אמצע → mixed | אחרת → new_creative |
+| שלב | יעד וריאנטים | N ≥ סף → redeploy | אמצע → mixed | אחרת → pending brief |
 | --- | --- | --- | --- | --- |
-| §T6.1 (cold start, קמפיין ראשון) | 10-12 | N ≥ 10 → רק redeploy_creative | 5 ≤ N ≤ 9 → mix | N < 5 → רק new |
-| §T_PE (pool הריק, שבועי) | 3-5 | N ≥ 3 → רק redeploy_creative | N = 1-2 → mix | N = 0 → רק new |
+| §T6.1 (cold start, קמפיין ראשון) | 10-12 | N ≥ 10 → רק `redeploy_creative` | 5 ≤ N ≤ 9 → mix | N < 5 → `propose_pending_creative` |
+| §T_PE (pool הריק, שבועי) | 3-5 | N ≥ 3 → רק `redeploy_creative` | N = 1-2 → mix | N = 0 → `propose_pending_creative` |
 
-**ה-task_type הנכון:**
+### 3.3. בחירת 2-3 source assets לתקציר
 
-- **`redeploy_creative`** — אסט מהגלריה (תמונה/וידאו) שלא נוצל עוד. payload: `{creative_gallery_id, adset_id, link_url}`. אם הגלריה גם שמרה `meta_creative_id` קודם, execute_task עושה short-circuit: יוצר Ad חדש על אותו creative בלי upload חוזר.
-- **`new_creative`** — ייצור חדש (Imagen → תמונה → קריאייטיב חדש ב-Meta). payload חייב לכלול `channel` כדי שגארדריל §28 יוכל לקרוא את ה-count לערוץ.
+לפני שכותב את התקציר, הסוכן בוחר **2-3 רשומות מ-`creative_gallery`** שיעברו ל-Clara:
 
-**override:** אם הסוכן חייב לייצר חדש למרות שיש גלריה (למשל הזווית של הקמפיין החדש שונה מהותית) — מעביר `source_preference: 'generate_new'` ב-payload. השתמש בזה רק עם הצדקה ברורה ב-rationale.
+- שאילתה: `list_gallery_assets --business-id <id> --kind image` + (אופציונלי) `--kind video`. וידאו זה גם בסדר — Flow I עצמו יחלץ פריים אחד דרך ffmpeg.
+- בוחר נכסים שמשקפים את האווירה של הזווית: מסעדה רוצה לוקיישן + מנה + לקוח; שירות B2B רוצה משרד + טכנולוגיה.
+- שמור על מגוון — לא 2 תמונות כמעט-זהות.
+- כל ה-UUID-ים נכנסים ל-`--source-asset-ids` כ-JSON list.
+
+### 3.4. כובע התקצירים השבועי
+
+`propose_pending_creative.py` חוסם **אחרי 14 תקצירים פתוחים בשבוע** (7 ימים × 2/יום cap של Flow I). הסוכן צריך לעצור עצמית כשהוא מתקרב לסף — אל תכניס תור עמוק שלא יספיק להתפנות.
+
+```bash
+# Pre-flight count (אופציונלי — הכלי גם בודק):
+SELECT count(*) FROM creative_gallery
+WHERE business_id = $1 AND status = 'pending'
+  AND created_at > now() - interval '7 days';
+```
+
+### 3.5. כלל זהב
+
+**אל תחתוך ידנית** קריאייטיבים פעילים — guardrail `no_manual_creative_pruning_before_48h` יפסול. חיתוך רק כש-Gate 1 kill trigger פעל: hook < 25% OR CTR < 1% עם ≥ 1,000 חשיפות.
+
+### 3.6. Task-types שנוגעים לזה
+
+- **`pending_creative` (לא task_type — שורה ב-`creative_gallery` עם status='pending')** — תקציר חדש ל-Clara. נכתב דרך `propose_pending_creative.py`. לא דרך `propose_task` (אין HITL בשלב הזה).
+- **`redeploy_creative` (task_type ב-`approvals`)** — אסט מהגלריה (תמונה/וידאו) שלא נוצל עוד. payload: `{creative_gallery_id, adset_id, link_url}`. אם הגלריה גם שמרה `meta_creative_id` קודם, execute_task עושה short-circuit: יוצר Ad חדש על אותו creative בלי upload חוזר.
+- **`upload_creative` (task_type ב-`approvals`)** — וידאו ש-Clara הפיק (status='generated') מוכן להעלות ל-Meta. Flow I יוצר את ההצעה אוטומטית; המפעיל מאשר ב-UI; Flow B מעלה ל-Meta. payload: `{creative_gallery_id, adset_id?, link_url?, headline?, primary_text?, cta?}`.
+- **`new_creative` (task_type ב-`approvals`)** — נשמר עבור העלאות ידניות (תמונה ש-המפעיל הביא מבחוץ) ושימוש legacy. החל מ-2026-05 הסוכן לא מפיק `new_creative` אוטומטית — רק `pending_creative` (Flow C) או `redeploy_creative` (Flow C / Flow A).
 
 ---
 
@@ -127,60 +162,11 @@ python -m campaigner.tools.list_active_creatives \
 2. האם ה-angle כתוב ב-`outputs.angle`? (נדרש לאנליטיקה)
 3. האם הקופי מתאים ל-placement שנבחר?
 
----
-
-## 6. Image Generation — תהליך
-
-דרך `CreativeClient.generate_image(prompt, aspect_ratio, save_path)` ([campaigner/lib/creative.py](../lib/creative.py)) — לא דרך הכלי הישן ישירות.
-
-**Prompt structure:**
-
-```
-<subject description>. <mood/emotion>. <setting>. <style>.
-Professional, high quality, 4K, commercial photography.
-```
-
-**דוגמה:**
-
-```
-Happy Israeli family celebrating Bat Mitzvah at a colorful photo wall decorated with balloons and flowers. Warm, joyful mood. Modern event hall, soft evening lighting. Candid documentary style. Professional, high quality, 4K, commercial photography.
-```
-
-**Aspect ratio חובה:** 1:1 / 4:5 / 9:16 — לא "landscape" / "portrait".
-**Model tier:** `fast` (default, $0.02/img) עד שיש data שה-quality של `standard` מוסיף ROI.
-
-**Post-generation:** ולידציה ש-dimensions ≥ 1080 (guardrail `no_low_res_creative`).
+הקופי **לא נכלל בתקציר של Clara.** Clara מפיק את הסרט; הקופי (headline/primary_text/cta) נוסף בשלב Flow B כשמעלים ל-Meta — דרך payload של `upload_creative`.
 
 ---
 
-## 7. Variation Strategy — 10 וריאנטים מ-prompt בסיסי
-
-שימוש ב-`CreativeClient.generate_variations(base_prompt, variations, aspect_ratio)`:
-
-**Base prompt:**
-
-```
-Happy Israeli family celebrating Bat Mitzvah at a colorful photo wall decorated with balloons and flowers.
-```
-
-**Variations list** (6-10 שונות):
-
-```python
-variations = [
-    "Close-up of smiling teenage girl",
-    "Wide shot showing the whole decorated wall",
-    "Parents hugging the celebrating teen",
-    "Friends taking selfie in front of the wall",
-    "Detail shot of balloon decorations",
-    "Cake-cutting moment with family around",
-]
-```
-
-תוצאה: 6 קריאייטיבים שונים באותו angle — מגוון visual בלי שחיקת הקונספט.
-
----
-
-## 8. Creative Fatigue — איך לזהות
+## 6. Creative Fatigue — איך לזהות
 
 **לא לפי Frequency.** Frequency > 3 לבדו לא signal — זה מה שהפקענו ב-§14.15.
 
@@ -188,80 +174,158 @@ variations = [
 
 **כשסימון פעיל:**
 
-1. `task_type='new_creative'` × 3-5 — הוסף וריאנטים חדשים עם angle שונה
+1. `propose_pending_creative.py` — הוסף תקציר Clara חדש עם angle שונה (זה נכנס לתור Flow I; הוידאו יגיע 1-2 ימים אחרי).
 2. **אל תציע** `pause_campaign` — guardrail `prefer_add_creative_over_pause` יפסול.
 
 ---
 
-## 9. Firehose MVP scope — מה כן ומה לא
+## 7. Firehose MVP scope — מה כן ומה לא
 
 ### ✅ ב-MVP
 
-- Copy generation בעברית (Claude, 10-20 וריאנטים לפי batch)
+- Copy generation בעברית (Claude, 10-20 וריאנטים לפי batch) — נכנס דרך `upload_creative.payload`
 - כותרות / CTA (Claude)
-- יצירת תמונות (Vertex Imagen דרך `CreativeClient`)
-- שליפה מגלריה קיימת (`creative_gallery` table) — Block 8 2026-05-13 הפך את זה ל-**default**: §T6.1 ו-§T_PE עושים gallery-first, ייצור חדש רק כשאין מספיק אסטים מתאימים. ראה §3.1 וגארדריל §28 `prefer_gallery_over_generation`.
-- `redeploy_creative` task_type (Block 8) — לפרוס אסט קיים מהגלריה לקמפיין חדש, עם short-circuit כשיש כבר `meta_creative_id`.
-- Continuous additions (3-5/שבוע) — gallery-first; new_creative רק כשהגלריה לא מספיקה.
+- **יצירת וידאו חדש דרך Clara** — Flow C כותב תקציר, Flow I מפיק. 9:16, סאונד כלול, אורך לפי Clara.
+- שליפה מגלריה קיימת (`creative_gallery` table) — Block 8 (2026-05-13): §T6.1 ו-§T_PE עושים gallery-first, ייצור חדש (תקציר Clara) רק כשאין מספיק אסטים מתאימים. ראה §3.2 וגארדריל §28 `prefer_gallery_over_generation`.
+- `redeploy_creative` task_type — לפרוס אסט קיים מהגלריה לקמפיין חדש, עם short-circuit כשיש כבר `meta_creative_id`.
+- Continuous additions (3-5/שבוע) — gallery-first; pending brief רק כשהגלריה לא מספיקה, חסום ב-14/שבוע.
 
 ### ❌ ב-MVP, ✅ ב-v2
 
 - Image expansion (outpainting)
 - Background swap
 - Text overlay אוטומטי על תמונה
-- יצירת וידאו AI
-- Voice-over AI
-- Regeneration loop (Claude מתקן על בסיס feedback)
+- Voice-over AI (Clara מספק audio default — לא ניתן לעקוף ב-MVP)
+- Regeneration loop (אם המפעיל דחה וידאו של Clara — הוידאו נגמר; אין retry אוטומטי)
+- Multiple aspect ratios per brief (Clara מפיק 9:16; v2 יתכן 1:1 + 4:5)
+- אישור התקציר לפני Clara (HITL רק על הוידאו הסופי)
+- ייצור תמונות סטטיות אוטומטי (Imagen הוסר ב-2026-05; תמונות סטטיות בגלריה הן manual_upload בלבד)
 
 ---
 
-## 10. Flow אישור קריאייטיב
+## 8. Flow אישור — מקצה לקצה
 
 ```
-Agent → propose_task.py --task-type new_creative
-  → approvals row (status='pending')
-  → user approves in web platform
-  → Flow B (execute) picks up approved rows
-  → execute_task.py uploads to Meta דרך MetaClient.upload_image + create_ad_creative + create_ad
-  → approval.status='executed' + agent_decisions row 'execution'
+Mon 10:00     Flow C → propose_pending_creative
+                ↓
+              creative_gallery (status='pending')
+                ↓
+Daily 11:00   Flow I → generate_clara_video
+                ↓
+              creative_gallery (status='generated', storage_url=mp4)
+                ↓
+              propose_task --task-type upload_creative
+                ↓
+              approvals (status='pending')
+                ↓
+              user approves in /library
+                ↓
+Every 15min   Flow B → execute_task (task_type='upload_creative')
+                ↓
+              MetaClient.upload_video_creative → create_ad
+                ↓
+              creative_gallery (status='active', meta_creative_id=...)
+              approval.status='executed'
+              agent_decisions: 'execution'
 ```
 
-**אם נדחה:** rejection_reason נשמר. ב-MVP אין regeneration אוטומטי — הקריאייטיב נגמר.
+**אם נדחה (`upload_creative`):** rejection_reason נשמר. ב-MVP אין regeneration אוטומטי — הוידאו נגמר, השורה נשארת status='generated' אבל לא תועלה. הוידאו עדיין זמין ב-storage_url אם המפעיל ירצה לפרוס אותו ידנית דרך redeploy_creative בעתיד.
+
+**אם Clara נכשל (`generate_clara_video` נופל):** `decision_type='error'` ב-`agent_decisions`, השורה נשארת status='pending' עם quota יומי-נוצל; ינסה שוב מחר. אחרי 7 ימים `status` מתחלף ל-`expired` (cleanup).
 
 ---
 
-## 11. Rationale להצעת `new_creative` — שפת בעל-עסק
+## 9. Rationale להצעת `upload_creative` — שפת בעל-עסק
 
-> **חוק מחייב:** ה־`rationale` של הצעת `new_creative` מציית ל־[hebrew-copy-style.md §11](hebrew-copy-style.md#11-operator-facing-rationale-rationale-summary-fields) **באותה רמת חומרה** כמו אבחון ביצועים. הקורא הוא בעל עסק שמאשר כסף אמיתי, לא איש שיווק.
+> **חוק מחייב:** ה־`rationale` של הצעת `upload_creative` (Flow I יוצר אוטומטית) מציית ל־[hebrew-copy-style.md §11](hebrew-copy-style.md#11-operator-facing-rationale-rationale-summary-fields) **באותה רמת חומרה** כמו אבחון ביצועים. הקורא הוא בעל עסק שמאשר העלאה של וידאו לפרסום אמיתי, לא איש שיווק.
 
 ### מה אסור בפסקה הראשונה
 
-- **שמות פורמטים טכניים:** `9:16`, `4:5`, `1:1` → "וריאנט אנכי למובייל", "וריאנט מרובע", "פורמט פיד נמתח".
+- **שמות פורמטים טכניים:** `9:16`, `4:5`, `1:1` → "וריאנט אנכי למובייל", "פורמט מרובע".
 - **שמות placement באנגלית:** `Stories`, `Reels`, `Feed`, `Right Column` → "סטוריז", "ריילז", "פיד", "טור צד".
 - **טוקני CTA של Meta:** `MESSAGE_PAGE`, `LEARN_MORE`, `SIGN_UP` → "שלח הודעה", "מידע נוסף", "להירשם".
 - **שמות מנועי ML של Meta:** `Andromeda`, `Advantage+` → "מערכת הפרסום של Meta", "הרחבת קהל אוטומטית".
-- **הפניות פנימיות לקבצים שלנו:** "לפי creative-guide §2", "לפי decision-tree §17" → תרגם את הכלל לעברית טבעית במקום ההפניה.
+- **שמות כלים פנימיים:** `Clara`, `Imagen`, `Flow I`, `propose_pending_creative` → "מערכת הפקת הוידאו שלנו", "התקציר שכתבנו ביום שני".
+- **הפניות פנימיות לקבצים שלנו:** "לפי creative-guide §3", "לפי decision-tree §17" → תרגם את הכלל לעברית טבעית במקום ההפניה.
 - **מדדים באנגלית:** `CTR`, `CPM`, `hook rate`, `frequency` → "אחוז הקלקות", "עלות לאלף חשיפות", "קצב משיכת תשומת לב", "תדירות חשיפה". (אסור בפסקה 1; מותר עם gloss בפסקה 2+.)
 
 ### מה כן בפסקה הראשונה
 
-- **משפט TL;DR אחד, ≤ 20 מילים, נשמע טבעי בפה.** עונה: _מה אני מציע? למה זה יעזור?_
+- **משפט TL;DR אחד, ≤ 20 מילים, נשמע טבעי בפה.** עונה: _מה הופק? למה זה ייכנס לאוויר?_
 - כתוב כמו ש**מסבירים לחבר** ליד הקפה, לא כמו שכותבים סיכום לקובץ Slack של צוות שיווק.
 
 ### דוגמה — לפני / אחרי
 
-**❌ Before (המצב היום, הצעה שנדחתה ע"י הלקוח):**
+**❌ Before (הצעה שתידחה):**
 
-> מציעים וריאנט קצר ל-Stories שמראה מה תוצאת השיחה הראשונה — כך גולש שמדלג על פיד יכול להבין בשנייה מה Aiweon עושה בלי לקרוא טקסט ארוך. הקמפיין הזה משדר בפיד בלבד (אין וריאנט 9:16). ב-30 ימים, 5,100 חשיפות עם CTR 2.94% — ביצועים מעולים שראוי להרחיב ל-placements נוספים. לפי creative-guide §2 כל קמפיין צריך 3 פורמטים (1:1, 4:5, 9:16). וריאנט 9:16 פותח Reels ו-Stories ל-Andromeda (מנוע ה-ML של Meta מ-דצמבר 2024) — שיכולה להפיץ שם בעלות נמוכה יותר. כותרת 4 מילים, גוף קצר, ה-CTA MESSAGE_PAGE תואם.
-
-הבעיה: בעל עסק שלא יודע מה זה "9:16", "Stories", "CTR", "placements", "Andromeda", "MESSAGE_PAGE" לא יכול להחליט עד שהוא מתרגם בראש.
+> Clara הפיק וריאנט 9:16 בעקבות התקציר השבועי של Flow C ל-Andromeda. הסרט באורך 12 שניות עם audio default. צריך MESSAGE_PAGE כ-CTA ולפי decision-tree §T_PE זה החסר עכשיו ב-pool.
 
 **✅ After (TL;DR בעברית טבעית):**
 
-> נוסיף וריאנט אנכי שמתאים לסטוריז וריילז — כדי שהמודעה תופיע במקומות שבהם רוב הגולשים נמצאים היום, לא רק בפיד.
+> וידאו אנכי חדש (12 שניות, עם סאונד) מוכן להעלות לקמפיין "מסעדה ראשון לציון" — מציג את האווירה של ארוחת ערב, לפי התקציר שכתבנו ביום שני.
 >
-> כרגע המודעה רצה בפיד בלבד. ב-30 ימים היא קיבלה 5,100 חשיפות וכ-3 מתוך 100 גולשים שראו אותה הקליקו — ביצוע טוב שמצדיק להרחיב. הוספת וריאנט אנכי תפתח לפניה גם את הסטוריז והריילז של פייסבוק ואינסטגרם, מקומות שבהם מערכת הפרסום של Meta יכולה להפיץ מודעות במחיר נמוך יותר. הכותרת קצרה (4 מילים), הטקסט הראשי תמציתי, וכפתור הפעולה ("שלח הודעה") תואם לאופי המוצר.
+> זה הוידאו הראשון שמערכת הוידאו האוטומטית שלנו הפיקה השבוע. הקמפיין צריך וריאנטים חדשים כי הוידאו הקיים מתחיל להתעייף — מערכת הפרסום של Meta משלמת יותר על כל לקוח עכשיו מאשר לפני שבועיים (סימן ל"שחיקה"). וידאו טרי שיוצא לסטוריז וריילז של פייסבוק ואינסטגרם אמור להחזיר את האחוזים. הכפתור ("שלח הודעה") מקושר לעמוד הנחיתה הראשי.
 
 ### בדיקה עצמית לפני שמירת ה-`rationale`
 
 לפני שכתבת `propose_task.py --rationale "..."`, עבור על הפסקה הראשונה ושאל: *האם בעל מסעדה / בעל סטודיו / יזם סולו, בלי שום רקע פרסומי, יבין מה אני מציע מהמשפט הזה לבד?* אם לא — נסח מחדש לפני שהפרופוזל נכנס לתור.
+
+---
+
+## 10. תקציר Clara — מבנה ה-`hebrew_brief`
+
+ה-`hebrew_brief` שנכנס ל-`propose_pending_creative.py --hebrew-brief "..."` הוא **טקסט חופשי בעברית**. אין שדות מובְנים, אין JSON.
+
+### עקרונות
+
+- **התמקד באווירה ובמטרה**, לא בפרטים טכניים. דוגמה: `"מסעדת שף בראשון לציון עם תפריט ים-תיכוני מודרני — כלים פשוטים ויפים, אור טבעי שנכנס בערב, אנשים שוקעים בשיחה. רוצים שיריח טוב דרך המסך."`
+- **שפה טבעית** — כמו שתסבירי לצלם מקצועי מה את רוצה. לא רשימת תכונות.
+- **אורך** — אין מינימום. 25-80 מילים זה sweet spot. הסף הקשיח ב-tool הוא 4000 chars.
+- **שמות מותג** — לא צריך להכניס. `business_name` / `logo_url` / `default_cta_url` נשלפים אוטומטית מ-`business_knowledge` ע"י Flow I לפני ההגשה ל-Clara.
+- **אסור:** אל תכתוב בתקציר טוקנים שיגיעו על המסך (Hebrew text overlays). Clara בונה את הטקסטים שלה לבד — את כותבת רק את האווירה.
+- **שפה — עברית בלבד.** אל תערבב אנגלית.
+
+### מה Clara עושה מהתקציר
+
+1. קוראת את התקציר (עברית).
+2. עושה עיבוד של 2-3 תמונות-מקור שהעלית.
+3. בונה סרטון 9:16 עם:
+   - קאט-סצנות שמשקפות את האווירה.
+   - טקסטים בעברית שמופיעים על המסך (כותרות לפי הקצב).
+   - מוזיקה / סאונד שמתאים למצב הרוח שתיארת.
+   - אורך לבחירת Clara (~12 שניות בממוצע).
+
+הסוכן **לא שולט ב-overlays האלה** — אם רוצה כותרת ספציפית, היא חייבת להגיע מהתקציר עצמו ("רוצים שתופיע כותרת...") וה-success rate נמוך. ב-MVP — לא מנסים.
+
+---
+
+## 11. Variation Strategy — מספר תקצירים מאותה אווירה
+
+ל-firehose שבועי שמייצר 3-5 וריאנטים לקמפיין:
+
+הסוכן כותב **3-5 תקצירים שונים** — כל אחד עם זווית אחרת (emotion / urgency / benefit / social_proof / comparison לפי §2). לא variations של אותה אווירה — Clara עושה את ה-visual variation לבד מתוך הצירוף של (תקציר × 2-3 source assets שונים).
+
+דוגמה — מסעדת שף:
+
+```
+brief #1 (emotion):    "ארוחה שכל המשפחה זוכרת — צחוקים, קסיואלית, אווירה ביתית-יוקרתית"
+brief #2 (urgency):    "מקום אחרון השבוע — שולחנות מתמלאים מהר, רק עוד 4 ספוטים לערב שישי"
+brief #3 (social):     "האנשים שמגיעים — אורחים קבועים שחוזרים בכל חודש"
+```
+
+לכל תקציר — בחירה שונה של 2-3 source assets (תמונה של המנה מול תמונה של האווירה מול תמונה של הקבוצה).
+
+---
+
+## 12. מה השתנה ב-2026-05
+
+| לפני                                              | אחרי                                                                  |
+| ------------------------------------------------- | --------------------------------------------------------------------- |
+| Imagen מפיק תמונות סטטיות אוטומטית ב-Flow C       | **הוסר.** Clara מפיק וידאו ב-Flow I (cap 2/יום)                       |
+| `generate_creative.py` (Imagen wrapper)            | **הוסר.** הוחלף ב-`propose_pending_creative.py` (Flow C) + `generate_clara_video.py` (Flow I) |
+| Flow C מפיק מיידית + מציע `new_creative`           | Flow C מציע `pending_creative` בלבד — Flow I מפיק ביום שלמחרת          |
+| HITL על אישור התקציר + Imagen output               | HITL רק על הוידאו הסופי — הפקה אוטומטית בתוך cap                       |
+| כל גישת Vertex / `google-genai`                    | **הוסר.** ה-base agent image כבר לא צריך GCP credentials. Flow I רץ ב-image נפרד `agent-clara` עם Playwright + Chromium + ffmpeg |
+| `new_creative` כ-task_type אוטומטי                 | רק `upload_creative` (Clara output) או `redeploy_creative` (gallery-first). `new_creative` נשמר רק להעלאות ידניות |
+
+ראה [docs/plans/clara-video-flow.md](../../docs/plans/clara-video-flow.md) לתוכנית מלאה.

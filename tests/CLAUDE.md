@@ -55,7 +55,7 @@ When you add a tool to [`../campaigner/tools/`](../campaigner/tools/), the contr
 
 [`conftest.py`](conftest.py) wires the test DB connection (separate schema or test database — never the dev one). Pytest fixtures live there, not scattered.
 
-Rule: tests must not require a live Meta or Vertex API. Use the offline JSON fixtures or mock at the `lib/` boundary.
+Rule: tests must not require a live Meta API or a live Clara session. Use the offline JSON fixtures or mock at the `lib/` boundary.
 
 ## What's NOT in this folder
 

@@ -19,7 +19,7 @@ campaigner/cli/        campaigner/tools/
            campaigner/lib/   ←──── you are here
                   │
                   ▼
-       Postgres · Meta API · Vertex · env
+       Postgres · Meta API · Clara (web, Playwright) · env
 ```
 
 - `tools/` and `cli/` import from `lib/`. ✅
@@ -33,14 +33,14 @@ campaigner/cli/        campaigner/tools/
 | [`config.py`](config.py) | Env loading + validation (`Config` dataclass, `ConfigError`). | All env reads. Tools/CLI must not call `os.getenv` directly. |
 | [`db.py`](db.py) | Postgres connection + thin helpers (`execute`, `fetch_all`, `fetch_one`). | Connection pooling. Cursor lifecycle. |
 | [`meta_client.py`](meta_client.py) | Wraps `facebook-business` SDK. The only place that imports it. | Auth, retries on Meta API errors, mapping our task_types to Meta calls. |
-| [`creative.py`](creative.py) | Vertex Imagen client. The only place that imports `google-genai`. | Image generation, model tier selection, GCS upload. |
+| `clara_client.py` (Phase 3, pending) | Wraps Playwright + Clara web app ([clarasocial.com](https://clarasocial.com/app)). The only place that imports `playwright`. Replaces the retired `creative.py` (Imagen). | Login via `CLARA_EMAIL`/`CLARA_PASSWORD`, photo upload, prompt submission, render wait, MP4 download. Owned by Phase 3 of [docs/plans/clara-video-flow.md](../../docs/plans/clara-video-flow.md). |
 | [`baselines.py`](baselines.py) | Compute & query baselines from the `baselines` table. | The math behind §6.4 baseline windows. |
 | [`seasonal.py`](seasonal.py) | Seasonality hints (Israel/Hebrew calendar). | When a campaign should expect lift / drop windows. |
 | [`thresholds.py`](thresholds.py) | **Generated** Python constants for every tunable rule threshold + the `SCHEMA_VERSION` string. Source: [`../../config/thresholds.yaml`](../../config/thresholds.yaml) via [`scripts/generate_from_thresholds.py`](../../scripts/generate_from_thresholds.py). Hand-edits to this file are overwritten by `make generate`. | Consumed by `log_decision.py` for schema-version stamping; available for any future lib/tool code that needs the literal values. |
 
 ## Rules
 
-1. **Single SDK ownership.** `facebook-business` is imported only in `meta_client.py`. `google-genai` only in `creative.py`. `psycopg` only in `db.py`. If a tool needs to talk to Meta, it goes through `meta_client.py` — full stop.
+1. **Single SDK ownership.** `facebook-business` is imported only in `meta_client.py`. `playwright` (when added in Phase 3) only in `clara_client.py`. `psycopg` only in `db.py`. If a tool needs to talk to Meta, it goes through `meta_client.py` — full stop.
 2. **No I/O at import time.** Modules are imported many times across tools; opening a DB connection or calling `Config()` at module top is forbidden. Initialize lazily, inside functions.
 3. **Errors are typed.** Raise `ConfigError`, `psycopg.OperationalError`, or domain errors. Don't raise bare `Exception`. The tool layer catches and routes through `_contract.emit_*`.
 4. **Hebrew strings stay out of `lib/`.** All operator-/customer-facing text is generated in [`../prompts/`](../prompts/) by Claude. `lib/` returns data; it doesn't return phrasing.
@@ -55,7 +55,7 @@ campaigner/cli/        campaigner/tools/
 
 ## Legacy
 
-The repo root still contains `meta_ads_manager.py` and `image_generator.py` (pre-rewrite scripts). They are reference only. New code goes through `meta_client.py` / `creative.py` here. See [root CLAUDE.md "Existing legacy files"](../../CLAUDE.md#existing-legacy-files-kept-as-reference-wrapped-by-campaignerlib).
+The repo root still contains `meta_ads_manager.py` (pre-rewrite Meta script). It's reference only — new code goes through `meta_client.py` here. The matching `image_generator.py` and `creative.py` (Imagen path) were deleted 2026-05-26 along with the rest of the Vertex / `google-genai` surface; see [docs/plans/clara-video-flow.md](../../docs/plans/clara-video-flow.md) for the Clara replacement.
 
 ## Where truth lives
 
@@ -63,5 +63,5 @@ The repo root still contains `meta_ads_manager.py` and `image_generator.py` (pre
 |---|---|
 | Schema a `lib/` query reads | [`../../migrations/`](../../migrations/) |
 | Meta API method semantics | [Meta Marketing API docs](https://developers.facebook.com/docs/marketing-apis) + the spec for what we use |
-| Vertex Imagen tier costs | [root CLAUDE.md "Imagen Model Tiers"](../../CLAUDE.md#imagen-model-tiers) |
+| Clara flow architecture | [`../../docs/plans/clara-video-flow.md`](../../docs/plans/clara-video-flow.md) |
 | Why `meta_client` looks the way it does | [`../../docs/plans/campaigner-spec.md`](../../docs/plans/campaigner-spec.md) §11.6 |

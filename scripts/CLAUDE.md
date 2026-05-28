@@ -28,8 +28,8 @@ Operator-run scripts. Different from [`../runners/`](../runners/) (cron) and [`.
 
 | Script | Purpose |
 |---|---|
-| [`validate_credentials.py`](validate_credentials.py) | Verify Anthropic + GCP (Vertex) + Meta credentials. Exits non-zero on the first broken credential — don't silently warn. Run after token rotation. |
-| [`setup_gallery_bucket.py`](setup_gallery_bucket.py) | Idempotent setup of the GCS bucket Imagen writes to + the Postgres pointer rows. Run once per environment. |
+| [`validate_credentials.py`](validate_credentials.py) | Verify Anthropic + Meta credentials. Exits non-zero on the first broken credential — don't silently warn. Run after token rotation. (Vertex check was retired 2026-05-26 with the Imagen removal.) |
+| [`setup_gallery_bucket.py`](setup_gallery_bucket.py) | Idempotent setup of the Supabase Storage `creative-gallery` bucket. Backing store for Imagen output historically, Clara videos going forward (Phase 3). Run once per environment. |
 | [`test.sh`](test.sh) | Run pytest inside the `campaigner` container. Used by CI and the local pre-commit. |
 
 ### Deploy
@@ -73,6 +73,6 @@ Some scripts (`bootstrap_local_db.sh`, `validate_local_env.py`) run on the **hos
 | Question | Read |
 |---|---|
 | Migration system internals | [`../migrations/README.md`](../migrations/README.md) |
-| Credential setup (Anthropic / GCP-for-Vertex / Meta) | [`../docs/plans/task-2.3-keys-and-quotas.md`](../docs/plans/task-2.3-keys-and-quotas.md) |
+| Credential setup (Anthropic / Meta / Clara) | [`../docs/plans/task-2.3-keys-and-quotas.md`](../docs/plans/task-2.3-keys-and-quotas.md) |
 | Deploy targets + cluster naming | [`../docs/CI_CD.md`](../docs/CI_CD.md) + [Makefile](../Makefile) (the `# --- Production cluster config ---` block) |
-| Why local-dev uses ADC (not a service-account JSON) for Vertex | [root CLAUDE.md "Setup & Configuration"](../CLAUDE.md#setup--configuration) |
+| Clara flow plan + Phase 0 spike | [`../docs/plans/clara-video-flow.md`](../docs/plans/clara-video-flow.md) + [`../docs/research/clara-playwright-spike.md`](../docs/research/clara-playwright-spike.md) |

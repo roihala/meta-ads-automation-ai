@@ -143,7 +143,7 @@ A jump > `{{scaling.scale_up_strict_cap_pct}}`% → rejection.
 
 **Why:** Meta auto-downgrades display quality, hurting hook rate.
 
-**Implementation:** When generating an image via `ImageGenerator`, the `aspect_ratio` + dimensions flag returns 1080×*. Validate the output before upload.
+**Implementation:** Static images in the gallery come from operator manual upload — the upload form rejects < 1080×1080 server-side. Clara videos render 9:16 1080×1920 by default, so the resolution gate is enforced upstream rather than by this rule. This guardrail is a defensive net for any external import or legacy backfill row.
 
 ---
 
@@ -389,7 +389,7 @@ See also [kpi-benchmarks.md "How rationale must be written"](kpi-benchmarks.md#h
 
 **Rule:** A `task_type='new_creative'` proposal is blocked if the gallery has ≥ 3 assets that haven't been used yet (viable, not deleted, not linked to any `executed` ad approval) **on the same channel**. Instead, the agent must propose `redeploy_creative` on the existing assets, or pass `payload.source_preference: 'generate_new'` to consciously override.
 
-**Why:** Imagen costs ~$0.02 per image and Claude a fraction more for copy, but the real cost is opportunity. Every new creative the agent ships is one fewer slot for an asset you already paid for. §T9 (organic) already runs gallery-first; §T6.1 (first campaign) and §T_PE (empty pool) need to follow suit. Andromeda also prefers more active variants — so there's no reason to drop assets that were generated and left behind.
+**Why:** third-party generation (Clara, manual upload) costs money + operator attention, but the real cost is opportunity. Every new creative the agent ships is one fewer slot for an asset you already paid for. §T9 (organic) already runs gallery-first; §T6.1 (first campaign) and §T_PE (empty pool) need to follow suit. Andromeda also prefers more active variants — so there's no reason to drop assets that were generated and left behind.
 
 **How the agent complies in practice:**
 

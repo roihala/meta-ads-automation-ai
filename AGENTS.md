@@ -27,7 +27,7 @@ These are extracted from `CLAUDE.md` so any agent that only reads `AGENTS.md` st
 1. **HITL is load-bearing.** The agent proposes; the human approves; only Flow B writes to Meta. Never bypass the `approvals` queue. Never execute autonomously.
 2. **Hebrew rationale, English summary.** Operator-facing rationale fields are plain Hebrew (no English acronyms in paragraph 1). Cron one-line summaries are English.
 3. **Run via Docker.** `docker compose run --rm campaigner <cmd>`. Host Python is for debugging, not workflow.
-4. **Tools, not ad-hoc.** All Postgres + Meta + Vertex access is through `campaigner/tools/*.py` (agent) or `campaigner/lib/*` (library). No `psql`, no `curl`, no one-off scripts.
+4. **Tools, not ad-hoc.** All Postgres + Meta access is through `campaigner/tools/*.py` (agent) or `campaigner/lib/*` (library). No `psql`, no `curl`, no one-off scripts. Clara (video generation) is reached only via `campaigner/lib/clara_client.py` (Phase 3) through Playwright.
 5. **Never edit applied migrations.** Schema changes go in new numbered files under [`migrations/`](migrations/).
 6. **Respect the dual-mode adapter rule.** No direct `pg` or `@supabase/ssr` imports outside `web/src/lib/db/` and `web/src/lib/auth/`.
 7. **Deprecated pre-Andromeda rules never come back.** See [`CLAUDE.md` § "Deprecated Pre-Andromeda Rules"](CLAUDE.md#deprecated-pre-andromeda-rules-never-reintroduce) and [`docs/CAMPAIGN_EVALUATION.md`](docs/CAMPAIGN_EVALUATION.md) §8.

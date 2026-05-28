@@ -813,11 +813,11 @@ def _prefer_gallery_over_generation(prop: dict, state: dict, ctx: dict) -> dict:
     passing `source_preference: 'generate_new'` in the payload, which they
     must do *explicitly* — the agent's default should be reuse-before-regenerate.
 
-    Why: Imagen costs ~$0.02/image and Claude copy generation costs another
-    fraction of a cent, but the bigger cost is opportunity. Every fresh
-    creative the agent ships is one less ad slot for an asset the operator
-    already paid to make. The §T9 organic lane already does gallery-first;
-    §T6.1 and §T_PE should match.
+    Why: third-party generation (Clara, manual upload) costs money + operator
+    attention, but the bigger cost is opportunity. Every fresh creative the
+    agent ships is one less ad slot for an asset the operator already paid
+    to make. The §T9 organic lane already does gallery-first; §T6.1 and §T_PE
+    should match.
 
     Inputs the check reads:
       ctx['viable_unused_gallery_count_for_channel']  -- from list_active_creatives --unused-in-campaigns --matches-channel

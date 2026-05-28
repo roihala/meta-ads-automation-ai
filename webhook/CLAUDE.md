@@ -22,7 +22,7 @@ A small Flask server that receives Meta Lead Ads webhook notifications and creat
 
 - It is **not** the agent. It does not propose, evaluate, or execute campaigns.
 - It does **not** read or write Postgres (no `agent_decisions`, no `approvals`).
-- It does **not** call Vertex / Imagen / Claude.
+- It does **not** call Clara / Claude / any external generation backend.
 
 If a request looks like the webhook should orchestrate something more complex (route to multiple destinations, score the lead, etc.), that's a spec change — talk to it before adding logic here.
 

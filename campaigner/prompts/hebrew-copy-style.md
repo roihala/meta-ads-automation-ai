@@ -615,7 +615,7 @@ Never. This is the operator's daily interface — consistency beats cleverness. 
 
 ### מקור לתמונה / וידאו
 
-הסוכן מושך מ-`creative_gallery` קודם. אם אין נכס מתאים — מציע `generate_creative` ב-approval נפרד, ממתין לאישור + הפקה, ורק אז יוצר את ה-`publish_*` approval. אסור לפרסם approval עם `image_url` שמצביע על נכס שעוד לא קיים.
+הסוכן מושך מ-`creative_gallery` קודם. אם אין נכס מתאים — מציע **תקציר Clara** דרך `propose_pending_creative.py` (לא דרך `approvals`), ממתין שיום עוקב Flow I יפיק את הוידאו, ורק אז יוצר את ה-`publish_*` approval. אסור לפרסם approval עם `image_url` / `video_url` שמצביע על נכס שעוד לא קיים. שורה ב-`creative_gallery` עם `status='pending'` אינה נכס בר-פרסום — חכה ל-`status='generated'`.
 
 ### Hard constraints — organic-specific
 

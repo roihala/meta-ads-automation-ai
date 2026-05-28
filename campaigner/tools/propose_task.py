@@ -119,7 +119,7 @@ VALID_TASK_TYPES = (
     #     ad_name: str,
     #     creative_kind: "image" | "video",
     #     creative_source: {                 # ONE of these is required.
-    #       image_path: str | None,          # Local path to upload (Imagen output).
+    #       image_path: str | None,          # Local path to upload.
     #       creative_gallery_id: uuid | None,  # Existing gallery row (Block 8).
     #       video_path: str | None,          # For creative_kind=video.
     #       existing_post_id: str | None,    # Boost-pattern (rare for new_campaign — usually new_creative path).

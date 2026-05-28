@@ -161,6 +161,7 @@ const SELECT_KNOWLEDGE = `
          products, delivery_time_days, strong_seasons, weak_seasons,
          questionnaire_answers, brand_voice, competitors,
          COALESCE(tracking_verified, false) AS tracking_verified,
+         business_name, logo_url, default_cta_url,
          last_refreshed_at::text, created_at::text
     FROM business_knowledge
 `;
@@ -177,10 +178,12 @@ const SELECT_APPROVAL = `
 `;
 
 const SELECT_GALLERY = `
-  SELECT id::text, business_id::text, kind, storage_url, aspect_ratio, dimensions,
+  SELECT id::text, business_id::text, kind, status, storage_url, aspect_ratio, dimensions,
          headline, primary_text, cta, generated_by, marketing_angle, service_tag,
          mime_type, size_bytes, original_filename, duration_seconds,
-         meta_creative_id, performance_snapshot, created_at::text, deleted_at::text
+         meta_creative_id, performance_snapshot, hebrew_brief,
+         (SELECT array_agg(elem::text) FROM unnest(source_asset_ids) AS elem) AS source_asset_ids,
+         expires_at::text, created_at::text, deleted_at::text
     FROM creative_gallery
 `;
 
@@ -413,6 +416,7 @@ export const localPostgresClient: DataClient = {
                  products, delivery_time_days, strong_seasons, weak_seasons,
                  questionnaire_answers, brand_voice, competitors,
                  COALESCE(tracking_verified, false) AS tracking_verified,
+                 business_name, logo_url, default_cta_url,
                  last_refreshed_at::text, created_at::text`,
       [
         data.business_id,
@@ -1040,17 +1044,23 @@ export const localPostgresClient: DataClient = {
   },
 
   async createGalleryAsset(data: CreativeAssetCreate): Promise<CreativeAsset> {
+    // Web-side gallery creation is always for an actual asset (manual upload
+    // or a finished Clara/Imagen output) — status defaults to 'generated'.
+    // Pending Clara briefs are written by the Python agent via
+    // propose_pending_creative.py, not through this path.
     const { rows } = await getPool().query<CreativeAsset>(
       `INSERT INTO creative_gallery (
-         business_id, kind, storage_url, aspect_ratio, dimensions,
+         business_id, kind, status, storage_url, aspect_ratio, dimensions,
          generated_by, marketing_angle, service_tag,
          mime_type, size_bytes, original_filename, duration_seconds
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+       ) VALUES ($1,$2,'generated',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        RETURNING
-         id::text, business_id::text, kind, storage_url, aspect_ratio, dimensions,
+         id::text, business_id::text, kind, status, storage_url, aspect_ratio, dimensions,
          headline, primary_text, cta, generated_by, marketing_angle, service_tag,
          mime_type, size_bytes, original_filename, duration_seconds,
-         meta_creative_id, performance_snapshot, created_at::text, deleted_at::text`,
+         meta_creative_id, performance_snapshot, hebrew_brief,
+         (SELECT array_agg(elem::text) FROM unnest(source_asset_ids) AS elem) AS source_asset_ids,
+         expires_at::text, created_at::text, deleted_at::text`,
       [
         data.business_id,
         data.kind,

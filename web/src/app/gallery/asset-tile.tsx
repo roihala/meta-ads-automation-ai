@@ -18,6 +18,8 @@ const SOURCE_LABEL_HE: Record<CreativeAssetSource, string> = {
   imagen: "Imagen",
   gemini: "Gemini",
   manual_upload: "העלאה ידנית",
+  meta_backfill: "מ-Meta",
+  clara: "Clara",
 };
 
 // Lifecycle pill — small, quiet, semantic. Winning is the only loud state and

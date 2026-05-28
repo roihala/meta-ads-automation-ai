@@ -123,7 +123,8 @@ cron (Kubernetes CronJob, Hetzner k3s)
 | File                  | Role                                                                                           |
 | --------------------- | ---------------------------------------------------------------------------------------------- |
 | `meta_ads_manager.py` | `MetaAdsManager` wrapping `facebook-business` SDK — wrapped by `campaigner/lib/meta_client.py` |
-| `image_generator.py`  | `ImageGenerator` wrapping Vertex AI Imagen — wrapped by `campaigner/lib/creative.py`           |
+
+The Vertex AI Imagen path (`image_generator.py` + `campaigner/lib/creative.py` + `campaigner/tools/generate_creative.py`) was retired 2026-05-26. Creative generation now runs through Clara via Playwright — see [`docs/plans/clara-video-flow.md`](docs/plans/clara-video-flow.md).
 
 **Archived** (reference only, not imported by current code) — see [`legacy/README.md`](legacy/README.md):
 
@@ -136,7 +137,7 @@ cron (Kubernetes CronJob, Hetzner k3s)
 
 | File                                   | Role                                                            |
 | -------------------------------------- | --------------------------------------------------------------- |
-| `scripts/validate_credentials.py`      | Anthropic + GCP + Meta credential validation (see task 2.3 doc) |
+| `scripts/validate_credentials.py`      | Anthropic + Meta credential validation (see task 2.3 doc)       |
 | `scripts/diagnose_page_permissions.py` | Meta Page permissions diagnostic                                |
 
 ## Tech Stack (MVP)
@@ -145,33 +146,19 @@ cron (Kubernetes CronJob, Hetzner k3s)
 - **Claude Code CLI** (headless, `claude -p`) — agent orchestrator
 - **Claude** (Sonnet 4.6 / Opus 4.6) via Anthropic API — the LLM
 - **Supabase** (Postgres + Auth + Storage) — DB + HITL queue
-- **Vertex AI Imagen** (`google-genai`) — image generation
+- **Clara** ([clarasocial.com](https://clarasocial.com/app)) via Playwright — video creative generation (Flow I; see [`docs/plans/clara-video-flow.md`](docs/plans/clara-video-flow.md))
 - **Meta Marketing API** (`facebook-business`) — Meta integration
 - **Hetzner k3s CronJobs** — cron runtime (production); `docker compose` for local
 
-**Estimated MVP cost:** ~$25/month/business (Claude ~$23, Imagen ~$1.60).
+**Estimated MVP cost:** ~$25/month/business (Claude ~$23, Clara subscription confirmed during Phase 0 spike).
 
 ## Setup & Configuration
-
-### Vertex AI Imagen credentials (local development only)
-
-Vertex AI Imagen is the one remaining GCP-side dependency — it's a managed API the agent calls, not a deployment target. For local development, the SDK uses Application Default Credentials:
-
-```bash
-gcloud auth application-default login
-```
-
-In production on Hetzner k3s, the agent CronJobs mount a dedicated GCP service account key via the `gcp-vertexai-credentials` Kubernetes Secret (provisioned by the operator from the Hetzner infra repo). No `gcloud` is needed at runtime — only the JSON key file mounted at `/var/secrets/gcp/credentials.json`.
-
-The GCP project is `bemtech-478413` (kept solely for billing the Vertex AI calls).
 
 ### Environment Variables (`.env`)
 
 ```
 # LLM
 ANTHROPIC_API_KEY=sk-ant-...        # for Claude Code headless
-GCP_PROJECT_ID=bemtech-478413
-GCP_LOCATION=us-central1
 
 # Meta
 META_APP_ID=...
@@ -179,6 +166,10 @@ META_APP_SECRET=...
 META_ACCESS_TOKEN=...               # Expires ~60 days, manual rotation
 META_AD_ACCOUNT_ID=act_...          # Must include act_ prefix
 META_PAGE_ID=...
+
+# Clara (Flow I — daily video generation)
+CLARA_EMAIL=...                     # Aiweon's Clara account
+CLARA_PASSWORD=...                  # Fresh Playwright login on every Flow I invocation
 
 # Supabase
 SUPABASE_URL=...
@@ -190,7 +181,7 @@ BUSINESS_ID=aiweon-uuid
 
 ```bash
 pip install -r requirements.txt
-docker compose run --rm campaigner python scripts/validate_credentials.py        # Anthropic + GCP + Meta
+docker compose run --rm campaigner python scripts/validate_credentials.py        # Anthropic + Meta
 docker compose run --rm campaigner python scripts/diagnose_page_permissions.py   # Meta Page permissions
 ```
 
@@ -218,19 +209,9 @@ campaigner reject <id> --reason "..."
 campaigner inspect <run-id>
 ```
 
-## Imagen Model Tiers
-
-| Tier             | Model                           | Cost/Image | RPM |
-| ---------------- | ------------------------------- | ---------- | --- |
-| `fast` (default) | `imagen-3.0-fast-generate-001`  | $0.02      | 200 |
-| `standard`       | `imagen-3.0-generate-002`       | $0.04      | 20  |
-| `ultra`          | `imagen-4.0-ultra-generate-001` | $0.06      | —   |
-
-Change tier: `ImageGenerator(model_tier="standard")`
-
 ## Safety Notes
 
-- **Real API calls**: Scripts create real objects in Meta Ads Manager and cost money (Imagen generation + Meta spend)
+- **Real API calls**: Scripts create real objects in Meta Ads Manager and cost money (Clara video generation + Meta spend)
 - **PAUSED by default**: Ads won't spend until manually activated
 - **HITL is load-bearing**: Agent proposes, human approves. No autonomous execution in MVP.
 - **Token expiry**: `META_ACCESS_TOKEN` expires ~60 days, no auto-refresh. Plan System User Token post-Business Verification.
@@ -256,4 +237,4 @@ Triggered when a **second ad account** is added to the system. Separate doc to b
 
 - Fork of: `sandhere01/meta-ads-automation-ai`
 - Original was Brazilian real estate focused, in Portuguese
-- Rewritten for Aiweon (Israel, Hebrew, Vertex AI Imagen, Claude Code agent)
+- Rewritten for Aiweon (Israel, Hebrew, Clara via Playwright, Claude Code agent)

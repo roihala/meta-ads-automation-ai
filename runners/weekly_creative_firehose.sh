@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 # runners/weekly_creative_firehose.sh
 #
-# Flow C — Generate 3-5 new creative variants per active campaign.
+# Flow C — Per active campaign, write 3-5 fresh-creative proposals.
+#   - `redeploy_creative` proposals when ≥3 viable unused gallery assets exist
+#     (HITL via `approvals`).
+#   - Otherwise: pending Clara briefs written directly into `creative_gallery`
+#     with status='pending' via `propose_pending_creative.py`. The daily
+#     Flow I runner (`daily_clara_generate.sh`) consumes them ≤2/day,
+#     drives Clara via Playwright, and queues a `task_type='upload_creative'`
+#     approval for the operator. Hard cap: 14 pending briefs/week.
+#
 # Scheduled: Mon 10:00 Asia/Jerusalem.
 #
-# Proposes `task_type=new_creative` rows into `approvals`. Does not upload to
-# Meta directly — human approval + Flow B handle the upload.
+# No Meta calls from this flow. Imagen path retired 2026-05-26 — see
+# docs/plans/clara-video-flow.md.
 
 set -euo pipefail
 

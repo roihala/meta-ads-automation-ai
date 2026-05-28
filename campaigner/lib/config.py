@@ -40,16 +40,17 @@ class Config:
     # Anthropic (for Claude Code headless invocations)
     anthropic_api_key: str | None
 
-    # GCP / Vertex AI Imagen
-    gcp_project_id: str
-    gcp_location: str
-
     # Meta Marketing API
     meta_app_id: str | None
     meta_app_secret: str | None
     meta_access_token: str | None
     meta_ad_account_id: str | None
     meta_page_id: str | None
+
+    # Clara (third-party video generator driven by Playwright in Flow I).
+    # Optional in dev — Flow I refuses to invoke Clara without both set.
+    clara_email: str | None
+    clara_password: str | None
 
     # Business identity
     business_id: str | None
@@ -74,13 +75,13 @@ class Config:
 
         return cls(
             anthropic_api_key=_env("ANTHROPIC_API_KEY"),
-            gcp_project_id=_env("GCP_PROJECT_ID") or "bemtech-478413",
-            gcp_location=_env("GCP_LOCATION") or "us-central1",
             meta_app_id=_env("META_APP_ID"),
             meta_app_secret=_env("META_APP_SECRET"),
             meta_access_token=_env("META_ACCESS_TOKEN"),
             meta_ad_account_id=_env("META_AD_ACCOUNT_ID"),
             meta_page_id=_env("META_PAGE_ID"),
+            clara_email=_env("CLARA_EMAIL"),
+            clara_password=_env("CLARA_PASSWORD"),
             business_id=_env("BUSINESS_ID"),
             business_name=_env("BUSINESS_NAME") or "Aiweon",
             database_url=_env("DATABASE_URL"),
@@ -116,3 +117,7 @@ class Config:
 
     def require_business(self) -> None:
         self.require("business_id")
+
+    def require_clara(self) -> None:
+        """Flow I (daily Clara generation) — both credentials must be set."""
+        self.require("clara_email", "clara_password")

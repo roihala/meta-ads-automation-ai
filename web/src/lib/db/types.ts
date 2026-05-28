@@ -199,6 +199,12 @@ export interface BusinessKnowledge {
   competitors: string[] | null;
   /** Day-Zero guardrail per migration 008 §2. Gates createOrUpdateMetaCampaign + publishInstagramContent. */
   tracking_verified: boolean;
+  /** Display name auto-injected into Clara video-generation prompts. Migration 034. Falls back to `businesses.name` when null. */
+  business_name: string | null;
+  /** Brand logo URL passed to Clara as a brand element. Migration 034. NULL = no logo overlay. */
+  logo_url: string | null;
+  /** Default landing URL bound to Clara-generated ads. Migration 034. Required for Flow I to invoke Clara. */
+  default_cta_url: string | null;
   last_refreshed_at: string;
   created_at: string;
 }
@@ -288,6 +294,7 @@ export type HeartbeatFlow =
   | "daily_observe_propose"
   | "execute_approvals"
   | "weekly_creative_firehose"
+  | "daily_clara_generate"
   | (string & {});
 export type HeartbeatPhase = "start" | "end" | "error";
 
@@ -303,12 +310,38 @@ export interface Heartbeat {
 }
 
 export type CreativeAssetKind = "image" | "video" | "copy";
-export type CreativeAssetSource = "imagen" | "gemini" | "manual_upload";
+export type CreativeAssetSource =
+  | "imagen"
+  | "gemini"
+  | "manual_upload"
+  | "meta_backfill"
+  | "clara";
+
+/**
+ * Lifecycle state for a `creative_gallery` row — migration 034.
+ *
+ *   - `pending`   — Clara brief written by Flow C (Mon). Has `hebrew_brief` +
+ *                   `source_asset_ids` + `expires_at`. No asset yet.
+ *   - `generated` — Asset exists (Imagen historically, Clara going forward, or
+ *                   operator-uploaded). Not yet attached to a Meta ad.
+ *   - `active`    — Has `meta_creative_id`; live or paused inside Meta.
+ *   - `archived`  — Soft-deleted via `deleted_at`.
+ *   - `expired`   — Pending brief that aged out past `expires_at` without a
+ *                   daily Flow I run consuming it.
+ */
+export type CreativeAssetStatus =
+  | "pending"
+  | "generated"
+  | "active"
+  | "archived"
+  | "expired";
 
 export interface CreativeAsset {
   id: string;
   business_id: string;
   kind: CreativeAssetKind;
+  /** Lifecycle state, migration 034. Existing rows pre-034 backfill to 'active' / 'generated' / 'archived' based on meta_creative_id + deleted_at. */
+  status: CreativeAssetStatus;
   storage_url: string | null;
   aspect_ratio: string | null;
   dimensions: string | null;
@@ -324,6 +357,12 @@ export interface CreativeAsset {
   duration_seconds: number | null;
   meta_creative_id: string | null;
   performance_snapshot: Record<string, unknown> | null;
+  /** Free Hebrew atmosphere prompt sent verbatim to Clara. Populated only on status='pending'. */
+  hebrew_brief: string | null;
+  /** 2-3 creative_gallery row IDs the agent picked as Clara source material. Populated only on status='pending'. */
+  source_asset_ids: string[] | null;
+  /** Auto-expire timestamp for a pending brief (7 days from creation). NULL on non-pending rows. */
+  expires_at: string | null;
   created_at: string;
   deleted_at: string | null;
 }

@@ -688,17 +688,22 @@ Once wired, the protocol (per spec §11.4):
 
 ---
 
-## Flow C — Creative Firehose
+## Flow C — Creative Firehose (writes pending Clara briefs + redeploy proposals)
 
 > **Schedule:** Mon 10:00 Asia/Jerusalem.
-> **Output:** 3-5 `redeploy_creative` or `new_creative` proposals per active campaign per week, each with a `channel` payload field (`feed` / `stories` / `reels`).
-> **No Meta writes.** Pure observation + propose. Execution happens in Flow B.
+> **Output, per active campaign (3-5 total):** A mix of:
+>   - `redeploy_creative` proposals (gallery-first reuse — goes through `approvals` for HITL), AND
+>   - `pending_creative` rows in `creative_gallery` (Hebrew brief + 2-3 source assets — no HITL at this stage; daily Flow I picks them up to drive Clara).
+>
+> **Hard cap:** ≤ 14 pending briefs/week across the business (7 days × 2/day Clara cap enforced by Flow I). `propose_pending_creative.py` blocks the 15th insert.
+> **No Meta writes.** Pure observation + propose. Execution happens in Flow B (for `upload_creative` rows that Flow I queues).
+> **No Imagen.** Static-image generation was removed 2026-05-26 — the only fresh-content path is Clara via Flow I.
 
 Goal (per [creative-guide.md](prompts/creative-guide.md) §3): keep the active-creative pool diverse so Andromeda has options to test. **Never pause existing creatives.** A creative dies only when Gate 1 kill criterion triggers (hook rate < 25% after 48h) — that lives in Flow A, not here.
 
 ### Step 0.5: Tracking Health Gate
 
-Same as Flow A Step 0.5 — if `check_tracking_health` returns `status != "healthy"`, `new_creative` is in `blocks_proposals`. The flow may still produce `redeploy_creative` proposals (those reuse already-tracked creative IDs and do not introduce a fresh measurement burden), but if the operator's gallery is empty for the channel, log a `skip` decision with `rationale="tracking_unhealthy_and_no_gallery"` and continue to the next campaign.
+Same as Flow A Step 0.5 — if `check_tracking_health` returns `status != "healthy"`, neither `pending_creative` nor `redeploy_creative` may add net-new ads to a tracking-broken account. Flow C may still log `observation` decisions for the operator, but skip the propose step with `rationale="tracking_unhealthy"`.
 
 ### Step 1: Pull signals
 
@@ -733,20 +738,22 @@ Read out: `active_with_impressions_count`, `angle_distribution`, and `viable_unu
 
 ### Step 3: Draft proposals (3-5 per active campaign)
 
-Per [creative-guide.md §3 + §3.1](prompts/creative-guide.md):
+Per [creative-guide.md §3](prompts/creative-guide.md):
 
 - **Pick the channel(s) under-represented** in `angle_distribution` first. If feed has 8 active and reels has 1, add to reels.
-- **Pick the angle(s) missing** from §3 (emotion / urgency / benefit / social_proof / comparison / direct_benefit). Don't duplicate an angle already running.
-- **Decide redeploy vs new** per the §3.1 threshold table (binding):
+- **Pick the angle(s) missing** from creative-guide §2 (emotion / urgency / benefit / social_proof / comparison / direct_benefit). Don't duplicate an angle already running.
+- **Decide redeploy vs pending brief** per the threshold table (binding):
 
-  | Lane | viable_unused_count for channel | proposal task_type |
+  | Lane | viable_unused_count for channel | route |
   | --- | --- | --- |
   | §T_PE (weekly firehose) | N ≥ 3 | only `redeploy_creative` |
-  | §T_PE (weekly firehose) | N = 1-2 | mix `redeploy_creative` + `new_creative` |
-  | §T_PE (weekly firehose) | N = 0 | only `new_creative` |
+  | §T_PE (weekly firehose) | N = 1-2 | mix `redeploy_creative` + `pending_creative` |
+  | §T_PE (weekly firehose) | N = 0 | only `pending_creative` (Clara queue) |
 
-- **`new_creative` payload must include `channel`** (`feed` / `stories` / `reels`) — guardrail §28 reads it. Use `source_preference: "generate_new"` only when you have an explicit angle-mismatch reason and explain it in `rationale`.
-- **Hebrew rationale + customer ad copy** follow [`hebrew-copy-style.md`](prompts/hebrew-copy-style.md) — §11 for the operator-facing `rationale`, §§2-9 for the customer-facing `headline` / `primary_text`.
+- **`pending_creative` is NOT a `propose_task` task_type.** It's a row written directly into `creative_gallery` with `status='pending'` via the dedicated tool `propose_pending_creative.py`. There is no HITL at this stage — the daily Flow I runner will pick it up FIFO. The HITL gate is on the *finished video* (Flow I queues a `task_type='upload_creative'` approval after Clara returns).
+- For each pending brief, the agent ALSO picks 2-3 source assets from `creative_gallery` (image rows preferred; video rows are accepted — Flow I extracts a frame). Pass them as `--source-asset-ids '["uuid1","uuid2"]'`.
+- **`redeploy_creative` payload must include `channel`** (`feed` / `stories` / `reels`) — guardrail §28 reads it. Hebrew rationale per [`hebrew-copy-style.md §11`](prompts/hebrew-copy-style.md).
+- **Customer ad copy** (headline / primary_text / cta) is NOT written at this stage for pending briefs — it's attached later to the `upload_creative` approval that Flow I queues. For `redeploy_creative`, copy may override the gallery row's defaults at this stage.
 
 ### Step 4: Apply guardrails
 
@@ -758,9 +765,10 @@ python -m campaigner.tools.check_guardrails --business-id "$BUSINESS_ID" \
 ```
 
 Rules that matter most for Flow C:
-- §19 `no_new_creative_when_underspending` — drops `new_creative` when `utilization_7d < 0.5` (the existing pool isn't even being tested — adding more is noise).
-- §28 `prefer_gallery_over_generation` — drops `new_creative` when `viable_unused_count >= 3` for the channel (use `redeploy_creative` instead, unless `source_preference="generate_new"` is set).
+- §19 `no_new_creative_when_underspending` — drops `redeploy_creative` AND `pending_creative` when `utilization_7d < 0.5` (the existing pool isn't even being tested — adding more is noise).
+- §28 `prefer_gallery_over_generation` — drops `pending_creative` when `viable_unused_count >= 3` for the channel (use `redeploy_creative` instead).
 - §25 `respect_hands_off` — drops every proposal targeting a campaign listed in `monthly_brief.hands_off_campaign_ids`.
+- `pending_brief_weekly_cap_14` — enforced by `propose_pending_creative.py`. Stop adding briefs when you're approaching the cap; the 15th insert will be rejected.
 
 If a rule fails, log a `rejection` decision and skip the propose — do not relax the contract.
 
@@ -768,9 +776,11 @@ If a rule fails, log a `rejection` decision and skip the propose — do not rela
 
 Use the same daily-cap table as Flow A (§8.3 in [decision-tree.md](prompts/decision-tree.md)). Count *all* surviving proposals across this flow plus any pending rows already in `approvals` for today. If over the cap, keep the highest-impact ones (channel under-represented + angle missing > channel covered + angle redundant). Log `rejection` with `rationale="anti_flood_cap"` for the dropped ones.
 
-### Step 6: Write to `approvals`
+### Step 6: Write proposals
 
-For each surviving proposal:
+Two paths depending on route from Step 3.
+
+#### 6a. `redeploy_creative` — through the standard approvals queue (HITL)
 
 ```bash
 APPROVAL_ID=$(python -m campaigner.tools.propose_task \
@@ -789,6 +799,26 @@ python -m campaigner.tools.log_decision \
   --summary "Proposed redeploy_creative on adset <id>" \
   --campaign-id "<campaign_id>" --outputs "{\"approval_id\":\"$APPROVAL_ID\"}"
 ```
+
+#### 6b. `pending_creative` — directly into `creative_gallery` (no HITL yet)
+
+```bash
+GALLERY_ID=$(python -m campaigner.tools.propose_pending_creative \
+  --business-id "$BUSINESS_ID" --run-id "$RUN_ID" \
+  --hebrew-brief "מסעדת שף בראשון לציון עם תפריט ים-תיכוני מודרני — אור טבעי שנכנס בערב, שולחנות שמתמלאים..." \
+  --source-asset-ids '["<asset_uuid_1>","<asset_uuid_2>","<asset_uuid_3>"]' \
+  | python -c "import sys,json; print(json.load(sys.stdin)['gallery_id'])")
+
+python -m campaigner.tools.log_decision \
+  --business-id "$BUSINESS_ID" --run-id "$RUN_ID" \
+  --graph-name creative_firehose --node-name propose \
+  --decision-type proposal \
+  --summary "Wrote pending Clara brief into gallery (id=$GALLERY_ID)" \
+  --campaign-id "<campaign_id>" \
+  --outputs "{\"gallery_id\":\"$GALLERY_ID\",\"kind\":\"video\",\"status\":\"pending\"}"
+```
+
+No `approvals` row is written here. The HITL gate fires later — when Flow I finishes the Clara render, it queues a `task_type='upload_creative'` row pointing at this `gallery_id`.
 
 ### Step 7: Exit
 
@@ -1169,7 +1199,7 @@ The output `recommended_lane` becomes the **prior** on task_type selection — n
 | `routine_observation` | pace OK, continue normal flow | §T0r normal routing |
 | `scale_up` | underrun + winner + healthy gallery | §T2+ |
 | `redeploy_creative` | underrun + winner + saturated gallery | §T_PE gallery-first |
-| `alert_content_bottleneck` | underrun + winner + empty gallery | emit `alert` with 2-option MCQ (imagen vs boost_post candidate) |
+| `alert_content_bottleneck` | underrun + winner + empty gallery | emit `alert` with 2-option MCQ (Clara pending brief vs boost_post candidate) |
 | `boost_post` | underrun + no winner + viral organic | §T9.1 Post-Promote (must clear §53 5-thresholds) |
 | `new_campaign` | underrun + no winner | §T_NC |
 | `scale_down` | overrun | §T_SD (use quality-adjusted CPL, not raw) |
@@ -1278,7 +1308,8 @@ The new Flow F (Onboarding) runs via `runners/onboarding_chain.sh`. The web side
 | `execute_task.py`            | ✅     | [tools/execute_task.py](tools/execute_task.py) — dispatches 6 task_types to MetaClient; idempotent on executed rows; `--dry-run` flag available |
 | `mark_failed.py`             | ✅     | [tools/mark_failed.py](tools/mark_failed.py)                                                                                                    |
 | `list_active_creatives.py`   | ✅     | [tools/list_active_creatives.py](tools/list_active_creatives.py) — includes angle distribution. **2026-05-12:** `--with-performance` adds per-creative insights + `active_with_impressions_count` for §T_PE. **2026-05-13 (Block 8):** `--unused-in-campaigns` + `--matches-channel` flags surface `viable_unused_count` for the gallery-first lanes in §T6.1 / §T_PE and guardrail §28. |
-| `generate_creative.py`       | ✅     | [tools/generate_creative.py](tools/generate_creative.py) — image only; copy gen is Claude's job, passed via `--copy`                            |
+| `propose_pending_creative.py` | ✅    | [tools/propose_pending_creative.py](tools/propose_pending_creative.py) — **(2026-05-26)** Writes a `status='pending'` Clara brief into `creative_gallery` (no `approvals` row at this stage). Args: `--hebrew-brief`, `--source-asset-ids` (JSON list of 2-3 UUIDs). Enforces weekly cap of 14. Replaces the legacy `generate_creative.py` (Imagen, removed). |
+| `generate_clara_video.py`    | 🟡    | Phase 3 of [docs/plans/clara-video-flow.md](../docs/plans/clara-video-flow.md). Daily Flow I orchestrator — pulls oldest pending brief, calls Clara via `lib/clara_client.py` (Playwright), uploads MP4 to storage, flips row to `status='generated'`, queues a `task_type='upload_creative'` approval. Hard cap 2/day. |
 | `estimate_cpl.py`            | ✅     | [tools/estimate_cpl.py](tools/estimate_cpl.py) — **built 2026-05-13.** Token-saving lever. Returns a `research_block` ready to drop into `propose_task --research` (satisfies guardrail §26 without WebSearch). Reads `business_knowledge`, applies the static Israel-2026 multi-dimensional grid in [prompts/cpl-infrastructure.md](prompts/cpl-infrastructure.md). **Call this BEFORE WebSearching** in any `set_kpi_target` or §T-2 reality-check; live WebSearch is fallback only when `needs_live_research=true`. |
 
 **Known MVP limitations (enforce in your reasoning, not via tools):**

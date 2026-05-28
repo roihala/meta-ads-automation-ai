@@ -24,9 +24,6 @@ git clone https://github.com/<org>/meta-ads-automation-ai && cd meta-ads-automat
 
 # 2. Set up env
 cp .env.example .env                            # fill in real values
-gcloud auth application-default login           # local-dev only — for Vertex AI Imagen calls from your workstation
-                                                # (production gets Vertex creds via the gcp-vertexai-credentials
-                                                # Secret, mounted by the operator from the Hetzner infra repo)
 
 # 3. Spin up the local stack
 make dev                                        # postgres, mongo, redis, campaigner
@@ -79,7 +76,7 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of the abov
 Extracted from [`CLAUDE.md`](CLAUDE.md) and [`AGENTS.md`](AGENTS.md):
 
 1. **HITL is load-bearing.** The agent proposes; a human approves; only Flow B writes to Meta. Never bypass `approvals`.
-2. **Tools, not ad-hoc.** Postgres / Meta / Vertex access goes through [`campaigner/tools/`](campaigner/tools/) (agent-side) or [`campaigner/lib/`](campaigner/lib/) (library). No `psql`, `curl`, or one-off scripts.
+2. **Tools, not ad-hoc.** Postgres / Meta access goes through [`campaigner/tools/`](campaigner/tools/) (agent-side) or [`campaigner/lib/`](campaigner/lib/) (library). No `psql`, `curl`, or one-off scripts. Clara (video generation) is reached only via `campaigner/lib/clara_client.py` (Phase 3) through Playwright.
 3. **Hebrew rationale, English summary.** Operator-facing rationale in plain Hebrew (no English acronyms in paragraph 1). Cron one-line summary in English.
 4. **Never edit applied migrations.** Schema changes go in new numbered files in [`migrations/`](migrations/).
 5. **Dual-mode adapter rule (web).** Don't import `pg` or `@supabase/ssr` outside [`web/src/lib/db/`](web/src/lib/db/) and [`web/src/lib/auth/`](web/src/lib/auth/).
@@ -127,7 +124,7 @@ Open an issue with:
 
 ## Security
 
-- Never commit credentials. `.env`, GCP service-account JSON (Vertex AI), Meta access tokens are all gitignored. Production secrets live as SOPS-encrypted YAMLs in the operator's Hetzner infra repo, never in this repo and never in GitHub Actions secrets (the sole exception is `GHCR_PAT`).
+- Never commit credentials. `.env`, Meta access tokens, and Clara login (`CLARA_EMAIL` / `CLARA_PASSWORD`) are all gitignored. Production secrets live as SOPS-encrypted YAMLs in the operator's Hetzner infra repo, never in this repo and never in GitHub Actions secrets (the sole exception is `GHCR_PAT`).
 - Token rotation: Meta access tokens expire ~60 days. See [`docs/plans/task-2.3-keys-and-quotas.md`](docs/plans/task-2.3-keys-and-quotas.md).
 - Report vulnerabilities privately — email the project owner; do not open a public issue.
 

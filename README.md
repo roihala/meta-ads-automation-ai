@@ -34,8 +34,8 @@ A **human reviewer** (terminal CLI or web dashboard) approves or rejects every p
                                               │
                   ┌───────────────────────────┼─────────────────────────┐
                   ▼                           ▼                         ▼
-            Postgres                       Meta                    Vertex AI
-        (Supabase target)        (facebook-business SDK)              Imagen
+            Postgres                       Meta                      Clara
+        (Supabase target)        (facebook-business SDK)     (Playwright, Flow I)
         approvals · agent_decisions
         baselines · creative_gallery
                   ▲
@@ -66,7 +66,6 @@ git clone <this-repo> && cd meta-ads-automation-ai
 
 # 2. Configure
 cp .env.example .env                            # fill in real values
-gcloud auth application-default login           # one-time GCP auth (only for Vertex AI Imagen)
 
 # 3. Boot the local stack (Postgres + Mongo + Redis + campaigner shell)
 make dev
@@ -90,7 +89,7 @@ Full setup walkthrough: [`docs/ONBOARDING.md`](docs/ONBOARDING.md).
 | ----------------------- | ----------------------------------------------------------- |
 | Agent runtime           | Python 3.11 + Claude Code CLI (headless `claude -p`)        |
 | LLM                     | Claude (Sonnet 4.6 / Opus 4.6) via Anthropic API            |
-| Image generation        | Vertex AI Imagen (`google-genai`)                           |
+| Video creative generation | Clara ([clarasocial.com](https://clarasocial.com/app)) driven by Playwright (Flow I) |
 | Meta integration        | `facebook-business` SDK                                     |
 | Data + HITL queue       | Postgres (Supabase target)                                  |
 | Web dashboard           | Next.js 15 + Tailwind + shadcn/ui (RTL Hebrew)              |
@@ -99,7 +98,7 @@ Full setup walkthrough: [`docs/ONBOARDING.md`](docs/ONBOARDING.md).
 | Image registry          | GitHub Container Registry (`ghcr.io/roihala/campaigner-*`)  |
 | CI/CD                   | GitHub Actions ([`.github/workflows/`](.github/workflows/)) — push to `main` → build + deploy to Hetzner; see [`docs/CI_CD.md`](docs/CI_CD.md) |
 
-**MVP cost:** ~$25/month per business (Claude ~$23, Imagen ~$1.60).
+**MVP cost:** ~$25/month per business (Claude ~$23 + Clara subscription; confirm rate during Phase 0 spike in [`docs/research/clara-playwright-spike.md`](docs/research/clara-playwright-spike.md)).
 
 ## Project structure
 
@@ -108,7 +107,7 @@ meta-ads-automation-ai/
 ├── campaigner/             ← The agent (tools, lib, prompts, CLI)
 │   ├── CAMPAIGNER.md       ← Agent operational protocol
 │   ├── tools/              ← Python CLI tools the agent calls
-│   ├── lib/                ← Shared library (Postgres, Meta, Vertex clients)
+│   ├── lib/                ← Shared library (Postgres, Meta, Clara clients)
 │   ├── prompts/            ← Knowledge files the agent reads
 │   └── cli/                ← Operator-facing CLI
 ├── runners/                ← Cron entrypoints (3 flows)

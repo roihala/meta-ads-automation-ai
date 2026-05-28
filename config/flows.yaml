@@ -16,10 +16,9 @@ defaults:
   timezone: Asia/Jerusalem
   namespace: campaigner
   image: us-central1-docker.pkg.dev/bemtech-478413/generic-agent-repo/campaigner-agent:latest
-  env:
-    GCP_PROJECT_ID: bemtech-478413
-    GCP_LOCATION: us-central1
-    GOOGLE_APPLICATION_CREDENTIALS: /var/secrets/gcp/credentials.json
+  env: {}  # Imagen removed 2026-05-26 — base agent image no longer needs GCP creds.
+           # Flow I overrides `image` to `agent-clara` (Playwright + Chromium + ffmpeg)
+           # and adds CLARA_EMAIL / CLARA_PASSWORD; declared on the flow row itself.
   # The single guardrails prompt is loaded by every flow that writes to
   # `approvals` or executes against Meta. Listed once here rather than on
   # every flow.

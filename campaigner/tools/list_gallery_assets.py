@@ -10,7 +10,9 @@ yet used in a creative.
 Filters out soft-deleted rows (`deleted_at IS NOT NULL`). Optional filters:
   --kind {image,video}     restrict to one kind
   --service-tag <str>      restrict to a specific service tag
-  --source <str>           manual_upload / imagen / gemini
+  --source <str>           manual_upload / clara / meta_backfill / imagen / gemini
+                           (imagen / gemini are legacy — no new rows are written
+                           after migration 034, but historical rows still exist)
 
 Contract: §11.6 (JSON stdout, exit 0/1/2).
 """
@@ -29,7 +31,7 @@ from campaigner.tools._contract import (
 )
 
 ALLOWED_KINDS = {"image", "video", "copy"}
-ALLOWED_SOURCES = {"manual_upload", "imagen", "gemini"}
+ALLOWED_SOURCES = {"manual_upload", "clara", "meta_backfill", "imagen", "gemini"}
 
 
 def main() -> None:
