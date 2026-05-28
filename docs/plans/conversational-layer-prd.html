@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Campaigner V2 — שכבת השיחה (PRD ויזואלי)</title>
+<style>
+  :root {
+    --bg-0: #0a0a14; --bg-1: #11121f; --bg-2: #181a2c; --bg-3: #1f2138;
+    --border: #2a2d4a; --border-soft: #1e2038;
+    --text: #e8e9ff; --text-dim: #9499c4; --text-faint: #6b6f95;
+    --accent: #8b7dff; --accent-2: #5eead4;
+    --warn: #fbbf24; --danger: #f87171; --ok: #4ade80; --info: #60a5fa;
+    --pink: #f0abfc; --orange: #fb923c;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { background: var(--bg-0); color: var(--text); margin: 0; padding: 0; }
+  body { font-family: 'Heebo','Rubik','Segoe UI',system-ui,-apple-system,sans-serif; line-height: 1.6; font-size: 15px; }
+  a { color: var(--accent); }
+  code, .mono {
+    font-family: 'JetBrains Mono','Fira Code','Consolas',monospace; direction: ltr; unicode-bidi: isolate;
+    font-size: 0.86em; background: var(--bg-3); padding: 1px 6px; border-radius: 4px; color: var(--accent-2);
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px 120px; }
+
+  header.hero {
+    padding: 56px 24px 40px; text-align: center;
+    background: radial-gradient(1200px 400px at 50% -10%, rgba(139,125,255,0.18), transparent),
+                radial-gradient(800px 300px at 80% 0%, rgba(94,234,212,0.10), transparent);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  header.hero h1 { font-size: 2.3rem; margin: 0 0 8px; letter-spacing: -0.5px; }
+  header.hero .tag { color: var(--text-dim); font-size: 1.05rem; max-width: 800px; margin: 0 auto; }
+  header.hero .meta-line { margin-top: 18px; color: var(--text-faint); font-size: 0.85rem; }
+  .pillrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .pill { background: var(--bg-2); border: 1px solid var(--border); padding: 5px 14px; border-radius: 999px; font-size: 0.82rem; color: var(--text-dim); }
+  .pill b { color: var(--accent-2); font-weight: 600; }
+
+  nav.toc { position: sticky; top: 0; z-index: 50; background: rgba(10,10,20,0.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-soft); padding: 10px 24px; }
+  nav.toc .inner { max-width: 1180px; margin: 0 auto; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  nav.toc a { font-size: 0.82rem; color: var(--text-dim); text-decoration: none; padding: 5px 11px; border-radius: 7px; border: 1px solid transparent; transition: all .15s; }
+  nav.toc a:hover { color: var(--text); background: var(--bg-2); border-color: var(--border); }
+
+  section { margin-top: 56px; scroll-margin-top: 70px; }
+  h2.sec { font-size: 1.5rem; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
+  h2.sec .num { font-size: 0.95rem; color: var(--bg-0); background: var(--accent); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; direction: ltr; flex: none; }
+  .sec-lead { color: var(--text-dim); margin: 0 0 22px; max-width: 860px; }
+
+  .card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin-bottom: 16px; }
+  .grid { display: grid; gap: 14px; }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 880px) { .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; } }
+
+  /* architecture */
+  .arch { display: flex; flex-direction: column; gap: 0; align-items: center; }
+  .arch-layer { width: 100%; max-width: 820px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; text-align: center; }
+  .arch-layer .lbl { font-size: 0.7rem; color: var(--text-faint); letter-spacing: 1px; text-transform: uppercase; direction: ltr; }
+  .arch-layer .body { font-size: 0.98rem; margin-top: 3px; }
+  .arch-layer .body b { color: var(--accent-2); }
+  .arch-arrow { color: var(--accent); font-size: 1.5rem; line-height: 1; padding: 6px 0; }
+  .arch-layer.brain { border-color: var(--accent); background: linear-gradient(180deg, rgba(139,125,255,0.12), var(--bg-2)); }
+  .arch-layer.hitl { border-color: var(--warn); background: linear-gradient(180deg, rgba(251,191,36,0.08), var(--bg-2)); }
+  .arch-layer.exist { border-color: var(--ok); background: linear-gradient(180deg, rgba(74,222,128,0.06), var(--bg-2)); }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 6px; }
+  th, td { text-align: right; padding: 9px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  th { color: var(--text-faint); font-weight: 600; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { color: var(--text-dim); }
+  td b, td strong { color: var(--text); }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+  .center { text-align: center; }
+
+  /* chips / badges */
+  .chip { font-size: 0.72rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--text-dim); display: inline-block; }
+  .chip.ok { border-color: rgba(74,222,128,0.4); color: var(--ok); }
+  .chip.no { border-color: rgba(248,113,113,0.5); color: var(--danger); }
+  .chip.star { border-color: rgba(251,191,36,0.45); color: var(--warn); }
+  .chip.det { border-color: rgba(96,165,250,0.4); color: var(--info); }
+  .chip.brain { border-color: rgba(139,125,255,0.4); color: var(--accent); }
+
+  .yes { color: var(--ok); font-weight: 700; }
+  .nope { color: var(--danger); font-weight: 700; }
+
+  /* component cards */
+  .comp { background: var(--bg-1); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .comp::before { content: ""; position: absolute; inset-inline-start: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); }
+  .comp.p1::before { background: var(--accent-2); }
+  .comp.p2::before { background: var(--info); }
+  .comp.p3::before { background: var(--warn); }
+  .comp.p4::before { background: var(--pink); }
+  .comp.p5::before { background: var(--orange); }
+  .comp .h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .comp .h .t { font-weight: 700; font-size: 1.02rem; }
+  .comp .h .ph { font-size: 0.7rem; color: var(--text-faint); direction: ltr; background: var(--bg-3); padding: 2px 8px; border-radius: 6px; }
+  .comp .d { color: var(--text-dim); font-size: 0.88rem; }
+  .comp .file { font-family: 'JetBrains Mono',monospace; font-size: 0.72rem; direction: ltr; color: var(--accent-2); margin-top: 8px; display: block; }
+
+  /* take / drop two-col */
+  .td2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  @media (max-width: 760px) { .td2 { grid-template-columns: 1fr; } }
+  .td2 .col { padding: 16px 18px; }
+  .td2 .take { background: linear-gradient(180deg, rgba(74,222,128,0.06), var(--bg-1)); border-inline-end: 1px solid var(--border); }
+  .td2 .drop { background: linear-gradient(180deg, rgba(248,113,113,0.06), var(--bg-1)); }
+  .td2 h4 { margin: 0 0 10px; font-size: 0.95rem; }
+  .td2 ul { margin: 0; padding-inline-start: 20px; color: var(--text-dim); font-size: 0.86rem; }
+  .td2 li { margin-bottom: 5px; }
+
+  /* phase timeline */
+  .phases { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  @media (max-width: 880px) { .phases { grid-template-columns: 1fr; } }
+  .phase { background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .phase .pn { font-family: 'JetBrains Mono',monospace; font-weight: 800; direction: ltr; font-size: 0.9rem; }
+  .phase.x1 { border-color: rgba(94,234,212,0.4); } .phase.x1 .pn { color: var(--accent-2); }
+  .phase.x2 { border-color: rgba(96,165,250,0.4); } .phase.x2 .pn { color: var(--info); }
+  .phase.x3 { border-color: rgba(251,191,36,0.4); } .phase.x3 .pn { color: var(--warn); }
+  .phase.x4 { border-color: rgba(240,171,252,0.4); } .phase.x4 .pn { color: var(--pink); }
+  .phase.x5 { border-color: rgba(251,146,60,0.4); } .phase.x5 .pn { color: var(--orange); }
+  .phase .pt { font-size: 0.84rem; color: var(--text); margin: 6px 0 4px; font-weight: 600; }
+  .phase .pd { font-size: 0.78rem; color: var(--text-dim); }
+
+  .note { border-inline-start: 3px solid var(--accent); background: var(--bg-1); padding: 11px 16px; border-radius: 0 10px 10px 0; color: var(--text-dim); font-size: 0.88rem; margin-top: 14px; }
+  .note.warn { border-color: var(--warn); } .note.star { border-color: var(--warn); }
+  .note.ok { border-color: var(--ok); } .note.danger { border-color: var(--danger); }
+  .note b { color: var(--text); }
+
+  .quote { font-style: italic; color: var(--text); border-inline-start: 3px solid var(--accent-2); padding: 4px 14px; margin: 8px 0; }
+  .bad { color: var(--danger); } .good { color: var(--ok); }
+
+  footer.f { margin-top: 80px; text-align: center; color: var(--text-faint); font-size: 0.8rem; border-top: 1px solid var(--border-soft); padding-top: 28px; }
+  hr.soft { border: none; border-top: 1px solid var(--border-soft); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>🧠 Campaigner V2 — שכבת השיחה</h1>
+  <p class="tag">הפיכת Campaigner ממנוע המלצות פסיבי ל<b>מנהל קמפיינים מבוסס AI</b> שאפשר לדבר איתו: <b>שיחה → אבחון → אסטרטגיה → דראפט → אישור → ביצוע → למידה.</b> בלי לשכתב את המערכת הקיימת — מוסיפים שכבה <b>מעל</b> מה שכבר עובד.</p>
+  <div class="pillrow">
+    <span class="pill">ארכיטקטורה: <b>Native · Postgres + Claude + Agent SDK</b></span>
+    <span class="pill"><b>HITL</b> נשאר חוק־ברזל</span>
+    <span class="pill">דטרמיניסטי נשאר דטרמיניסטי</span>
+    <span class="pill">מעתיקים שרטוט מ-generic_agent — לא קוד</span>
+  </div>
+  <div class="meta-line">PRD ויזואלי · נוצר 2026-05-27 · גרסת מקור: docs/plans/conversational-layer-prd.md · סטטוס: טיוטה לאישור המתכנת השני</div>
+</header>
+
+<nav class="toc">
+  <div class="inner">
+    <a href="#problem">הבעיה</a>
+    <a href="#vision">החזון</a>
+    <a href="#exists">מה קיים היום</a>
+    <a href="#decision">ההכרעה + generic_agent</a>
+    <a href="#principles">עקרונות בנייה</a>
+    <a href="#arch">ארכיטקטורת היעד</a>
+    <a href="#data">מודל נתונים</a>
+    <a href="#components">רכיבי המוח</a>
+    <a href="#behavior">שדרוג התנהגותי</a>
+    <a href="#creative">ניתוח קריאייטיב ווידאו</a>
+    <a href="#roadmap">מפת דרכים</a>
+    <a href="#elevators">אלבטורים</a>
+    <a href="#risks">סיכונים</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- PROBLEM -->
+  <section id="problem">
+    <h2 class="sec"><span class="num">1</span> הבעיה — למה ההמלצות מאכזבות היום</h2>
+    <p class="sec-lead">הבסיס בקוד חזק בצורה חריגה, אבל ה<b>פלט</b> מאכזב: הסוכן stateless, חד-פעמי, בלי זיכרון ובלי שיחה. כל תלונה ממופה לשורש ולפתרון:</p>
+    <div class="card">
+      <table>
+        <tr><th>הכאב (כפי שתואר)</th><th>שורש</th><th>נפתר ע"י</th></tr>
+        <tr><td><b>"הצעות גנריות מדי"</b></td><td>חד-פעמי, בלי זיכרון של הקשר/כוונה</td><td>שיחה + intent + זיכרון אסטרטגי</td></tr>
+        <tr><td><b>"כמעט לא מציע לקדם פוסט"</b> למרות שיש תוכן</td><td><code>boost_post</code> קיים <span class="yes">✓</span> אבל בתת-שימוש — אין סוכן שסורק תוכן יזום</td><td>שדרוג התנהגותי (§9) + ניתוח קריאייטיב (§10)</td></tr>
+        <tr><td><b>"לא מניע לפעולה"</b></td><td>מדווח מטריקות במקום להמליץ נחרצות</td><td>פרסונת מנהל קמפיינים + Action Cards</td></tr>
+        <tr><td><b>"אין תקשורת טובה לתת פידבק"</b></td><td>אין ערוץ שיחה; פידבק רק בכפתור דחייה</td><td>Workspace + פידבק שנשמר בשכבת ההצעות</td></tr>
+        <tr><td><b>"שיֵדע להוסיף / לשפר / להסיר ולהבין צורך"</b></td><td>אין הבנת multi-turn; ההצעות מפוזרות</td><td>מחזור חיים מלא של הצעות (§8.6)</td></tr>
+        <tr><td><b>"שינתח קריאייטיבים / סרטונים"</b></td><td><span class="nope">✗</span> אין ניתוח תוכן קריאייטיב כיום</td><td>ניתוח קריאייטיב ווידאו (§10)</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- VISION -->
+  <section id="vision">
+    <h2 class="sec"><span class="num">2</span> החזון — מה זה "קמפיינר AI"</h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <div class="lbl" style="color:var(--text-faint);font-size:0.72rem;letter-spacing:1px;direction:ltr">TODAY</div>
+        <h3 style="margin:6px 0">מטריקות → המלצה</h3>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin:0">פסיבי · גנרי · חד-פעמי · בלי זיכרון</p>
+      </div>
+      <div class="card" style="border-color:var(--accent)">
+        <div class="lbl" style="color:var(--accent);font-size:0.72rem;letter-spacing:1px;direction:ltr">TARGET</div>
+        <h3 style="margin:6px 0">שיחה → אבחון → אסטרטגיה → דראפט → אישור → ביצוע → למידה</h3>
+        <p style="color:var(--text-dim);font-size:0.9rem;margin:0">יזום · ספציפי · זוכר · מניע לפעולה</p>
+      </div>
+    </div>
+    <div class="note ok">המשתמש אומר <span class="quote" style="display:inline">"אני צריך יותר לידים איכותיים באשדוד"</span> — ומקבל תשובת <b>אסטרטג</b> מבוססת דאטה חי, לא קריאת דשבורד.</div>
+  </section>
+
+  <!-- EXISTS -->
+  <section id="exists">
+    <h2 class="sec"><span class="num">3</span> מה כבר קיים היום (מקורקע)</h2>
+    <p class="sec-lead">שכבת השיחה <b>בונה על</b> אלה — אסור לה לשכפל או להחליף אותם.</p>
+    <div class="grid cols-2">
+      <div class="card">
+        <h4 style="margin:0 0 10px;color:var(--ok)">✓ קיים ובשימוש</h4>
+        <table>
+          <tr><td>8 cron Flows (A–H)</td><td class="center"><span class="chip ok">✓</span></td></tr>
+          <tr><td>HITL approvals (pending→approved→executed)</td><td class="center"><span class="chip ok">✓</span></td></tr>
+          <tr><td>Guardrails (36 חוקים <span class="chip det">⚙️ דטרמיניסטי</span>)</td><td class="center"><span class="chip ok">✓</span></td></tr>
+          <tr><td>Meta integration · Creative gen · Gallery</td><td class="center"><span class="chip ok">✓</span></td></tr>
+          <tr><td><b>Boost post</b> (<code>boost_post</code>)</td><td class="center"><span class="chip ok">✓</span></td></tr>
+          <tr><td>Lead quality · A/B · pacing router</td><td class="center"><span class="chip ok">✓</span></td></tr>
+          <tr><td>Decision logging · ~60 כלי CLI</td><td class="center"><span class="chip ok">✓</span></td></tr>
+          <tr><td>Web frontend (Next.js 15, ~20 routes)</td><td class="center"><span class="chip ok">✓</span></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h4 style="margin:0 0 10px;color:var(--danger)">✗ חסר — זה מה שה-PRD מוסיף</h4>
+        <table>
+          <tr><td>טבלאות שיחה / הודעות — המערכת stateless לגמרי</td><td class="center"><span class="chip no">✗</span></td></tr>
+          <tr><td>Intent engine</td><td class="center"><span class="chip no">✗</span></td></tr>
+          <tr><td>זיכרון אסטרטגי / זיכרון מפעיל</td><td class="center"><span class="chip no">✗</span></td></tr>
+          <tr><td>לולאת multi-turn + "קול" לסוכן</td><td class="center"><span class="chip no">✗</span></td></tr>
+          <tr><td>מניעת חזרתיות של המלצות (dedup)</td><td class="center"><span class="chip no">✗</span></td></tr>
+          <tr><td>ניתוח תוכן קריאייטיב (תמונה/וידאו)</td><td class="center"><span class="chip no">✗</span></td></tr>
+        </table>
+        <div class="note">זיכרון cross-run ש<b>כן</b> קיים וצריך לעשות בו שימוש חוזר (לא לבנות מחדש): <code>load_feedback_history</code> · <code>load_recent_actions_outcomes</code> · <code>load_active_plans</code> · <code>monthly_brief</code>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DECISION -->
+  <section id="decision">
+    <h2 class="sec"><span class="num">4</span> ההכרעה האדריכלית + שאלת generic_agent</h2>
+    <p class="sec-lead"><b>נבחר: כיוון A</b> — בונים את המוח <b>native</b> ב-repo הזה, על ה-stack הקיים, עם Claude Agent SDK.</p>
+
+    <div class="card" style="border-color:var(--accent)">
+      <h3 style="margin:0 0 4px">🧠 מעתיקים את ה<span style="color:var(--accent-2)">שרטוט</span>, לא את ה<span style="color:var(--danger)">מנוע</span></h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;margin:4px 0 16px">זו התשובה המדויקת לשאלה "מעתיקים ממנו את המוח?" — כן, את <b>איך הוא בנוי</b>. לא את הקוד עצמו.</p>
+      <div class="td2">
+        <div class="col take">
+          <h4 class="good">✓ לוקחים (תבניות) — בונים מחדש אצלנו</h4>
+          <ul>
+            <li>תבנית ה-<b>intent classifier</b> (LLM, מודע-שיחה, prompt חיצוני)</li>
+            <li>צורת סכמת ה-<b>conversation / messages</b> + סיכום מתגלגל</li>
+            <li><b>איסוף הקשר במקביל</b> (intent + זיכרון + דאטה יחד)</li>
+            <li>משמעת <b>prompts בקבצים חיצוניים</b></li>
+            <li>רעיון <b>זיכרון מפעיל</b> מתמשך</li>
+          </ul>
+        </div>
+        <div class="col drop">
+          <h4 class="bad">✗ לא לוקחים (מנוע) — מתנגש או לא רלוונטי</h4>
+          <ul>
+            <li>הקוד עצמו — רץ על <b>LangGraph</b></li>
+            <li><b>MongoDB + Qdrant</b> (אנחנו Postgres בלבד)</li>
+            <li><b>Grok + Gemini</b> לצ'אט (אנחנו Claude)</li>
+            <li>מערכת ה-<b>Abilities</b> (18 CTA ל-אתרים — דומיין שגוי)</li>
+            <li>אינדוקס מבוסס-קראולינג של אתרים</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note danger">למה לא לייבא קוד: זה היה גורר MongoDB + Qdrant + LLM שני לתוך מערכת Postgres+Claude, ו"המוח" שלו מכוון לדומיין הלא נכון (Q&A למבקרי אתר). העלות ≫ הערך.</div>
+    </div>
+
+    <div class="note warn">⚠️ <b>החלטה אחת פתוחה לפני Phase 1 — transport:</b> ה-Next.js (Node) צריך להגיע ל-orchestrator (Python/Claude). מומלץ <b>(א) endpoint דק ב-repo עם SSE</b> (סטרימינג, container אחד נוסף, אותו Postgres/Claude). חלופה: (ב) subprocess לכל תור — פשוט יותר אבל בלי סטרימינג.</div>
+  </section>
+
+  <!-- PRINCIPLES -->
+  <section id="principles">
+    <h2 class="sec"><span class="num">5</span> עקרונות בנייה (לא לפשרה)</h2>
+    <p class="sec-lead">ההנחיה המפורשת: לבנות באותה שיטה ממושמעת — לשמור על הדטרמיניסטי, לא להחזיר חוקים שנהרגו, לשמור יעילות טוקנים ואיכות תשובות.</p>
+    <div class="grid cols-2">
+      <div class="card"><h4 style="margin:0 0 6px">⚙️ הדטרמיניסטי נשאר דטרמיניסטי</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">ה-LLM <b>מנמק ומתקשר</b>; הוא לעולם לא <b>מכריע</b> גבול קשיח. Guardrails, thresholds, מודל שני השערים ו-<code>check_guardrails</code> נשארים אכופים בקוד. הצעה ש"מרגישה טוב" עדיין מתה אם ה-guardrail נכשל.</p></div>
+      <div class="card"><h4 style="margin:0 0 6px">🚫 בלי חוקים מתים</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">שום כלל פרה-Andromeda (CAMPAIGN_EVALUATION §8) לא חוזר — לא בפרומפט, לא בדראפט, לא בעצה. פרומפט הפרסונה מייבא את הרשימה כ"לעולם לא".</p></div>
+      <div class="card"><h4 style="margin:0 0 6px">🪙 יעילות טוקנים בעיצוב</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">model tiering (<b>Haiku</b> ל-intent/סיווג, <b>Opus</b> רק לאסטרטגיה/דראפטים) · context compaction · סינון רלוונטיות לזיכרון · prompt caching · קריאות כלים עצלות.</p></div>
+      <div class="card"><h4 style="margin:0 0 6px">🎯 איכות תשובות</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">מבוסס דאטה חי — <b>אפס הזיית מטריקות</b>; אם חסר מידע, להגיד (<code>check_data_sufficiency</code>) · guardrail §27 (אין טענות תחרותיות לא ממוקרות) · artifacts מאומתים מול סכמה.</p></div>
+    </div>
+    <div class="note danger">🔒 <b>HITL מוחלט.</b> השיחה <b>מציעה</b>; לעולם לא <b>מבצעת</b>. הביצוע נשאר ב-Flow B.</div>
+  </section>
+
+  <!-- ARCH -->
+  <section id="arch">
+    <h2 class="sec"><span class="num">6</span> ארכיטקטורת היעד</h2>
+    <div class="card">
+      <div class="arch">
+        <div class="arch-layer"><div class="lbl">Frontend (existing)</div><div class="body">Next.js Web — <b>חדש: /workspace</b> ממשק שיחה</div></div>
+        <div class="arch-arrow">↓ &nbsp; SSE &nbsp; POST /conversation/turn</div>
+        <div class="arch-layer brain">
+          <div class="lbl">NEW · Conversation Layer (in-repo, thin ASGI)</div>
+          <div class="body">
+            <b>1.</b> טעינת היסטוריה + זיכרון אסטרטגי רלוונטי &nbsp;·&nbsp;
+            <b>2.</b> Intent (Haiku) + הקשר + ledger <i>במקביל</i><br>
+            <b>3.</b> 🧠 Orchestrator (Claude Agent SDK · Opus) — הכלים הקיימים כ-tools · Draft Composer · Creative Intelligence · dedup · <b>propose_task</b><br>
+            <b>4.</b> שמירת תור + artifacts + עדכוני זיכרון/ledger
+          </div>
+        </div>
+        <div class="arch-arrow">↓ &nbsp; הצעות בלבד — לעולם לא כתיבה ישירה ל-Meta</div>
+        <div class="arch-layer exist">
+          <div class="lbl">EXISTING · UNCHANGED</div>
+          <div class="body">approvals → Flow B <code>execute_task</code> → ⚙️ guardrails recheck → <b>MetaClient</b> → <code>agent_decisions</code></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin:36px 0 8px;font-size:1.2rem">⭐ 6.1 — איך הסוכן עובד בפועל (Walkthrough למפעיל)</h3>
+    <p class="sec-lead">המודל המנטלי: <b>המוח הוא המנוע · cron הוא הטייס האוטומטי · השכבה השיחתית היא המושב של המפעיל בקוקפיט · ה-execution הוא הגלגלים.</b> השיחה לא מחליפה את ה-cron — היא נותנת למפעיל קול לתוך החשיבה של המוח. הכל יכול לעבוד גם בלי שהמפעיל פותח צ'אט בכלל (cron + תור אישורים מספיקים לערך מלא).</p>
+
+    <div class="card">
+      <h4 style="margin:0 0 10px;font-size:0.98rem">🚪 6.1.1 — מגע ראשון (T+0 עד שעה ראשונה)</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:0.84rem">
+        <tr style="border-bottom:1px solid var(--border)"><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem;width:45%">המפעיל רואה</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">מה רץ מאחורי הקלעים</th></tr>
+        <tr><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">מחבר חשבון Meta (OAuth)</td><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>business_id</code> מוקצה, טוקן נשמר</td></tr>
+        <tr><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Workspace נפתח עם הודעה: <i>"אני חוקר את החשבון שלך — ייקח כמה דקות. ספר לי בינתיים על העסק"</i></td><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">סריקה ראשונה עמוקה (§8.0) רצה ברקע — סנכרון מבני, backfill, baselines, מחקר שוק</td></tr>
+        <tr><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">המפעיל מספר באופן חופשי על העסק, יעדים, יכולת תקציב</td><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Intent מסווג; Calibrator (§17.4) מתחיל לבנות את 2-options על בסיס הנתונים החלקיים שהצטברו</td></tr>
+        <tr><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">סריקה מסתיימת (3-15 דק') → מקבל <b>אבחון פותח</b>: <i>"הנה מה שאני רואה בחשבון שלך: [תקציר מבני]. ב-14 נגרים אחרים באזור דומה — אתה באחוזון 30. שלוש הזדמנויות מובילות: …"</i></td><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">מבוסס <b>היסטוריה אמיתית של החשבון</b>, לא גנרי. cross-business benchmarks (§17.3) מספקים הקשר</td></tr>
+        <tr><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">בוחר הזדמנות → מקבל <b>2 אופציות</b> + גאפ + 3 דרכים</td><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Calibrator מריץ reverse-from-outcome עם close_rate</td></tr>
+        <tr><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">מאשר → ההצעה נכנסת לתור האישורים</td><td style="padding:8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>propose_task</code> כותב ל-<code>approvals</code> בדיוק כמו היום; Flow B יבצע בקרב</td></tr>
+      </table>
+      <div class="note">⭐ ה-onboarding לעולם לא שואל שאלות "קרות" — מושך הכל מ-Meta קודם, מנסח טיוטה, ומבקש מהמפעיל רק לאשר/לתקן/להעשיר (pull-first §8.0).</div>
+    </div>
+
+    <div class="card">
+      <h4 style="margin:0 0 10px;font-size:0.98rem">🔄 6.1.2 — יום-יום: איך chat ו-cron חיים יחד</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:0.84rem">
+        <tr style="border-bottom:1px solid var(--border)"><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">ערוץ</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">מה זה עושה</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">תזמון</th></tr>
+        <tr><td style="padding:7px 8px;color:var(--accent-2);direction:ltr">Cron A–H</td><td style="padding:7px 8px;color:var(--text-dim)">observe-propose · A/B · creative · research · audit · health · pacing</td><td style="padding:7px 8px;color:var(--text-faint);font-size:0.78rem">לפי לו"ז</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--accent-2);direction:ltr">Calibrator + Pattern</td><td style="padding:7px 8px;color:var(--text-dim)">מתעדכן עם כל cron run; כותב ל-<code>agent_decisions</code></td><td style="padding:7px 8px;color:var(--text-faint);font-size:0.78rem">בכל run</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--accent-2);direction:ltr">WhatsApp Analyzer</td><td style="padding:7px 8px;color:var(--text-dim)">מנתח כל ליד חדש בוואטסאפ; הצעת grade אוטומטית</td><td style="padding:7px 8px;color:var(--text-faint);font-size:0.78rem">real-time</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--accent-2);direction:ltr">Push (§17.6)</td><td style="padding:7px 8px;color:var(--text-dim)">CPL spike · token פג · streak זוהה · audience-fit fail · dry period</td><td style="padding:7px 8px;color:var(--text-faint);font-size:0.78rem">event-driven</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--accent-2);direction:ltr">Workspace chat</td><td style="padding:7px 8px;color:var(--text-dim)">המפעיל פותח כשרוצה לחשוב — אסטרטגיה, תכנון, שאלות, תגובה להתראה</td><td style="padding:7px 8px;color:var(--text-faint);font-size:0.78rem">on-demand</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--accent-2);direction:ltr">Approvals queue</td><td style="padding:7px 8px;color:var(--text-dim)">תור עם הקשר אסטרטגי מורחב (§8.6); מאשר/דוחה</td><td style="padding:7px 8px;color:var(--text-faint);font-size:0.78rem">on-demand</td></tr>
+      </table>
+      <div class="note ok"><b>קריטי:</b> המפעיל <b>לא חייב</b> להשתמש בצ'אט כדי שהמערכת תעבוד. Cron + תור אישורים לבד מחזיקים את הערך המלא. הצ'אט הוא <b>augmentation</b> — לחשיבה, ללמידה, לאסטרטגיה. מפעיל יכול להפעיל את Campaigner בלי צ'אט בכלל ולקבל ערך מלא מתור ההצעות.</div>
+    </div>
+
+    <div class="card">
+      <h4 style="margin:0 0 10px;font-size:0.98rem">⚡ 6.1.3 — תור יחיד: מה קורה ב-5-10 שניות כשהמפעיל כותב</h4>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:0 0 8px"><b>המפעיל כותב:</b> <i>"אני מרגיש שהקמפיין של הכלות חלש השבוע, מה לעשות?"</i></p>
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:0.82rem;color:var(--text-dim)">
+        <b style="color:var(--accent-2)">1.</b> Intent (Haiku) מסווג → <code>weak_creative</code> + <code>low_leads</code>, target='כלות'<br>
+        <b style="color:var(--accent-2)">2.</b> <b>שליפה במקביל (~500ms):</b> agent_decisions אחרונים · strategic_memory רלוונטי · ledger (האם הציעו לאחרונה?) · fetch_insights live · Pattern Recognizer מסווג (dry/streak ending/audience-fit suspect/seasonal)<br>
+        <b style="color:var(--accent-2)">3.</b> Orchestrator (Opus) מחליט: בעיית קריאייטיב (§9 #5 default)? targeting (§8.0.4)? dry period שצריך סבלנות (§8.0.5)? באמת שינוי תקציב? קורא לכלים נוספים לפי הצורך<br>
+        <b style="color:var(--accent-2)">4.</b> מנסח תשובה בעברית + action card. אם actionable → <code>compose_campaign_draft</code> + <code>propose_task</code> (עובר check_guardrails); ההצעה מקושרת לתור השיחה<br>
+        <b style="color:var(--accent-2)">5.</b> Stream (SSE) → המפעיל רואה אחרי 3-7 שניות. agent_decisions + memory + ledger מתעדכנים
+      </div>
+    </div>
+
+    <div class="card">
+      <h4 style="margin:0 0 10px;font-size:0.98rem">🔗 6.1.4 — איפה כל יכולת חדשה "יושבת" על המוח הקיים</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+        <tr style="border-bottom:1px solid var(--border)"><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">יכולת חדשה</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">יושבת על</th></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Calibrator (§17.4)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>estimate_cpl</code> · <code>load_baselines</code> · <code>fetch_insights</code> → הופכים <b>קלטים</b>, לא תשובות</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Audience-Fit (§8.0.4)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>audience_targeting</code> · <code>list_audiences</code> → pre-step חדש לפני ההערכה</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Pattern Recognizer (§8.0.5)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>fetch_insights</code> · <code>seasonal_hints</code> · <code>check_creative_fatigue</code> → מסווג <b>סוג</b> התנודה</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Strategic Memory (§8.3)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>agent_decisions</code> נשאר ה-substrate; <code>strategic_memory</code> הוא שכבת הפרשנות מעל</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Dedup Ledger (§8.4)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>load_feedback_history</code> + <code>propose_task</code> → מונע חזרתיות בלי לשנות pipeline</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Draft Composer (§8.5)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>draft_new_campaign_payload</code> · <code>compose_copy_brief</code> → flow אחד שיחתי</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Creative & Video (§8.7)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>list_active_creatives</code> · <code>creative_gallery</code> → ניתוח <b>תוכן</b> מעל הביצועים הקיימים</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">WhatsApp (§8.8.1)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><code>lead_quality_grades</code> · <code>lead_outcomes</code> → סיגנל איכות pre-CRM</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">Workspace UI</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">קורא מטבלאות קיימות; כותב הצעות דרך <code>approvals</code> — המוח לא יודע שהוא קיים</td></tr>
+      </table>
+      <div class="note star">⭐ <b>התכונה החשובה ביותר:</b> כל שכבה חדשה <b>קוראת וכותבת למבנים קיימים</b>. שום דבר במוח הקיים לא נכתב מחדש. cron ממשיך לעבוד. approvals ממשיך לעבוד. Meta integration ממשיכה לעבוד. השכבה השיחתית היא <b>תוספת</b>, לא החלפה.</div>
+    </div>
+  </section>
+
+  <!-- DATA -->
+  <section id="data">
+    <h2 class="sec"><span class="num">7</span> מודל נתונים — migrations חדשים (הבא = 033)</h2>
+    <p class="sec-lead">כל הטבלאות scoped ל-<code>business_id</code>, RLS פעיל, FK ל-<code>businesses</code> — בדיוק כמו הקונבנציה הקיימת.</p>
+    <div class="card">
+      <table>
+        <tr><th>Migration</th><th>טבלה</th><th>תפקיד</th></tr>
+        <tr><td><code>033</code></td><td><code>conversations</code></td><td>כותרת שיחה + סיכום מתגלגל + כוונה אחרונה</td></tr>
+        <tr><td><code>034</code></td><td><code>conversation_messages</code></td><td>תורות; <code>artifacts</code> jsonb; <code>related_approval_ids</code></td></tr>
+        <tr><td><code>035</code></td><td><code>strategic_memory</code></td><td><b>מוח המפעיל</b> — העדפות, מה נכשל/ממיר, עונתיות, אסטרטגיות שנדחו</td></tr>
+        <tr><td><code>036</code></td><td><code>recommendation_ledger</code></td><td><span class="chip star">⭐</span> מניעת חזרתיות: fingerprint, cooldown, novelty</td></tr>
+        <tr><td><code>037</code></td><td><code>campaign_drafts</code></td><td>מאגר דראפטים לפני קידום ל-<code>approvals</code></td></tr>
+        <tr><td><code>038</code> <span style="font-size:0.7rem;color:var(--text-faint)">(Phase 4)</span></td><td><code>creative_intelligence</code></td><td>תגיות תוכן לתמונות/וידאו</td></tr>
+        <tr><td><code>039</code> <span style="font-size:0.7rem;color:var(--text-faint)">(Phase 5)</span></td><td><code>lead_outcomes</code></td><td>תוצאות מה-CRM (נסגר/אבד/שווי עסקה/no-show) — §8.8</td></tr>
+        <tr><td><code>040</code> <span style="font-size:0.7rem;color:var(--text-faint)">(Elevator 17.3)</span></td><td><code>cross_client_benchmarks</code> <span style="font-size:0.7rem;color:var(--text-faint)">(matview)</span></td><td>בנצ'מרקים מאוגדים על פני לקוחות Aiweon (מינ' 3 לכל cohort) — §17.3</td></tr>
+      </table>
+    </div>
+    <div class="note star">⭐ <code>recommendation_ledger</code> = הפתרון הישיר ל"חוזר על עצמו". כל המלצה מקבלת fingerprint; אם כבר נאמרה בתוך cooldown — הסוכן <b>מסלים, מנמק מחדש, או שותק</b> — לא חוזר מילה במילה. גם ה-cron Flows כותבים לאותו ledger כדי שצ'אט ו-cron לא יחזרו זה על זה.</div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section id="components">
+    <h2 class="sec"><span class="num">8</span> רכיבי המוח</h2>
+
+    <div class="card" style="border-color:var(--accent-2)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-weight:700;font-size:1.05rem">⭐ 8.0 — Onboarding: סריקה ראשונה עמוקה</span>
+        <span style="font-size:0.7rem;color:var(--text-faint);direction:ltr;background:var(--bg-3);padding:2px 8px;border-radius:6px">Phase 1 · יסוד</span>
+      </div>
+      <p style="color:var(--text-dim);font-size:0.88rem;margin:0 0 14px">היום חיבור חשבון קיים עושה sync <b>מפוצל</b> (gallery/audiences/leads בנפרד) — אין סריקה ראשונה איכותית מתוזמרת, ולכן הסוכן לא <b>מרגיש</b> שהוא מבין את החשבון. סריקת איכות חד-פעמית שבונה בסיס לפני השיחה הראשונה:</p>
+      <div style="font-size:0.78rem;color:var(--text-faint);margin-bottom:8px;direction:rtl">הרצף: <b style="color:var(--text-dim)">קודם מושך → אז ממלא ידע עסקי → אז מודד מול benchmark</b></div>
+      <div class="grid cols-3">
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px"><b style="color:var(--accent-2)">1 · סנכרון מבני (pull)</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">כל הקמפיינים/ad sets/ads + תקציבים + <b>כל ההיסטוריה הזמינה</b> (אידיאל 90d, עובד גם עם 30/60 — confidence מתאים את עצמו, §8.0.2). <code>meta/sync</code> · <code>fetch_insights</code></div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px"><b style="color:var(--accent-2)">2 · Backfill נכסים</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">קריאייטיבים→גלריה, קהלים, לידים. <code>backfill_gallery_from_meta</code> · <code>sync_audiences</code> · <code>sync_leads</code></div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px"><b style="color:var(--accent-2)">3 · Baselines + בריאות</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">baselines מתגלגלים, בריאות חשבון, pacing. <code>check_account_health</code></div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--accent-2);border-radius:10px;padding:12px 14px"><b style="color:var(--accent-2)">⭐ 4 · העשרת ידע עסקי</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">מושך מ-Meta קודם, אז ממלא <code>business_knowledge</code> (ענף, שירותים, גאוגרפיה, brand voice, KPI) מ-Meta + <b>מקורות שהמשתמש מזין</b> (אתר, דק, סושיאל)</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--info);border-radius:10px;padding:12px 14px"><b style="color:var(--info)">⭐ 5 · מחקר מתחרים (אוטומטי)</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">כמו Flow D אבל אוטומטי בסריקה: <b>benchmark CPL/CPA</b>, סוגי קהלים, זוויות מתחרים בענף×גאוגרפיה. <b>מצוטט בלבד</b> (§27). <code>estimate_cpl</code> · WebSearch</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px"><b style="color:var(--pink)">6 · בינת קריאייטיב</b> <span style="font-size:0.68rem;color:var(--text-faint)">(הדרגתי)</span><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">מבני ב-P1; ניתוח תוכן מלא של <b>כל הגלריה</b> כש-§10 נוחת (P4)</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px"><b style="color:var(--warn)">7 · זריעת זיכרון</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">זיקוק תובנות ל-<code>strategic_memory</code>: מה ממיר, מה נכשל, עונתיות, פערים</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--accent);border-radius:10px;padding:12px 14px"><b style="color:var(--accent)">8 · אבחון פותח</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">הודעה ראשונה: "הנה מה שאני רואה" + <b>מיצוב מול benchmark CPL + מפת קהלים</b> + 2-3 הזדמנויות — <b>לא צ'אט ריק</b></div></div>
+      </div>
+      <div class="note star">⭐ <b>איכות הסריקה עולה עם מספר המקורות:</b> ההבנה של הסוכן עמוקה כמו מה שמזינים לו. ככל שהמשתמש מספק יותר — <b>אתר, דק מותג, סושיאל, רשימת שירותים, ייצוא קמפיינים</b> — הסריקה, פרופיל העסק וה-benchmarks מדויקים יותר. ה-onboarding צריך לבקש מקורות אקטיבית ולהראות איך כל אחד משפר את הסריקה.</div>
+      <div class="note ok"><b>Pull-first:</b> הסוכן לא חוקר את המשתמש "קר" — מושך הכל מ-Meta קודם, מנסח טיוטת <code>business_knowledge</code>, ומבקש מהמשתמש רק לאשר/לתקן/להעשיר. <b>איכות לפני מהירות</b> — רץ כ-background job עם אינדיקציית התקדמות. <b>מתזמר</b> את הכלים הקיימים — לא משכפל.</div>
+    </div>
+
+    <div class="card" style="border-color:var(--accent)">
+      <div style="font-weight:700;font-size:1.02rem;margin-bottom:4px">🔬 8.0.1 — איך הסריקה מגיעה לאיכות (לא גנרי)</div>
+      <p style="color:var(--text-dim);font-size:0.86rem;margin:0 0 12px"><code>generic_agent</code> עושה onboarding עמוק ע"י קראולינג של <b>כל האתר</b> (Firecrawl) + כמה <b>מעברי חילוץ LLM ממוקדים</b> + בניית פרופיל מובנה ופרסונה — הכל כ-<b>background job איטי</b>. לוקחים את ה<b>טכניקה</b>; הפלט ל-Postgres מובנה (בלי Qdrant — ממפים מבנה, לא קורפוס לחיפוש סמנטי).</p>
+      <div class="grid cols-2">
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:11px 14px"><b style="color:var(--accent-2)">1 · קראולינג רב-מקורי</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">כל עמוד באתר + מקורות שהוזנו (דק, סושיאל). <b>שימוש חוזר ב-Firecrawl</b> שכבר מופעל ב-generic_agent; fallback: sitemap + WebFetch</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:11px 14px"><b style="color:var(--accent-2)">2 · חילוץ רב-מעברי</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">לא פרומפט שטחי אחד — מעברי Claude נפרדים: שירותים · brand voice · מיצוב · קהלים/ICP · אותות אמון · עונתיות. <b>"איטי" = יסודי</b></div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:11px 14px"><b style="color:var(--accent-2)">3 · מיזוג מקורות</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">יישוב אתר ↔ קריאייטיבים/קופי היסטוריים ב-Meta ↔ סושיאל ↔ קלט מפעיל לפרופיל אחד; סתירות לאישור</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--accent);border-radius:10px;padding:11px 14px"><b style="color:var(--accent)">⭐ 4 · גזירת פרסונה</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px"><b>התאמת אופי הסוכן לעסק</b>: מגזרים מהקול/מיצוב האמיתי את register/פורמליות/פרימיום/אסרטיביות → מוזרק לפרומפט הפרסונה (§14). הסוכן <b>נשמע שייך לעסק</b></div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:11px 14px"><b style="color:var(--warn)">5 · ביטחון + פערים</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">כל עובדה עם confidence; פריטים חלשים/חסרים → שאלות אישור-תיקון + רשימת "הוסף מקורות כדי לשפר אותי"</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:11px 14px"><b style="color:var(--accent-2)">6 · רקע, resumable, נצפה</b><div style="font-size:0.82rem;color:var(--text-dim);margin-top:4px">background job (לא חוסם UI); התקדמות per-pass ב-<code>onboarding_status</code>; <b>ניתן להרצה חוזרת</b> בכל הוספת מקור</div></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--danger)">
+      <div style="font-weight:700;font-size:1.02rem;margin-bottom:4px">⭐ 8.0.4 — Audience-Fit Pre-Check (לפני הכל)</div>
+      <p style="color:var(--text-dim);font-size:0.86rem;margin:0 0 10px"><b>חוק קשה של המפעיל:</b> <i>"לפני הכל בקמפיין חדש — בודקים שהקהלים בכלל רלוונטיים. אולי מגיעים מלא לידים אבל הטרגוט שגוי, המיקום שגוי, חסרות החרגות לאוכלוסיות סמוכות שלא רלוונטיות."</i> כל סיגנל אחר משקר כשהטרגוט שגוי — ליד זול שלא סוגר נראה כמו <b>בעיית קריאייטיב</b> כשבעצם זו בעיית <i>למי בכלל מדברים</i>.</p>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:6px 0 6px"><b>4 רגעי בדיקה:</b></p>
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+        <tr style="border-bottom:1px solid var(--border)"><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">מתי</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">מה נבדק</th></tr>
+        <tr><td style="padding:7px 8px;color:var(--danger);direction:ltr;border-top:1px solid var(--border-soft)">T-1 (onboarding)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">הקהל המוצע מתאים ל-service_regions + ICP + ענף + יכולת תפעולית</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--danger);direction:ltr;border-top:1px solid var(--border-soft)">T+0 (השקה)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">החרגות במקום לאוכלוסיות סמוכות-לא-רלוונטיות</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--danger);direction:ltr;border-top:1px solid var(--border-soft)">T+3d (לידים ראשונים)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">תכונות הלידים נראות כמו ICP? <b>אל</b> תאשים את הקריאייטיב לפני שבדקת</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--danger);direction:ltr;border-top:1px solid var(--border-soft)">תמיד</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><b>"too good to be true":</b> CPL הרבה מתחת לצפי <b>+</b> close_rate נמוך → חשד מי-טרגוט (קליקים זולים מאנשים לא נכונים)</td></tr>
+      </table>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:10px 0 6px"><b>חכמת החרגות</b> (הנקודה שלך על אוכלוסיות סמוכות):</p>
+      <ul style="color:var(--text-dim);font-size:0.82rem;margin:4px 0 8px;padding-inline-start:18px">
+        <li>חופפים גאוגרפית-אבל-לא-רלוונטיים — נגר בת"א → להחריג תיירים, סטודנטים זרים, אנשים מחוץ לרדיוס שירות</li>
+        <li>לקוחות קיימים — לא לרכוש מחדש את מי שכבר יש לך</li>
+        <li>מחפשי עבודה — קליקים על מודעות כדי למצוא עבודה אצל העסק, לא לקנות</li>
+        <li>עמיתי תעשייה / מתחרים / עיתונאים</li>
+        <li>אשכולות לידים-איכות-נמוכה שזוהו ע"י <code>lead_outcomes</code> (§8.8) — auto-suggest החרגה</li>
+      </ul>
+      <p style="color:var(--text-dim);font-size:0.82rem;margin:8px 0 0"><b>בדיקה מצליבה עם Calibrator:</b> אם <code>actual_CPL << prior_CPL</code> וגם <code>close_rate << prior</code> — הלידים הזולים הם האנשים הלא נכונים. ה-Calibrator <b>חייב</b> להעלות חשד audience-fit לפני שממליץ על שינויי תקציב.</p>
+      <div class="note danger"><b>מה זה מונע:</b> שהמוח "יתקן" את הבעיה הלא נכונה. היום המערכת תאופטמז תקציב/קריאייטיב על קמפיין מיו-טוורגט ואף פעם לא תבין שהבעיה היא <b>למי Meta מציגה את המודעה</b>.</div>
+    </div>
+
+    <div class="card" style="border-color:var(--pink)">
+      <div style="font-weight:700;font-size:1.02rem;margin-bottom:4px">⭐ 8.0.2 — מתודולוגיית כיול (Calibration)</div>
+      <p style="color:var(--text-dim);font-size:0.86rem;margin:0 0 10px">המוח הקיים נשען על <b>גריד סטטי</b> שאינו מכויל למציאות החשבון. הנתונים האמיתיים של המפעיל (YAMBA: ₪20/ליד · כלות: ₪15/ליד) מראים שהגריד גבוה ב-~70% מהמציאות. הפתרון: <b>Bayesian shrinkage</b> שמכייל את ה-prior עם ה-actual של החשבון.</p>
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;direction:ltr;font-family:'JetBrains Mono',monospace;font-size:0.84rem;color:var(--accent-2);text-align:left;margin:8px 0">CPL_predicted = Prior × (1 − confidence) + Actual × confidence</div>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:10px 0 6px"><b>Confidence רב-ממדי</b> (תובנת <i>"זמן תודעה"</i> של המפעיל): N + יציבות (1−CoV) + ותק קמפיין + יחס לידים/₪ יציב + cross-business signal. <b>קמפיין בן חודש עם 60 המרות יציבות = ביטחון גבוה יותר מקמפיין בן 3 ימים עם 100 המרות רוקדות.</b></p>
+      <div class="grid cols-3" style="gap:8px;margin-top:10px">
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:9px 11px"><b style="color:var(--accent-2);font-size:0.82rem">0 ימים — No-history</b><div style="font-size:0.78rem;color:var(--text-dim);margin-top:3px">רק prior; <b>מציג טווח</b> ("שוק ₪40-80; מנוהל-היטב ₪20-30") — לא מספר יחיד עירום</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:9px 11px"><b style="color:var(--accent-2);font-size:0.82rem">1-30 ימים — Early-data</b><div style="font-size:0.78rem;color:var(--text-dim);margin-top:3px">blend, confidence נמוך-בינוני, מסומן ראשוני</div></div>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:9px 11px"><b style="color:var(--accent-2);font-size:0.82rem">30-90+ ימים — Calibrated</b><div style="font-size:0.78rem;color:var(--text-dim);margin-top:3px">סומך על actual, monitor drift; תורם ל-cross-business pool</div></div>
+      </div>
+      <p style="color:var(--text-dim);font-size:0.82rem;margin:10px 0 0"><b>שכתוב הגריד לאורך זמן (Phase B):</b> הגריד הקיים נשאר fallback פסימי; כל חשבון מ-T+90d תורם ל-pool שיחליף את הגריד בענפים עם 5+ חשבונות מכוייילים.</p>
+      <div class="note ok"><b>חוזה היושר:</b> כל CPL שהסוכן אומר נושא <b>טווח ותווית-ביטחון</b> — לעולם לא מספר יחיד עירום. <i>"ב-cold start: ₪40-80 שוק, ₪20-30 מנוהל-היטב, נדע אמת ביום 7."</i></div>
+    </div>
+
+    <div class="card" style="border-color:var(--pink)">
+      <div style="font-weight:700;font-size:1.02rem;margin-bottom:4px">⭐ 8.0.3 — מעקב מותאם-גיל-קמפיין (Playbook המפעיל מקודד)</div>
+      <p style="color:var(--text-dim);font-size:0.86rem;margin:0 0 10px">היום המוח קורא Gate 1/Gate 2 כל יום באותו אופן — אין לו מושג של גיל קמפיין. ה-playbook שלך אומר אחרת: צעיר ↔ מבוגר.</p>
+      <table style="width:100%;border-collapse:collapse;font-size:0.84rem">
+        <tr style="border-bottom:1px solid var(--border)"><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.74rem;text-transform:uppercase">גיל</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.74rem;text-transform:uppercase">מה המוח עושה</th></tr>
+        <tr style="border-bottom:1px solid var(--border-soft)"><td style="padding:8px;color:var(--accent-2);direction:ltr">T+0</td><td style="padding:8px;color:var(--text-dim)">השקה; שמירת prior + יעדים + ציפיות</td></tr>
+        <tr style="border-bottom:1px solid var(--border-soft)"><td style="padding:8px;color:var(--accent-2);direction:ltr">T+3d</td><td style="padding:8px;color:var(--text-dim)"><b>הליד הראשון הגיע?</b> אם לא — <b>מאבחן הספקה</b> (utilization/audience/creative) <b>לפני</b> שנוגעים בתקציב. מדד חדש: <code>time_to_first_lead</code></td></tr>
+        <tr style="border-bottom:1px solid var(--border-soft)"><td style="padding:8px;color:var(--accent-2);direction:ltr">T+7d</td><td style="padding:8px;color:var(--text-dim)"><b>קריאת CPL ראשונה</b>. מציאות שונה מ-prior ב-30%+? <b>מעדכן את ה-prior</b> ב-<code>strategic_memory</code>, מציף למפעיל</td></tr>
+        <tr style="border-bottom:1px solid var(--border-soft)"><td style="padding:8px;color:var(--accent-2);direction:ltr">T+30d</td><td style="padding:8px;color:var(--text-dim)"><b>בדיקת יציבות מול השקעה</b>. CoV נמוך → confidence עולה, ההמלצות סומכות על actual</td></tr>
+        <tr><td style="padding:8px;color:var(--accent-2);direction:ltr">T+90d</td><td style="padding:8px;color:var(--text-dim)"><b>"זמן תודעה" — trusted</b>. קמפיין <b>מוגן</b> (אסור לכבות בלי סיבה כבדה), תורם ל-cross-business benchmarks (§17.3)</td></tr>
+      </table>
+      <div class="note">היום קמפיין בן 3 ימים וקמפיין בן 90 ימים מקבלים אותו יחס. ה-playbook שלך אומר: <b>צעיר → סבלנות + אבחון; מבוגר → הגנה + אמון.</b></div>
+    </div>
+
+    <div class="card" style="border-color:var(--orange)">
+      <div style="font-weight:700;font-size:1.02rem;margin-bottom:4px">⭐ 8.0.5 — זיהוי תבניות: dry periods, winning streaks, seasonal pulses</div>
+      <p style="color:var(--text-dim);font-size:0.86rem;margin:0 0 10px">מעבר לגיל גולמי, קמפיינים עוברים <b>קטעים</b>. שובל יבש של 3 ימים לא בהכרח "שבור" — זו פלוקטואציה רגילה. רצף ניצחון לא צריך לגעת בו. עונה משנה הכל. המוח חייב לזהות את <b>סוג</b> התנודה לפני שמגיב.</p>
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+        <tr style="border-bottom:1px solid var(--border)"><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">תבנית</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">זיהוי</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">פעולה</th></tr>
+        <tr><td style="padding:7px 8px;color:var(--orange);border-top:1px solid var(--border-soft)"><b>Dry period</b></td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">ירידה פתאומית אחרי יציבות; ≥3 ימים; <b>לא</b> עונתי</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><b>צעד ראשון:</b> add-creative (§9 #5). אז לאבחן saturation. <b>לא לכבות עדיין.</b></td></tr>
+        <tr><td style="padding:7px 8px;color:var(--ok);border-top:1px solid var(--border-soft)"><b>Winning streak</b></td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">≥30% טוב מ-baseline, יציב 5+ ימים, CoV נמוך</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><b>להגן.</b> guardrails חוסם הצעות הרסניות. scale_up מתון (15% בלבד) אופציונלי בלבד</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--accent);border-top:1px solid var(--border-soft)"><b>Seasonal pulse</b></td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">תואם <code>seasonal_hints</code> (חג/עונת חתונות/אירועים)</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">מתאים תקציב מראש; <b>אל</b> תבלבל עם fatigue</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--text-faint);border-top:1px solid var(--border-soft)"><b>Algorithm fluctuation</b></td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">תנודתיות בתוך CoV ≤20%</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">סבלנות. אפס פעולה</td></tr>
+        <tr><td style="padding:7px 8px;color:var(--danger);border-top:1px solid var(--border-soft)"><b>Broken signal</b></td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)">אפס קשה ללא סיבה ברורה; tracking_health מתדרדר</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)"><b>אבחון קודם</b> — tracking · Meta health · חשבון — לפני שנוגעים בקמפיין</td></tr>
+      </table>
+      <p style="color:var(--text-dim);font-size:0.82rem;margin:10px 0 0"><b>למידה חוצת-חשבונות (חיבור ל-§17.3):</b> אם 5+ עסקים דומים (ענף × גאוגרפיה) חוטפים dry period באותו שבוע → <b>אירוע שוק</b> (שינוי אלגוריתם, מחזור חדשות, הצפת מתחרים). המוח מדווח: <i>"ה-dry period הזה פוגע גם בנגרים אחרים השבוע — כנראה לא ספציפי לחשבון שלך; להחזיק"</i>.</p>
+      <div class="note ok"><b>הבחנה קריטית:</b> dry period ↔ broken signal. היום המוח לא יכול להבדיל ביניהם — לכן מגיב מוגזם ל-dry או חלש ל-broken. ההבדל: dry = מטריקות זזות, רק נמוך → סבלנות + רענון. broken = מטריקות אפס שטוח → אבחון מיידי.</div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="comp p1"><div class="h"><span class="t">🧠 Conversation Orchestrator</span><span class="ph">Phase 1</span></div><div class="d">סשן multi-turn (Agent SDK · Opus). פרסונה + חובות לguardrails. הקשר לכל תור: סיכום + intent + business context + זיכרון רלוונטי + ledger פתוח. רשאי <b>להציע</b>; לעולם לא קורא ל-MetaClient.</div><span class="file">campaigner/conversation/orchestrator.py</span></div>
+      <div class="comp p1"><div class="h"><span class="t">🧠 Intent Engine</span><span class="ph">Phase 1</span></div><div class="d">Haiku, רץ <b>לפני</b> ה-orchestration. פלט: primary/secondary intent + confidence + needs_clarification. הכוונה מנתבת אילו כלים נמשכים קודם (למשל low_quality_leads → fetch_lead_quality_summary).</div><span class="file">campaigner/conversation/intent.py</span></div>
+      <div class="comp p3"><div class="h"><span class="t">🧠 Strategic Memory (מוח המפעיל)</span><span class="ph">Phase 3 · סכמה ב-P1</span></div><div class="d">כתיבה: upsert לפי (kind,key) → מחזק (לא משכפל). קריאה: רק עובדות רלוונטיות לכוונה. דעיכה: expires_at לעונתי; Flow F גוזם. Flows קוראים; רק שיחה/מפעיל כותבים.</div><span class="file">campaigner/conversation/memory.py</span></div>
+      <div class="comp p3"><div class="h"><span class="t">⭐ Recommendation Dedup / Novelty</span><span class="ph">Phase 3 → להקדים ל-P1</span></div><div class="d">לפני שמציגים המלצה — fingerprint מול ה-ledger: חדש→מציג · בתוך cooldown→מסלים/שותק · נדחה→מכבד (כמו §37), מעלה רק אם שונה מהותית ואומר במה.</div><span class="file">campaigner/conversation/dedup.py</span></div>
+      <div class="comp p2"><div class="h"><span class="t">🧠 Campaign Draft Composer</span><span class="ph">Phase 2</span></div><div class="d">קלט: ידע עסקי · יעדים · תקציב · גאוגרפיה · מצאי גלריה · קהלים · היסטוריה · זיכרון. פלט: דראפט מובנה (מבנה, טירגוט broad+Advantage+, פיצול תקציב, זוויות, קופי עברית, מדיה, WhatsApp, KPI, סיכונים). <b>⚙️ עובר §38 + תואם best-practices.</b> לא מפרסם.</div><span class="file">campaigner/conversation/draft_composer.py</span></div>
+      <div class="comp p2"><div class="h"><span class="t">⭐ מחזור הצעות (add/improve/remove) + אריזה</span><span class="ph">Phase 2</span></div><div class="d">השיחה מניעה את שכבת ה-approvals הקיימת. כל פעולה → הצעה, מקושרת חזרה לתור השיחה. כל הצעה אורזת: סיבה אסטרטגית · תוצאה צפויה · סיכון · השפעת לידים/תקציב · preview · "למה עכשיו".</div><span class="file">web/src/app/approvals/[id]/page.tsx</span></div>
+      <div class="comp p4"><div class="h"><span class="t">⭐🧠 Creative & Video Intelligence</span><span class="ph">Phase 4</span></div><div class="d">היום יש רק אותות <b>ביצועים</b>. זה מוסיף ניתוח <b>תוכן</b> של תמונות וסרטונים מכל הגלריה, שמירה בזיכרון, וחיבור תוכן↔ביצועים↔לידים. ראו §10.</div><span class="file">tool: analyze_creative.py</span></div>
+      <div class="comp p5"><div class="h"><span class="t">🧠 איכות לידים + לולאת CRM</span><span class="ph">Phase 5</span></div><div class="d">סגירת הלולאה עם <b>תוצאות אמיתיות מ-CRM</b>: הסוכן לומד <b>מה באמת נסגר</b> ומשייך חזרה לקמפיין→קריאייטיב→קהל→הצעה. סיווג ארכיטיפים מבוסס תוצאות (לא ניחוש) → טירגוט/זווית/הצעה/WhatsApp + <code>strategic_memory</code> (what_converts = <b>מה נסגר</b>).</div><span class="file">→ §8.8 (CRM integration)</span></div>
+    </div>
+
+    <div class="card" style="border-color:var(--accent-2);margin-top:16px">
+      <div style="font-weight:700;font-size:1.02rem;margin-bottom:4px">⭐ 8.8.1 — WhatsApp Conversation Intelligence (סיגנל איכות לפני ה-CRM)</div>
+      <p style="color:var(--text-dim);font-size:0.86rem;margin:0 0 10px">המפעיל משתמש ב-<code>click_to_whatsapp</code> בכבדות (default IL B2C). <b>השיחה עצמה היא דאטה</b> — הרבה לפני ש-CRM מסמן נסגר/אבד, התמליל כבר חושף איכות. היום המוח רואה רק <code>lead_count</code>; הוא לעולם לא רואה את השיחה. זה מוסיף את השכבה.</p>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:6px 0 6px"><b>מה השיחה חושפת (בלי לחכות ל-CRM):</b></p>
+      <ul style="color:var(--text-dim);font-size:0.82rem;margin:4px 0 8px;padding-inline-start:18px">
+        <li><b>זמן תגובה ראשון</b> — דקות = חם · ימים = קר</li>
+        <li><b>עומק השיחה</b> — 1-2 תורות = low intent · 6+ ארוכים = qualified</li>
+        <li><b>סוג השאלות</b> — <i>"כמה?"</i> = משווה-מחיר · <i>"מתי תוכל לבוא?"</i> = קונה · <i>"יש המלצות?"</i> = שלב אמון</li>
+        <li><b>סנטימנט</b> · <b>השלמה vs ghosting</b> · <b>שפת מחויבות</b> (<i>"בוא נעשה את זה"</i> vs <i>"אחשוב על זה"</i>)</li>
+        <li><b>סיגנלי דיסקוואליפיקציה</b> — <i>"לא באזור שלך"</i> · <i>"אחותי המליצה, רק בודקת"</i> · <i>"צריך לשנה הבאה"</i></li>
+      </ul>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:8px 0 6px"><b>ארכיטקטורה:</b> Maytapi (מ-generic_agent §17.6) או WhatsApp Cloud API · טבלאות <code>whatsapp_conversations</code>+<code>whatsapp_messages</code> (FK ל-leads) · <code>analyze_whatsapp_conversation</code> (Sonnet, לא Opus — נפח גבוה) מחזיר <code>{quality_score, suggested_grade, intent_signals, booking_likelihood, disqualification_flags}</code> · auto-suggest grade ל-<code>lead_quality_grades</code> (המפעיל מאשר בקליק אחד אם confidence גבוה).</p>
+      <p style="color:var(--text-dim);font-size:0.84rem;margin:6px 0 6px"><b>למידה חוצת-חשבונות (§17.3):</b> <i>"ב-14 נגרים: לידים ששואלים 'מתי תוכל לבוא?' בתור 2 סוגרים ב-67%; ששואלים 'כמה?' סוגרים ב-18%"</i> — benchmark שמשמש לדירוג שיחות חדשות.</p>
+      <p style="color:var(--text-dim);font-size:0.82rem;margin:6px 0 0"><b>פרטיות:</b> opt-in פר עסק · פרטים אישיים (טלפון, כתובת) מטוייחים לפני שליחה ל-LLM · retention ברירת מחדל 90 יום אז סיכום בלבד · תואם מדיניות WhatsApp Business.</p>
+      <div class="note ok"><b>למה זה מעצים:</b> <b>(1)</b> דירוג איכות בקנה מידה — המפעיל לא חייב לקרוא כל ליד · <b>(2)</b> feedback מהיר — סיגנל איכות תוך שעות, לא שבועות · <b>(3)</b> מחבר קריאייטיב→שיחה→תוצאה — המוח לומד <b>אילו קריאייטיבים מייצרים שיחות שסוגרות</b>, לא רק שמייצרות לידים · <b>(4)</b> דיפרנציאטור — אף כלי Meta-automation מיינסטרים לא קורא את השיחה שאחרי הקליק.</div>
+    </div>
+  </section>
+
+  <!-- BEHAVIOR -->
+  <section id="behavior">
+    <h2 class="sec"><span class="num">9</span> ⭐ שדרוג התנהגותי — לתקן "גנרי ופסיבי" (מוקד Phase 1)</h2>
+    <div class="grid cols-2">
+      <div class="card"><h4 style="margin:0 0 6px;color:var(--accent-2)">1. לכרות תוכן קיים — יזום</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">כל אינטראקציה סורקת גלריה + פוסטים אורגניים ו<b>מציעה boost_post / redeploy</b> כשיש תוכן טוב לא מנוצל — במקום ברירת-מחדל של "לייצר חדש" או עצה גנרית.</p></div>
+      <div class="card"><h4 style="margin:0 0 6px;color:var(--accent-2)">2. להניע לפעולה, לא לדווח</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">כל תשובה מסתיימת בצעד קונקרטי מדורג + Action Card — לא בערימת מטריקות.</p></div>
+      <div class="card"><h4 style="margin:0 0 6px;color:var(--accent-2)">3. ספציפיות על פני זהירות</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">לתרגם אותות להחלטה ("לרענן זווית קריאטיבית, לא להגדיל תקציב — תשומת הלב תקינה, החיבור הרגשי ירד").</p></div>
+      <div class="card"><h4 style="margin:0 0 6px;color:var(--accent-2)">4. לסגור לולאת פידבק</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">פידבק בצ'אט → זיכרון + ledger → הצעות מותאמות. לא חוזר על מה שנדחה.</p></div>
+    </div>
+    <div class="card" style="border-color:var(--accent);margin-top:14px"><h4 style="margin:0 0 6px;color:var(--accent)">⭐ 5. הוספת קריאייטיב לאותו קמפיין = ברירת המחדל ל-fatigue (טקטיקת המפעיל)</h4><p style="color:var(--text-dim);font-size:0.88rem;margin:0">כשקריאייטיב מת — המהלך הראשון של המוח הוא <b>להציע near-variant לאותו קמפיין</b> (במילים שלך: <i>"מוסיף קריאייטיב לאותו קמפיין מחיה אותו"</i>) — <b>לפני</b> שמשקלים pause / scale_down / duplicate. שומר על מצב Learning, נמנע מ-reset. Pause/scale_down רק אחרי שניסיונות הקריאייטיב לא עבדו.</p></div>
+    <div class="note ok">⚙️ כל זה עדיין עובר את אותם guardrails דטרמיניסטיים — <b>תקשורת נועזת יותר, בטיחות זהה.</b></div>
+  </section>
+
+  <!-- CREATIVE -->
+  <section id="creative">
+    <h2 class="sec"><span class="num">10</span> ⭐ ניתוח קריאייטיב ווידאו — build vs buy</h2>
+    <p class="sec-lead">היום אין שום ניתוח <b>תוכן</b> — רק אותות ביצועים. הסוכן צריך לאנדקס את <b>כל הגלריה ישירות</b>, לנתח, לשמור בזיכרון, ולדעת <b>מה עבד ולמה</b>.</p>
+
+    <div class="card">
+      <h4 style="margin:0 0 10px">המלצת כלים — <span style="color:var(--ok)">לבנות אצלנו, לא לקנות</span></h4>
+      <table>
+        <tr><th>צורך</th><th>הכלי המומלץ</th><th class="center">בסטאק?</th><th>הערה</th></tr>
+        <tr><td>ניתוח תוכן <b>תמונה</b></td><td><b>Claude vision</b> (Opus/Sonnet)</td><td class="center"><span class="yes">✓</span></td><td>multimodal native, כבר משולם</td></tr>
+        <tr><td>ניתוח תוכן <b>וידאו</b></td><td><b>Gemini 2.5 דרך Vertex AI</b></td><td class="center"><span class="yes">✓</span></td><td>הבנת וידאו native (אודיו+ויז'ואל), <b>משתמש חוזר ב-GCP/Vertex הקיים</b> (אותו פרויקט כמו Imagen)</td></tr>
+        <tr><td><b>Hook (3 שניות ראשונות)</b></td><td>ffmpeg keyframes → Claude vision</td><td class="center"><span class="yes">✓</span></td><td>Claude-native, מדויק על הפתיח הקריטי</td></tr>
+        <tr><td>שכבת <b>ביצועים</b></td><td>Meta insights (3s/5s views, thumb-stop, hook rate)</td><td class="center"><span class="yes">✓</span></td><td>כבר נמשך — משלבים תוכן + ביצועים</td></tr>
+        <tr><td>ציון viralיות/retention <i>(אופציונלי)</i></td><td><code>higgsfield virality_predictor</code> (MCP)</td><td class="center"><span class="chip star">⚠️</span></td><td>SaaS חיצוני; אות משלים טוב, מוסיף ספק/עלות</td></tr>
+        <tr><td>אנליטיקת קריאייטיב cross-platform <i>(עתיד)</i></td><td>Segwise / Vidmob / Neurons</td><td class="center"><span class="nope">✗</span></td><td>enterprise, בתשלום — רק אם הסקופ גדל</td></tr>
+      </table>
+    </div>
+
+    <div class="card" style="border-color:var(--pink)">
+      <h4 style="margin:0 0 10px">⭐ לולאת למידה על כל הגלריה (הכוונה שלך)</h4>
+      <div class="arch">
+        <div class="arch-layer"><div class="body"><b>1. אינדוקס</b> — מנתח batch את כל הנכסים (תמונות+סרטונים+פוסטים) → תגיות תוכן ב-<code>creative_intelligence</code> (רץ מחדש רק על חדש/שונה)</div></div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer"><div class="body"><b>2. חיבור</b> — תגיות תוכן ↔ ביצועי Meta (hook, thumb-stop, CTR, CPL) ↔ תוצאות איכות לידים</div></div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer"><div class="body"><b>3. זיקוק</b> — דפוסים מנצחים ל-<code>strategic_memory</code> (kind=what_converts)</div></div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer brain"><div class="body"><b>4. שימוש</b> — כשמשהו עובד, הסוכן <b>יודע למה</b> ומשתמש בזה בדראפטים + החלטות boost</div></div>
+      </div>
+      <div class="quote">"הויז'ואלים שלך פרמיום אבל קרים רגשית; הממירים הכי טובים שלך מתמקדים באנשים, לא בסטים."</div>
+    </div>
+
+    <div class="note">לגבי "עד 10 סרטונים לבקשה" — זו רק מגבלת batching של Gemini API (כמה קבצים בקריאה אחת). <b>לא רלוונטי לעיצוב שלנו</b> — מנתחים כל נכס פעם אחת ושומרים ב-cache.</div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap">
+    <h2 class="sec"><span class="num">11</span> מפת דרכים — 5 פאזות</h2>
+    <div class="phases">
+      <div class="phase x1"><div class="pn">Phase 1</div><div class="pt">סריקה ראשונה + שכבת שיחה</div><div class="pd"><b>Deep first scan (§8.0)</b> · Workspace · orchestrator (כלי קריאה) · intent · streaming · שדרוג התנהגותי · <b>אפס כתיבה ל-Meta</b></div></div>
+      <div class="phase x2"><div class="pn">Phase 2</div><div class="pt">מערכת דראפטים</div><div class="pd">Draft Composer · preview · קידום→approval · אריזת הצעות · מחזור add/improve/remove</div></div>
+      <div class="phase x3"><div class="pn">Phase 3</div><div class="pt">זיכרון + dedup</div><div class="pd">strategic_memory · <b>ledger נגד חזרתיות</b> · Sidebar · Learning Timeline · חיווט ה-Flows ל-ledger</div></div>
+      <div class="phase x4"><div class="pn">Phase 4</div><div class="pt">בינת קריאייטיב</div><div class="pd">ניתוח תוכן תמונה+וידאו · לולאת למידה על הגלריה</div></div>
+      <div class="phase x5"><div class="pn">Phase 5</div><div class="pt">בינת איכות לידים</div><div class="pd">סיווג ארכיטיפים → חיבור לאסטרטגיה</div></div>
+    </div>
+    <div class="note warn">⚠️ <b>המלצה:</b> להקדים את ה-dedup ledger (Phase 3) ל-Phase 1 — "חוזר על עצמו" הוא הכאב מספר 1 שלך, וזול להקים.</div>
+  </section>
+
+  <!-- ELEVATORS -->
+  <section id="elevators">
+    <h2 class="sec"><span class="num">12</span> אלבטורים אסטרטגיים — שדרוגי יכולת וחיסכון תהליכים</h2>
+    <p class="sec-lead">מבוסס מחקר עמוק של שני הקודבייסים + מגמות 2026 (Meta Ads + Claude Agent SDK). כל אלבטור: <b>מה · איך · מה למשוך מהגיט הקיים כדי לחסוך עבודה</b>. עצמאי לישום, מדורג לפי מינוף.</p>
+
+    <div class="grid cols-2">
+      <div class="card" style="border-color:var(--accent-2)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:1rem">🔥 17.1 — לולאת eval ולמידה</b><span style="font-size:0.68rem;color:var(--accent-2);direction:ltr;background:var(--bg-3);padding:2px 8px;border-radius:6px">Transformational</span></div>
+        <p style="color:var(--text-dim);font-size:0.85rem;margin:4px 0 8px">דפוס <b>Planner → Generator → Evaluator</b> (Anthropic 2026). Evaluator subagent מצליב כל הצעה ↔ תוצאה אמיתית, מנדנד thresholds <b>בתוך</b> guardrails (⚙️ לעולם לא עוקף). מעביר מ"כללים" ל"<b>סוכן שלומד</b>".</p>
+        <div style="font-size:0.74rem;color:var(--accent-2);direction:ltr">reuse: Agent SDK subagents + memory tool · load_recent_actions_outcomes כבר נותן המדידה</div>
+      </div>
+
+      <div class="card" style="border-color:var(--info)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:1rem">🔥 17.2 — Multi-client → SaaS evolution</b><span style="font-size:0.68rem;color:var(--info);direction:rtl;background:var(--bg-3);padding:2px 8px;border-radius:6px">פנימי → רישום עצמאי</span></div>
+        <p style="color:var(--text-dim);font-size:0.85rem;margin:4px 0 8px"><b>שתי פאזות, אותה ארכיטקטורה:</b> <b>(A)</b> Aiweon פנימי — RLS + business switcher. <b>(B)</b> בעתיד — משתמשים נרשמים עצמאית, הסוכן <b>מחליף את הקמפיינר הקיים שלהם</b> (אדם או כלי). אז מרימים billing/auth/subscription מ-generic_agent כמו שהוא. <b>בניית Phase A מראש = Phase B הופך לפיצ'ר, לא שכתוב.</b></p>
+        <div style="font-size:0.74rem;color:var(--info);direction:ltr">Phase A: RLS+switcher · Phase B: lift generic_agent billing/auth stack</div>
+      </div>
+
+      <div class="card" style="border-color:var(--warn)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:1rem">🔥 17.3 — למידה חוצת-משתמשים</b><span style="font-size:0.68rem;color:var(--warn);direction:rtl;background:var(--bg-3);padding:2px 8px;border-radius:6px">המוט האסטרטגי</span></div>
+        <p style="color:var(--text-dim);font-size:0.85rem;margin:4px 0 8px">כל משתמש נוסף מחכים את הסוכן של כולם (אנונימי). materialized view על פני <b>כל החשבונות</b>: זוויות מנצחות, בנדי CPL/CPA, ארכיטיפי קהל סוגרים, <b>ואימות הקליברטור</b> — אילו אסטרטגיות באמת עבדו לעסקים מיקרו בענף X. <i>"ב-14 נגרים במרכז בתקציב דומה: boost_post + 'חם משפחתי' עוקף paid-only 3:1"</i>. <b>Phase A: min 3 לקוחות. Phase B: min 5 + ללא דליפה חוצת-ענף + רעש דיפרנציאלי</b>.</p>
+        <div style="font-size:0.74rem;color:var(--warn);direction:ltr">migration 040 · marginal@1, real@5, transformative@50+ accounts</div>
+      </div>
+
+      <div class="card" style="border-color:var(--pink)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:1rem">🔥 17.4 — Budget-Reality Calibrator</b><span style="font-size:0.68rem;color:var(--pink);direction:rtl;background:var(--bg-3);padding:2px 8px;border-radius:6px">הדיפרנציאטור הכי חזק</span></div>
+        <p style="color:var(--text-dim);font-size:0.85rem;margin:4px 0 8px"><b>הקליברטור = השיחה הכנה של "תקציב מול צורך."</b> המתודולוגיה (Bayesian + confidence רב-ממדי) חיה ב-§8.0.2; כאן <b>מה שהמפעיל רואה</b>.</p>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:8px 0 6px"><b>פלט סטנדרטי — תמיד 2 אופציות (לא אחת):</b></p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.78rem;margin:4px 0 8px;background:var(--bg-2);border-radius:6px;overflow:hidden">
+          <tr style="background:var(--bg-3)"><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">A — מומלץ-שוק ליעד שלך</th><th style="text-align:right;padding:6px 8px;color:var(--text-faint);font-size:0.72rem">B — מה שהתקציב שלך באמת מספק</th></tr>
+          <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border)">מחקר שוק חי: CPL + <b>close-rate</b> + §17.3 + Flow D</td><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border)">תחזית Bayesian (§8.0.2) עם טווח-ביטחון</td></tr>
+          <tr><td style="padding:7px 8px;color:var(--text-dim);border-top:1px solid var(--border-soft)" colspan="2"><b>3 דרכים כנות לבחור:</b> (א) להעלות תקציב ל-A · (ב) לקבל את המציאות ב-B · (ג) לשנות את היעד</td></tr>
+        </table>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:8px 0 6px"><b>⭐ Reverse-from-outcome (המודל המנטלי שלך):</b> חושב ב<b>סוף-תהליך</b> — רכישות/אירועים/לקוחות, לא רק לידים:</p>
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;direction:ltr;font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent-2);text-align:left">target_customers ÷ close_rate = leads_needed × CPL = required_budget</div>
+        <p style="color:var(--text-dim);font-size:0.82rem;margin:8px 0 6px"><b>⭐ close_rate הופך משתנה ממדרגה ראשונה</b> (היום המוח לא חושב על זה): prior לפי ענף ממחקר שוק, actual מ-CRM (§8.8) כשמחובר. <b>בלי close_rate — שיחת התקציב חלקית: ליד זול שלא סוגר יקר יותר מליד יקר שסוגר.</b></p>
+        <p style="color:var(--text-dim);font-size:0.82rem;margin:6px 0 8px;background:var(--bg-2);padding:8px 10px;border-radius:8px;border:1px solid var(--border)"><b>📐 דוגמה מורחבת — נגרות, ₪40/יום, יעד 3 לידים/יום:</b><br>הסוכן מסגר לתוצאה: <i>"3 לידים/יום × close 20% = ~18 לקוחות/חודש. זה היעד האמיתי?"</i> אם כן → <b>A:</b> ₪180/יום (18 לקוחות) · <b>B:</b> ₪40/יום (3-6 לקוחות) · גאפ ברור + 3 דרכים. אחרי 30 יום נתונים אמיתיים: המודל מתכייל ומגלה שב-YAMBA שלך CPL=₪20, התחזית עולה ל-2 לידים/יום בתקציב הזה — והשיחה חוזרת על עצמה עם מספרים מעודכנים.</p>
+        <p style="color:var(--text-dim);font-size:0.82rem;margin:6px 0 0"><b>סדר שאלות ב-onboarding (לפי ה-playbook שלך):</b> תקציב יכולת ← מחקר שוק חי (CPL + close-rate) ← יעד לקוחות/חודש ← 2 אופציות + גאפ + 3 דרכים. <b>"Always relative to market + business size"</b> — אף פעם לא ערכים מוחלטים.</p>
+        <div style="font-size:0.74rem;color:var(--pink);direction:ltr;margin-top:8px">new: calibrate_budget_reality · research_market_close_rate · compute_outcomes_from_leads · present_two_options · business_profile_classifier (11 חישובים §17.4.2)</div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:4px"><b>17.5 — לולאת קריאייטיב סגורה</b></div>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:4px 0 6px"><code>compose_creative_brief_from_winner</code> מזין מנצח A/B חזרה ל-<code>generate_creative</code>. אחרי 3-4 מחזורים — כיוונון אנכי. <b>מיושר ל-Advantage+ Creative 2026</b> (Meta בודקת פי 10-20 ודוחפת לתקציב למנצח).</p>
+        <div style="font-size:0.74rem;color:var(--accent-2);direction:ltr">reuse: A/B כבר מלא — רק כלי גשר חדש</div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:4px"><b>17.6 — התראות יזומות (WhatsApp)</b></div>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:4px 0 6px">cron failure · token expiring · CPL spike · creative fatigue · ledger escalations → WhatsApp/email. <b>MTTR יורד מ-8 שעות ל-8 דקות.</b></p>
+        <div style="font-size:0.74rem;color:var(--accent-2);direction:ltr">reuse: Maytapi WhatsApp client מ-generic_agent (backend/services/whatsapp/)</div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:4px"><b>17.7 — יכולות Claude Agent SDK 2026</b></div>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:4px 0 6px"><b>Subagents</b> (אבחון מקבילי, היום סדרתי) · <b>Memory tool</b> (זיכרון native, משלים את strategic_memory) · <b>Online eval hooks</b> תופסים drift/prompt-injection/הזיית-כלים — <b>לחווט מ-יום 1</b>.</p>
+        <div style="font-size:0.74rem;color:var(--warn);direction:ltr">⚠️ מ-15.6.2026: Agent SDK credit חודשי נפרד — למדל בתקציב טוקנים §15</div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:4px"><b>17.8 — שימוש חוזר בתשתית (חוסך שבועות)</b></div>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:4px 0 6px"><b>ARQ + APScheduler</b> (לסריקה העמוקה §8.0 + nightly syncs) · <b>Firecrawl + extraction pipeline</b> (ל-§8.0.1) · <b>PromptLoader</b> · <b>MCP framework</b> (אפשר Meta MCP provider) · <b>design system + i18n</b> (Hebrew RTL פתור).</p>
+        <div style="font-size:0.74rem;color:var(--accent-2);direction:ltr">הכל קיים ב-D:\Projects\generic_agent — מאמצים, לא בונים</div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:4px"><b>17.9 — לסיים deferred (ROI/מאמץ גבוה)</b></div>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:4px 0 6px"><b>kpis_per_objective</b> (migration 026 — קיים, לא מחווט; <b>תיקון כשל שקט</b>) · <b>approval_mcq</b> (027 — שאלת רב-ברירה inline, פתרון ישיר לבעיית הפידבק שהעלית) · <b>token rotation + alert</b> (T-7 ימים) · <b>idempotency lock</b> על agent_decisions.</p>
+        <div style="font-size:0.74rem;color:var(--accent-2);direction:ltr">migrations כבר בנויים — רק לחווט</div>
+      </div>
+
+      <div class="card" style="border-color:var(--pink)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px"><b style="font-size:1rem">🔥 17.10 — Brain calibration: ביקורת הקשחות</b><span style="font-size:0.68rem;color:var(--pink);direction:rtl;background:var(--bg-3);padding:2px 8px;border-radius:6px">משלים את 17.4</span></div>
+        <p style="color:var(--text-dim);font-size:0.85rem;margin:4px 0 6px"><b>מצאתי 8 הקשחות ב-thresholds.yaml שמענישות עסקים קטנים:</b></p>
+        <ul style="color:var(--text-dim);font-size:0.82rem;margin:4px 0 8px;padding-inline-start:18px">
+          <li><code>min_conversions_for_exit: 50</code> קבוע — לא מבחין בין ₪40 ל-₪40K/יום</li>
+          <li><code>scale_up</code> רק באחוזים — קפיצה של ₪8 על ₪40 חסרת משמעות</li>
+          <li>אין <code>tier_micro</code> מתחת ל-small (₪50)</li>
+          <li><code>impressions_floor: 1000</code> בלתי ישיג ב-₪20/יום — Gate 1 לא יורה</li>
+          <li>"ב-Learning לא לסקייל" — חוסם מיקרו שתמיד שם</li>
+          <li>המלצה ל-"10+ קריאייטיבים" — עלות יצור > ערך במיקרו</li>
+          <li>⭐ <b>אין שער-תנודתיות</b> — שבוע יציב ושבוע רוקד נראים זהים. הוסף <code>cpl_volatility.cov_weekly</code>: ≤20% יציב · 20-40% מעקב · <b>≥40% דגל חולשה</b> (כיול המפעיל)</li>
+          <li>⭐ <b>אין מושג של close_rate</b> בכלל — המוח חושב לידים, המפעיל חושב לקוחות. הופך משתנה ממדרגה ראשונה (§17.4)</li>
+          <li>⭐ <b>אין הקשר גודל-עסק</b> — ₪40/יום זה "קטן" ל-SaaS אבל "רגיל" לעסק-משני; אותו מספר, משמעות הפוכה. <code>business_profile_classifier</code> + כל המלצה אומרת <i>"מה טיפוסי לגודל הזה בשוק הזה"</i></li>
+        </ul>
+        <p style="color:var(--text-dim);font-size:0.84rem;margin:6px 0 6px"><b>הפתרון:</b> <code>business_profile_classifier</code> + ערכי <code>_micro</code> לכל ספים + <code>check_guardrails.py</code> שנהיה <b>tier-aware</b> + close_rate + שער-תנודתיות. <b>שינוי סדר onboarding:</b> תקציב יכולת קודם (גבול קשיח), אז מחקר שוק, אז יעד לקוחות/חודש — lead-need נגזר, לא נשאל. <b>עיקרון יושר בפרסונה (§14):</b> "אל תמכור אשליות" + לעולם לא CPL ללא טווח-ביטחון (§8.0.2).</p>
+        <div style="font-size:0.74rem;color:var(--pink);direction:ltr">tier-aware guardrails · business_profile_classifier · 9 threshold overrides · close_rate + cpl_volatility + size-relative recommendations</div>
+      </div>
+    </div>
+
+    <div class="note star">⭐ <b>שני האלבטורים החזקים ביותר:</b> §17.1 (לולאת למידה — קפיצה תפיסתית) ו-<b>§17.4 + §17.10 ביחד</b> (Calibrator + ביקורת הקשחות — סוכן באמת מותאם-עסק, לא משכפל-Meta). §17.2+17.3 הופכים למוט אסטרטגי כשעוברים ל-Phase B (רישום עצמאי) — כל משתמש נוסף מחכים את כל השאר.</div>
+  </section>
+
+  <!-- RISKS -->
+  <section id="risks">
+    <h2 class="sec"><span class="num">13</span> סיכונים ושאלות פתוחות</h2>
+    <div class="card">
+      <table>
+        <tr><th>#</th><th>נושא</th><th>מיטיגציה / החלטה</th></tr>
+        <tr><td>1</td><td><b>Transport</b> (§4 — א/ב)</td><td>החלטת מוביל-פיתוח לפני Phase 1</td></tr>
+        <tr><td>2</td><td><b>Latency של קריאת ~60 כלים</b> לכל תור</td><td>לשקול import של main() in-process / worker; benchmark ב-P1</td></tr>
+        <tr><td>3</td><td><b>מיקום ה-dedup</b></td><td>להקדים ל-Phase 1</td></tr>
+        <tr><td>4</td><td><b>הקשר/עלות</b> בשיחות ארוכות</td><td>compaction + סינון רלוונטיות לזיכרון (§5)</td></tr>
+        <tr><td>5</td><td><b>התנגשות צ'אט מול cron</b></td><td>ledger משותף (§8.4); לחווט עד P3</td></tr>
+        <tr><td>6</td><td><b>עלות ניתוח וידאו</b></td><td>cache על creative_intelligence; להריץ רק על נכסים חדשים/שונים</td></tr>
+        <tr><td>7</td><td><b>פרסונה מול guardrails</b></td><td>הפרסונה כפופה ל-guardrails; בדיקת adversarial</td></tr>
+      </table>
+    </div>
+    <div class="note danger"><b>מחוץ לסקופ:</b> שכתוב Flows A–H / guardrails / approvals / Meta · כל datastore חדש (Mongo/Qdrant) או LLM-צ'אט אחר (Grok/Gemini) · ייבוא קוד מ-generic_agent · ביצוע אוטונומי / ביטול HITL · multi-business & CRM (נשארים deferred).</div>
+  </section>
+
+  <footer class="f">
+    Campaigner V2 — שכבת השיחה · PRD ויזואלי · 2026-05-27<br>
+    מקור מלא: <code>docs/plans/conversational-layer-prd.md</code> · טיוטה לאישור המתכנת השני לפני תחילת עבודה
+  </footer>
+
+</div>
+</body>
+</html>
